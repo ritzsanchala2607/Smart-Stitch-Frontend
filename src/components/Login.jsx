@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Eye, EyeOff } from 'lucide-react';
 import GoogleAuthButton from './GoogleAuthButton';
+import ForgotPasswordModal from './ForgotPasswordModal';
 
 /**
  * Login Component
@@ -33,6 +34,7 @@ function Login({ onSwitchToSignup }) {
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
 
   // Form validation
   const validateForm = () => {
@@ -327,6 +329,7 @@ function Login({ onSwitchToSignup }) {
                 </label>
                 <button
                   type="button"
+                  onClick={() => setShowForgotPasswordModal(true)}
                   className="text-orange-600 hover:text-orange-700 font-medium"
                 >
                   Forgot password
@@ -641,6 +644,12 @@ function Login({ onSwitchToSignup }) {
           </motion.div>
         </motion.div>
       )}
+
+      {/* Forgot Password Modal */}
+      <ForgotPasswordModal
+        isOpen={showForgotPasswordModal}
+        onClose={() => setShowForgotPasswordModal(false)}
+      />
     </div>
   );
 }
