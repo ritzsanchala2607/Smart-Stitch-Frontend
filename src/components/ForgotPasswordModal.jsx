@@ -56,6 +56,23 @@ function ForgotPasswordModal({ isOpen, onClose }) {
     }
   };
 
+  // Prevent paste in confirm password field
+  const handleConfirmPasswordPaste = (e) => {
+    e.preventDefault();
+    // Optionally show a temporary error message
+    setErrors(prev => ({
+      ...prev,
+      confirmPassword: 'Please type your password instead of pasting'
+    }));
+    // Clear the error after 3 seconds
+    setTimeout(() => {
+      setErrors(prev => ({
+        ...prev,
+        confirmPassword: null
+      }));
+    }, 3000);
+  };
+
   // Validate form fields
   const validateForm = () => {
     const newErrors = {
@@ -261,6 +278,7 @@ function ForgotPasswordModal({ isOpen, onClose }) {
                     name="confirmPassword"
                     value={formData.confirmPassword}
                     onChange={handleInputChange}
+                    onPaste={handleConfirmPasswordPaste}
                     placeholder="Re-enter new password"
                     className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors ${
                       errors.confirmPassword ? 'border-red-500' : 'border-gray-300'
