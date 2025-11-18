@@ -123,6 +123,22 @@ function Login({ onSwitchToSignup }) {
     }
   };
 
+  // Prevent paste in password field
+  const handlePasswordPaste = (e) => {
+    e.preventDefault();
+    setErrors(prev => ({
+      ...prev,
+      password: 'Please type your password instead of pasting'
+    }));
+    // Clear the error after 3 seconds
+    setTimeout(() => {
+      setErrors(prev => ({
+        ...prev,
+        password: null
+      }));
+    }, 3000);
+  };
+
   // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -276,6 +292,7 @@ function Login({ onSwitchToSignup }) {
                     name="password"
                     value={formData.password}
                     onChange={handleInputChange}
+                    onPaste={handlePasswordPaste}
                     placeholder="Enter your password"
                     className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all ${
                       errors.password ? 'border-red-500' : 'border-gray-300'
