@@ -39,7 +39,7 @@ function ForgotPasswordModal({ isOpen, onClose }) {
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
-  // Handle input changes and clear field-specific errors
+  // Handle input changes and clear field-specific error
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
