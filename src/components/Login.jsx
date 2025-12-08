@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Eye, EyeOff } from 'lucide-react';
 import GoogleAuthButton from './GoogleAuthButton';
 import ForgotPasswordModal from './ForgotPasswordModal';
+import {API_URL} from '../config';
 
 /**
  * Login Component
@@ -24,7 +25,7 @@ import ForgotPasswordModal from './ForgotPasswordModal';
  */
 function Login({ onSwitchToSignup }) {
   const [formData, setFormData] = useState({
-    email: '',
+    username: '',
     password: '',
     role: 'Customer',
   });
@@ -40,10 +41,10 @@ function Login({ onSwitchToSignup }) {
   const validateForm = () => {
     const newErrors = {};
 
-    if (!formData.email) {
-      newErrors.email = 'Email is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email';
+    if (!formData.username) {
+      newErrors.username = 'Username is required';
+    } else if (formData.username.length < 3) {
+      newErrors.username = 'Username must be at least 3 characters';
     }
 
     if (!formData.password) {
@@ -58,35 +59,48 @@ function Login({ onSwitchToSignup }) {
 
   // Handle form submission
   const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    if (!validateForm()) return;
+  if (!validateForm()) return;
 
-    setIsLoading(true);
+  setIsLoading(true);
 
-    // TODO: Backend Integration
-    // Replace this with actual API call
-    // Example:
-    // const response = await fetch('/api/auth/login', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify(formData),
-    // });
-    // const data = await response.json();
-    // if (response.ok) {
-    //   localStorage.setItem('token', data.token);
-    //   // Redirect based on role
-    // } else {
-    //   setErrors({ submit: data.message });
-    // }
+  try {
+    const response = await fetch(`${API_URL}/auth/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(formData),
+    });
 
-    // Simulated delay
-    setTimeout(() => {
-      console.log('Login attempt:', formData);
+    const data = await response.json();
+
+    if (!response.ok) {
+      setErrors({ submit: data.message || "Invalid username or password" });
       setIsLoading(false);
-      setShowSuccessModal(true);
-    }, 1500);
-  };
+      return;
+    }
+
+    // Save token to localStorage
+    localStorage.setItem("token", data.token);
+
+    // Show success modal
+    setIsLoading(false);
+    setShowSuccessModal(true);
+
+    // OPTIONAL: Redirect based on role
+    // if (data.user.role === "Customer") navigate("/customer-dashboard");
+    // if (data.user.role === "Tailor") navigate("/tailor-dashboard");
+    // if (data.user.role === "Owner") navigate("/owner-dashboard");
+
+  } catch (error) {
+    setErrors({ submit: "Server error. Please try again later." });
+    console.log(error);
+    setIsLoading(false);
+  }
+};
+
 
   // Handle Google Sign-In
   const handleGoogleSignIn = async () => {
@@ -261,23 +275,23 @@ function Login({ onSwitchToSignup }) {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-5">
-              {/* Email Input */}
+              {/* Username Input */}
               <motion.div variants={itemVariants}>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Email address
+                  Username
                 </label>
                 <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
+                  type="text"
+                  name="username"
+                  value={formData.username}
                   onChange={handleInputChange}
-                  placeholder="Enter your email"
+                  placeholder="Enter your username"
                   className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all ${
-                    errors.email ? 'border-red-500' : 'border-gray-300'
+                    errors.username ? 'border-red-500' : 'border-gray-300'
                   }`}
                 />
-                {errors.email && (
-                  <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+                {errors.username && (
+                  <p className="text-red-500 text-xs mt-1">{errors.username}</p>
                 )}
               </motion.div>
 
@@ -613,7 +627,7 @@ function Login({ onSwitchToSignup }) {
                     </svg>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-gray-900 truncate">{formData.email}</p>
+                    <p className="font-semibold text-gray-900 truncate">{formData.username}</p>
                     <p className="text-xs text-orange-600 font-medium mt-1">{formData.role}</p>
                   </div>
                 </div>
@@ -628,7 +642,7 @@ function Login({ onSwitchToSignup }) {
                     setShowSuccessModal(false);
                     // Reset form
                     setFormData({
-                      email: '',
+                      username: '',
                       password: '',
                       role: 'Customer',
                     });
