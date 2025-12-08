@@ -25,7 +25,7 @@ import {API_URL} from '../config';
  */
 function Login({ onSwitchToSignup }) {
   const [formData, setFormData] = useState({
-    username: '',
+    email: '',
     password: '',
     role: 'Customer',
   });
@@ -41,10 +41,10 @@ function Login({ onSwitchToSignup }) {
   const validateForm = () => {
     const newErrors = {};
 
-    if (!formData.username) {
-      newErrors.username = 'Username is required';
-    } else if (formData.username.length < 3) {
-      newErrors.username = 'Username must be at least 3 characters';
+    if (!formData.email) {
+      newErrors.email = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email';
     }
 
     if (!formData.password) {
@@ -77,7 +77,7 @@ function Login({ onSwitchToSignup }) {
     const data = await response.json();
 
     if (!response.ok) {
-      setErrors({ submit: data.message || "Invalid username or password" });
+      setErrors({ submit: data.message || "Invalid email or password" });
       setIsLoading(false);
       return;
     }
@@ -275,23 +275,23 @@ function Login({ onSwitchToSignup }) {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-5">
-              {/* Username Input */}
+              {/* Email Input */}
               <motion.div variants={itemVariants}>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Username
+                  Email address
                 </label>
                 <input
-                  type="text"
-                  name="username"
-                  value={formData.username}
+                  type="email"
+                  name="email"
+                  value={formData.email}
                   onChange={handleInputChange}
-                  placeholder="Enter your username"
+                  placeholder="Enter your email"
                   className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all ${
-                    errors.username ? 'border-red-500' : 'border-gray-300'
+                    errors.email ? 'border-red-500' : 'border-gray-300'
                   }`}
                 />
-                {errors.username && (
-                  <p className="text-red-500 text-xs mt-1">{errors.username}</p>
+                {errors.email && (
+                  <p className="text-red-500 text-xs mt-1">{errors.email}</p>
                 )}
               </motion.div>
 
@@ -627,7 +627,7 @@ function Login({ onSwitchToSignup }) {
                     </svg>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-gray-900 truncate">{formData.username}</p>
+                    <p className="font-semibold text-gray-900 truncate">{formData.email}</p>
                     <p className="text-xs text-orange-600 font-medium mt-1">{formData.role}</p>
                   </div>
                 </div>
@@ -642,7 +642,7 @@ function Login({ onSwitchToSignup }) {
                     setShowSuccessModal(false);
                     // Reset form
                     setFormData({
-                      username: '',
+                      email: '',
                       password: '',
                       role: 'Customer',
                     });
