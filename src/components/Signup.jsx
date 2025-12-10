@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Eye, EyeOff } from 'lucide-react';
 import GoogleAuthButton from './GoogleAuthButton';
+import { API_URL } from '../config';
 
 /**
  * Signup Component
@@ -75,48 +76,46 @@ function Signup({ onSwitchToLogin }) {
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Form submitted!', formData);
 
     if (!validateForm()) {
-      console.log('Validation failed:', errors);
       return;
     }
 
-    console.log('Validation passed, showing modal...');
     setIsLoading(true);
 
-    // TODO: Backend Integration
-    // Replace this with actual API call
-    // Example:
-    // const response = await fetch('/api/auth/signup', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify({
-    //     fullName: formData.fullName,
-    //     email: formData.email,
-    //     password: formData.password,
-    //     role: formData.role,
-    //   }),
-    // });
-    // const data = await response.json();
-    // if (response.ok) {
-    //   localStorage.setItem('token', data.token);
-    //   // Redirect to email verification or dashboard
-    // } else {
-    //   setErrors({ submit: data.message });
-    // }
-
-    // Simulated delay
-    setTimeout(() => {
-      console.log('Signup attempt:', {
-        fullName: formData.fullName,
-        email: formData.email,
-        role: formData.role,
+    try {
+      const response = await fetch(`${API_URL}/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+          role: formData.role,
+        }),
       });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setErrors({ submit: data.message || "Registration failed. Please try again." });
+        setIsLoading(false);
+        return;
+      }
+
+      // Save token to localStorage
+      localStorage.setItem("token", data.token);
+
+      // Show success modal
       setIsLoading(false);
-      console.log('Setting showSuccessModal to true');
       setShowSuccessModal(true);
-    }, 1500);
+
+    } catch (error) {
+      setErrors({ submit: "Server error. Please try again later." });
+      console.log(error);
+      setIsLoading(false);
+    }
   };
 
   // Handle Google Sign-Up
