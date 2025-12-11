@@ -7,7 +7,19 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        navy: '#1B2A41',
+        // Primary colors for Smart Stitch
+        'primary-orange': '#FF6B35',
+        'primary-navy': '#004E89',
+        'secondary-navy': '#003366',
+        'accent-teal': '#1A936F',
+        
+        // Legacy colors (keeping for backward compatibility)
+        navy: {
+          DEFAULT: '#004E89',
+          500: '#004E89',
+          600: '#003366',
+          700: '#002244',
+        },
         gold: '#CBA135',
         'light-grey': '#F8F8F8',
       },
