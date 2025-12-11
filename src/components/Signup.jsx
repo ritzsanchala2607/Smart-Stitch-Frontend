@@ -90,6 +90,7 @@ function Signup({ onSwitchToLogin }) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          name :formData.fullName,
           email: formData.email,
           password: formData.password,
           role: formData.role,
