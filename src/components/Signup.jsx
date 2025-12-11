@@ -1,9 +1,9 @@
-import React from 'react';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Eye, EyeOff } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import GoogleAuthButton from './GoogleAuthButton';
-import { API_URL } from '../config';
 
 /**
  * Signup Component
@@ -22,13 +22,16 @@ import { API_URL } from '../config';
  * - Store token in localStorage/secure cookie
  * - Redirect to dashboard or email verification page
  */
-function Signup({ onSwitchToLogin }) {
+function Signup() {
+  const navigate = useNavigate();
+  const { signup } = useAuth();
+  
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
     password: '',
     confirmPassword: '',
-    role: 'Customer',
+    role: 'owner',
     agreeToTerms: false,
   });
 
@@ -37,7 +40,6 @@ function Signup({ onSwitchToLogin }) {
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   // Form validation
   const validateForm = () => {
@@ -76,11 +78,8 @@ function Signup({ onSwitchToLogin }) {
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!validateForm()) {
-      return;
-    }
-
+    if (!validateForm()) return;
+    
     setIsLoading(true);
 
     try {
@@ -116,7 +115,7 @@ function Signup({ onSwitchToLogin }) {
       setErrors({ submit: "Server error. Please try again later." });
       console.log(error);
       setIsLoading(false);
-    }
+    }, 1000);
   };
 
   // Handle Google Sign-Up
@@ -427,9 +426,9 @@ function Signup({ onSwitchToLogin }) {
                   onChange={handleInputChange}
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all bg-white"
                 >
-                  <option value="Customer">Customer</option>
-                  <option value="Tailor">Tailor</option>
-                  <option value="Owner">Shop Owner</option>
+                  <option value="owner">Shop Owner</option>
+                  <option value="worker">Worker</option>
+                  <option value="customer">Customer</option>
                 </select>
               </motion.div>
 
@@ -458,12 +457,9 @@ function Signup({ onSwitchToLogin }) {
             {/* Sign In Link */}
             <motion.p className="text-center text-gray-600 text-sm mt-6" variants={itemVariants}>
               Already have an account?{' '}
-              <button
-                onClick={onSwitchToLogin}
-                className="text-orange-600 hover:text-orange-700 font-semibold"
-              >
+              <Link to="/login" className="text-orange-600 hover:text-orange-700 font-semibold">
                 Log in
-              </button>
+              </Link>
             </motion.p>
           </motion.div>
           </motion.div>
@@ -652,177 +648,7 @@ function Signup({ onSwitchToLogin }) {
         </div>
       </motion.div>
 
-      {/* Success Modal */}
-      {showSuccessModal && (
-        <motion.div
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          onClick={() => setShowSuccessModal(false)}
-        >
-          <motion.div
-            className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 relative"
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: "spring", duration: 0.5 }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Confetti Decorations */}
-            <div className="absolute inset-0 pointer-events-none overflow-hidden">
-              {[...Array(12)].map((_, i) => (
-                <motion.div
-                  key={i}
-                  className="absolute w-2 h-2 rounded-full"
-                  style={{
-                    background: i % 3 === 0 ? '#FFA500' : i % 3 === 1 ? '#FF8C00' : '#FFD700',
-                    left: `${20 + (i * 7)}%`,
-                    top: '10%',
-                  }}
-                  initial={{ y: 0, opacity: 1, rotate: 0 }}
-                  animate={{ 
-                    y: [0, 100, 200],
-                    opacity: [1, 0.8, 0],
-                    rotate: [0, 180, 360],
-                  }}
-                  transition={{
-                    duration: 2,
-                    delay: 0.5 + (i * 0.1),
-                    ease: "easeOut"
-                  }}
-                />
-              ))}
-            </div>
 
-            {/* Success Icon */}
-            <motion.div
-              className="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-6 relative"
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-            >
-              <motion.svg
-                width="40"
-                height="40"
-                viewBox="0 0 40 40"
-                fill="none"
-                initial={{ pathLength: 0 }}
-                animate={{ pathLength: 1 }}
-                transition={{ delay: 0.4, duration: 0.5 }}
-              >
-                <motion.path
-                  d="M 8 20 L 16 28 L 32 12"
-                  stroke="#FFA500"
-                  strokeWidth="4"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </motion.svg>
-            </motion.div>
-
-            {/* Success Message */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="text-center"
-            >
-              <motion.div
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ delay: 0.5 }}
-                className="inline-block bg-gradient-to-r from-orange-500 to-orange-600 text-white px-4 py-1 rounded-full text-sm font-semibold mb-4"
-              >
-                ✓ Registration Complete
-              </motion.div>
-              
-              <h2 className="text-3xl font-bold text-gray-900 mb-3">
-                Registration Done!
-              </h2>
-              <p className="text-gray-600 mb-2">
-                Welcome to Smart Stitch, <span className="font-semibold text-orange-600">{formData.fullName}</span>! 🎉
-              </p>
-              <p className="text-sm text-gray-500 mb-6">
-                Your registration is complete as a <span className="font-medium text-orange-600">{formData.role}</span>. You can now start using our tailoring services.
-              </p>
-
-              {/* User Info Card */}
-              <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-4 mb-4 text-left border-2 border-orange-200">
-                <div className="flex items-start gap-3">
-                  <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center flex-shrink-0 shadow-md">
-                    <span className="text-white font-bold text-xl">
-                      {formData.fullName.charAt(0).toUpperCase()}
-                    </span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-bold text-gray-900 truncate text-lg">{formData.fullName}</p>
-                    <p className="text-sm text-gray-600 truncate">{formData.email}</p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="inline-block px-2 py-0.5 bg-orange-500 text-white text-xs font-semibold rounded">
-                        {formData.role}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Next Steps Info */}
-              <div className="bg-blue-50 rounded-lg p-3 mb-6 text-left border border-blue-200">
-                <p className="text-xs font-semibold text-blue-900 mb-1">📋 What's Next?</p>
-                <ul className="text-xs text-blue-800 space-y-1">
-                  <li>• Access your personalized dashboard</li>
-                  <li>• Explore our tailoring services</li>
-                  <li>• Start placing orders</li>
-                </ul>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="space-y-3">
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => {
-                    setShowSuccessModal(false);
-                    // Reset form
-                    setFormData({
-                      fullName: '',
-                      email: '',
-                      password: '',
-                      confirmPassword: '',
-                      role: 'Customer',
-                      agreeToTerms: false,
-                    });
-                  }}
-                  className="w-full py-3 px-4 bg-orange-500 text-white font-semibold rounded-lg hover:bg-orange-600 transition-all shadow-lg"
-                >
-                  Go to Dashboard
-                </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => {
-                    setShowSuccessModal(false);
-                    onSwitchToLogin();
-                  }}
-                  className="w-full py-3 px-4 border-2 border-orange-500 text-orange-600 font-semibold rounded-lg hover:bg-orange-50 transition-all"
-                >
-                  Go to Login
-                </motion.button>
-              </div>
-            </motion.div>
-
-            {/* Close Button */}
-            <button
-              onClick={() => setShowSuccessModal(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
-            >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
-              </svg>
-            </button>
-          </motion.div>
-        </motion.div>
-      )}
     </div>
   );
 }
