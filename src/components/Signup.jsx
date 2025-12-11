@@ -81,11 +81,39 @@ function Signup() {
     if (!validateForm()) return;
     
     setIsLoading(true);
-    
-    setTimeout(() => {
-      const role = formData.role.toLowerCase();
-      signup(formData.fullName, formData.email, formData.password, role);
-      navigate(`/${role}/dashboard`);
+
+    try {
+      const response = await fetch(`${API_URL}/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name :formData.fullName,
+          email: formData.email,
+          password: formData.password,
+          role: formData.role,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setErrors({ submit: data.message || "Registration failed. Please try again." });
+        setIsLoading(false);
+        return;
+      }
+
+      // Save token to localStorage
+      localStorage.setItem("token", data.token);
+
+      // Show success modal
+      setIsLoading(false);
+      setShowSuccessModal(true);
+
+    } catch (error) {
+      setErrors({ submit: "Server error. Please try again later." });
+      console.log(error);
       setIsLoading(false);
     }, 1000);
   };
