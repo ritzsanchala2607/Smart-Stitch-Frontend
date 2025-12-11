@@ -1,10 +1,10 @@
-import React from 'react';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Eye, EyeOff } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import GoogleAuthButton from './GoogleAuthButton';
 import ForgotPasswordModal from './ForgotPasswordModal';
-import {API_URL} from '../config';
 
 /**
  * Login Component
@@ -23,18 +23,20 @@ import {API_URL} from '../config';
  * - Implement "Remember me" functionality
  * - Add "Forgot password" link
  */
-function Login({ onSwitchToSignup }) {
+function Login() {
+  const navigate = useNavigate();
+  const { login } = useAuth();
+  
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    role: 'Customer',
+    role: 'owner',
   });
 
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
 
   // Form validation
@@ -59,47 +61,18 @@ function Login({ onSwitchToSignup }) {
 
   // Handle form submission
   const handleSubmit = async (e) => {
-  e.preventDefault();
-
-  if (!validateForm()) return;
-
-  setIsLoading(true);
-
-  try {
-    const response = await fetch(`${API_URL}/auth/login`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(formData),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      setErrors({ submit: data.message || "Invalid email or password" });
+    e.preventDefault();
+    if (!validateForm()) return;
+    
+    setIsLoading(true);
+    
+    setTimeout(() => {
+      const role = formData.role.toLowerCase();
+      login(formData.email, formData.password, role);
+      navigate(`/${role}/dashboard`);
       setIsLoading(false);
-      return;
-    }
-
-    // Save token to localStorage
-    localStorage.setItem("token", data.token);
-
-    // Show success modal
-    setIsLoading(false);
-    setShowSuccessModal(true);
-
-    // OPTIONAL: Redirect based on role
-    // if (data.user.role === "Customer") navigate("/customer-dashboard");
-    // if (data.user.role === "Tailor") navigate("/tailor-dashboard");
-    // if (data.user.role === "Owner") navigate("/owner-dashboard");
-
-  } catch (error) {
-    setErrors({ submit: "Server error. Please try again later." });
-    console.log(error);
-    setIsLoading(false);
-  }
-};
+    }, 1000);
+  };
 
 
   // Handle Google Sign-In
@@ -340,9 +313,9 @@ function Login({ onSwitchToSignup }) {
                   onChange={handleInputChange}
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all bg-white"
                 >
-                  <option value="Customer">Customer</option>
-                  <option value="Tailor">Tailor</option>
-                  <option value="Owner">Shop Owner</option>
+                  <option value="owner">Shop Owner</option>
+                  <option value="worker">Worker</option>
+                  <option value="customer">Customer</option>
                 </select>
               </motion.div>
 
@@ -392,12 +365,9 @@ function Login({ onSwitchToSignup }) {
             {/* Sign Up Link */}
             <motion.p className="text-center text-gray-600 text-sm mt-6" variants={itemVariants}>
               Don't have an account?{' '}
-              <button
-                onClick={onSwitchToSignup}
-                className="text-orange-600 hover:text-orange-700 font-semibold"
-              >
+              <Link to="/signup" className="text-orange-600 hover:text-orange-700 font-semibold">
                 Sign up
-              </button>
+              </Link>
             </motion.p>
           </motion.div>
           </motion.div>
@@ -560,121 +530,7 @@ function Login({ onSwitchToSignup }) {
         </div>
       </motion.div>
 
-      {/* Success Modal */}
-      {showSuccessModal && (
-        <motion.div
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          onClick={() => setShowSuccessModal(false)}
-        >
-          <motion.div
-            className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 relative"
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: "spring", duration: 0.5 }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Success Icon */}
-            <motion.div
-              className="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-6"
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-            >
-              <motion.svg
-                width="40"
-                height="40"
-                viewBox="0 0 40 40"
-                fill="none"
-                initial={{ pathLength: 0 }}
-                animate={{ pathLength: 1 }}
-                transition={{ delay: 0.4, duration: 0.5 }}
-              >
-                <motion.path
-                  d="M 8 20 L 16 28 L 32 12"
-                  stroke="#FFA500"
-                  strokeWidth="4"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </motion.svg>
-            </motion.div>
 
-            {/* Success Message */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="text-center"
-            >
-              <h2 className="text-2xl font-bold text-gray-900 mb-3">
-                Welcome Back!
-              </h2>
-              <p className="text-gray-600 mb-2">
-                You've successfully logged in.
-              </p>
-              <p className="text-sm text-gray-500 mb-6">
-                Logged in as <span className="font-medium text-orange-600">{formData.role}</span>
-              </p>
-
-              {/* User Info Card */}
-              <div className="bg-orange-50 rounded-lg p-4 mb-6 text-left">
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center flex-shrink-0">
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                      <path d="M10 10a4 4 0 100-8 4 4 0 000 8zM3 18a7 7 0 0114 0" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-                    </svg>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-gray-900 truncate">{formData.email}</p>
-                    <p className="text-xs text-orange-600 font-medium mt-1">{formData.role}</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="space-y-3">
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => {
-                    setShowSuccessModal(false);
-                    // Reset form
-                    setFormData({
-                      email: '',
-                      password: '',
-                      role: 'Customer',
-                    });
-                  }}
-                  className="w-full py-3 px-4 bg-orange-500 text-white font-semibold rounded-lg hover:bg-orange-600 transition-all"
-                >
-                  Go to Dashboard
-                </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => setShowSuccessModal(false)}
-                  className="w-full py-3 px-4 border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-all"
-                >
-                  Close
-                </motion.button>
-              </div>
-            </motion.div>
-
-            {/* Close Button */}
-            <button
-              onClick={() => setShowSuccessModal(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
-            >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
-              </svg>
-            </button>
-          </motion.div>
-        </motion.div>
-      )}
 
       {/* Forgot Password Modal */}
       <ForgotPasswordModal
