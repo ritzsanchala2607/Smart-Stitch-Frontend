@@ -14,6 +14,12 @@ import OwnerBilling from '../pages/owner/Billing';
 import OwnerInventory from '../pages/owner/Inventory';
 import OwnerRatings from '../pages/owner/Ratings';
 import OwnerChat from '../pages/owner/Chat';
+import NewOrder from '../pages/owner/NewOrder';
+import AddWorker from '../pages/owner/AddWorker';
+import WorkerDetails from '../pages/owner/WorkerDetails';
+import AddCustomer from '../pages/owner/AddCustomer';
+import InvoicePage from '../pages/owner/InvoicePage';
+import OwnerProfile from '../pages/owner/OwnerProfile';
 
 // Worker Pages
 import WorkerDashboard from '../pages/worker/Dashboard';
@@ -62,6 +68,12 @@ const AppRoutes = () => {
 
       {/* Owner Routes */}
       <Route path="/owner/dashboard" element={<ProtectedRoute allowedRole="owner"><OwnerDashboard /></ProtectedRoute>} />
+      <Route path="/owner/new-order" element={<ProtectedRoute allowedRole="owner"><NewOrder /></ProtectedRoute>} />
+      <Route path="/owner/add-worker" element={<ProtectedRoute allowedRole="owner"><AddWorker /></ProtectedRoute>} />
+      <Route path="/owner/worker/:id" element={<ProtectedRoute allowedRole="owner"><WorkerDetails /></ProtectedRoute>} />
+      <Route path="/owner/add-customer" element={<ProtectedRoute allowedRole="owner"><AddCustomer /></ProtectedRoute>} />
+      <Route path="/owner/invoice" element={<ProtectedRoute allowedRole="owner"><InvoicePage /></ProtectedRoute>} />
+      <Route path="/owner/profile" element={<ProtectedRoute allowedRole="owner"><OwnerProfile /></ProtectedRoute>} />
       <Route path="/owner/workers" element={<ProtectedRoute allowedRole="owner"><OwnerWorkers /></ProtectedRoute>} />
       <Route path="/owner/customers" element={<ProtectedRoute allowedRole="owner"><OwnerCustomers /></ProtectedRoute>} />
       <Route path="/owner/orders" element={<ProtectedRoute allowedRole="owner"><OwnerOrders /></ProtectedRoute>} />

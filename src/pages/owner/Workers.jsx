@@ -1,7 +1,7 @@
 import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
 import { motion } from 'framer-motion';
-import { UserCog, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { workers } from '../../data/dummyData';
 
 const Workers = () => {

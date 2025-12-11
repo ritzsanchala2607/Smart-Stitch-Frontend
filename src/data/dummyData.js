@@ -72,6 +72,36 @@ export const workers = [
     performance: 85,
     salary: 2500,
     avatar: 'https://i.pravatar.cc/150?img=23'
+  },
+  {
+    id: 'WORK005',
+    name: 'Alex Apprentice',
+    email: 'alex@smartstitch.com',
+    phone: '+1234567898',
+    specialization: 'Pant Specialist',
+    joinDate: '2024-01-01',
+    status: 'active',
+    assignedOrders: 0,
+    completedOrders: 0,
+    rating: 0,
+    performance: 0,
+    salary: 2000,
+    avatar: 'https://i.pravatar.cc/150?img=60'
+  },
+  {
+    id: 'WORK006',
+    name: 'Lisa Luxury',
+    email: 'lisa@smartstitch.com',
+    phone: '+1234567899',
+    specialization: 'Both',
+    joinDate: '2023-02-10',
+    status: 'inactive',
+    assignedOrders: 0,
+    completedOrders: 200,
+    rating: 5.0,
+    performance: 100,
+    salary: 3500,
+    avatar: 'https://i.pravatar.cc/150?img=25'
   }
 ];
 
@@ -120,6 +150,48 @@ export const customers = [
       pant: { waist: 36, length: 43, hip: 40 }
     },
     avatar: 'https://i.pravatar.cc/150?img=15'
+  },
+  {
+    id: 'CUST004',
+    name: 'New Customer',
+    email: 'newcustomer@email.com',
+    phone: '+1234567900',
+    address: '555 First Ave, NY 10005',
+    joinDate: '2024-01-20',
+    totalOrders: 0,
+    totalSpent: 0,
+    measurements: {},
+    avatar: 'https://i.pravatar.cc/150?img=50'
+  },
+  {
+    id: 'CUST005',
+    name: 'VIP Customer',
+    email: 'vip@email.com',
+    phone: '+1234567901',
+    address: '777 Luxury Lane, NY 10006',
+    joinDate: '2022-01-01',
+    totalOrders: 50,
+    totalSpent: 100000,
+    measurements: {
+      shirt: { chest: 38, waist: 32, shoulder: 16, length: 29 },
+      pant: { waist: 32, length: 41, hip: 36 },
+      custom: 'Extra long sleeves, slim fit preferred'
+    },
+    avatar: 'https://i.pravatar.cc/150?img=70'
+  },
+  {
+    id: 'CUST006',
+    name: 'Jane Smith',
+    email: 'jane@email.com',
+    phone: '+1234567902',
+    address: '',
+    joinDate: '2023-12-01',
+    totalOrders: 1,
+    totalSpent: 500,
+    measurements: {
+      custom: 'Standard measurements'
+    },
+    avatar: 'https://i.pravatar.cc/150?img=32'
   }
 ];
 
@@ -231,6 +303,118 @@ export const orders = [
       { status: 'stitching', date: '2024-01-23', time: '09:00 AM' },
       { status: 'fitting', date: '2024-01-28', time: '04:00 PM' },
       { status: 'ready', date: '2024-01-30', time: '02:00 PM' }
+    ]
+  },
+  {
+    id: 'ORD004',
+    customerId: 'CUST001',
+    customerName: 'Robert Johnson',
+    orderDate: '2024-01-22',
+    deliveryDate: '2024-02-10',
+    status: 'pending',
+    priority: 'low',
+    items: [
+      {
+        id: 'ITEM005',
+        type: 'Casual Shirt',
+        fabric: 'Cotton',
+        color: 'Blue',
+        quantity: 1,
+        price: 600
+      }
+    ],
+    assignedWorker: null,
+    workerName: null,
+    totalAmount: 600,
+    paidAmount: 0,
+    balanceAmount: 600,
+    measurements: {
+      shirt: { chest: 40, waist: 34, shoulder: 17, length: 30 }
+    },
+    notes: '',
+    timeline: [
+      { status: 'ordered', date: '2024-01-22', time: '03:00 PM' }
+    ]
+  },
+  {
+    id: 'ORD005',
+    customerId: 'CUST005',
+    customerName: 'VIP Customer',
+    orderDate: '2024-01-10',
+    deliveryDate: '2024-01-20',
+    status: 'fitting',
+    priority: 'high',
+    items: [
+      {
+        id: 'ITEM006',
+        type: 'Custom Suit',
+        fabric: 'Italian Wool',
+        color: 'Charcoal',
+        quantity: 1,
+        price: 8000
+      },
+      {
+        id: 'ITEM007',
+        type: 'Dress Shirt',
+        fabric: 'Egyptian Cotton',
+        color: 'White',
+        quantity: 3,
+        price: 1200
+      },
+      {
+        id: 'ITEM008',
+        type: 'Silk Tie',
+        fabric: 'Pure Silk',
+        color: 'Navy',
+        quantity: 2,
+        price: 300
+      }
+    ],
+    assignedWorker: 'WORK003',
+    workerName: 'David Designer',
+    totalAmount: 12200,
+    paidAmount: 10000,
+    balanceAmount: 2200,
+    measurements: {
+      shirt: { chest: 38, waist: 32, shoulder: 16, length: 29 },
+      pant: { waist: 32, length: 41, hip: 36 },
+      custom: 'Extra long sleeves, slim fit preferred'
+    },
+    notes: 'VIP customer - highest priority, premium materials only',
+    timeline: [
+      { status: 'ordered', date: '2024-01-10', time: '09:00 AM' },
+      { status: 'cutting', date: '2024-01-11', time: '10:00 AM' },
+      { status: 'stitching', date: '2024-01-13', time: '08:00 AM' },
+      { status: 'fitting', date: '2024-01-19', time: '02:00 PM' }
+    ]
+  },
+  {
+    id: 'ORD006',
+    customerId: 'CUST004',
+    customerName: 'New Customer',
+    orderDate: '2024-01-23',
+    deliveryDate: '2024-02-15',
+    status: 'pending',
+    priority: 'medium',
+    items: [
+      {
+        id: 'ITEM009',
+        type: 'Basic Shirt',
+        fabric: 'Cotton',
+        color: 'White',
+        quantity: 1,
+        price: 500
+      }
+    ],
+    assignedWorker: null,
+    workerName: null,
+    totalAmount: 500,
+    paidAmount: 100,
+    balanceAmount: 400,
+    measurements: {},
+    notes: 'First order - needs measurement',
+    timeline: [
+      { status: 'ordered', date: '2024-01-23', time: '11:00 AM' }
     ]
   }
 ];
@@ -481,3 +665,216 @@ export const dashboardStats = {
     cartItems: 2
   }
 };
+
+// Edge case data for testing
+export const edgeCases = {
+  // Empty lists for testing empty states
+  emptyWorkers: [],
+  emptyCustomers: [],
+  emptyOrders: [],
+  
+  // Worker with maximum values
+  maxWorker: {
+    id: 'WORK999',
+    name: 'Perfect Worker',
+    email: 'perfect@smartstitch.com',
+    phone: '+9999999999',
+    specialization: 'All Specializations',
+    joinDate: '2020-01-01',
+    status: 'active',
+    assignedOrders: 999,
+    completedOrders: 9999,
+    rating: 5.0,
+    performance: 100,
+    salary: 99999,
+    avatar: 'https://i.pravatar.cc/150?img=99'
+  },
+  
+  // Worker with minimum values
+  minWorker: {
+    id: 'WORK000',
+    name: 'New Worker',
+    email: 'new@smartstitch.com',
+    phone: '+0000000000',
+    specialization: 'Trainee',
+    joinDate: '2024-01-23',
+    status: 'active',
+    assignedOrders: 0,
+    completedOrders: 0,
+    rating: 0,
+    performance: 0,
+    salary: 1000,
+    avatar: 'https://i.pravatar.cc/150?img=1'
+  },
+  
+  // Customer with no measurements
+  customerNoMeasurements: {
+    id: 'CUST999',
+    name: 'No Measurements Customer',
+    email: 'nomeasure@email.com',
+    phone: '+9999999999',
+    address: 'Unknown Address',
+    joinDate: '2024-01-23',
+    totalOrders: 0,
+    totalSpent: 0,
+    measurements: {},
+    avatar: ''
+  },
+  
+  // Order with single item
+  singleItemOrder: {
+    id: 'ORD999',
+    customerId: 'CUST001',
+    customerName: 'Robert Johnson',
+    orderDate: '2024-01-23',
+    deliveryDate: '2024-02-23',
+    status: 'pending',
+    priority: 'low',
+    items: [
+      {
+        id: 'ITEM999',
+        type: 'Simple Alteration',
+        fabric: 'N/A',
+        color: 'N/A',
+        quantity: 1,
+        price: 100
+      }
+    ],
+    assignedWorker: null,
+    workerName: null,
+    totalAmount: 100,
+    paidAmount: 0,
+    balanceAmount: 100,
+    measurements: {},
+    notes: '',
+    timeline: []
+  },
+  
+  // Order with many items
+  multiItemOrder: {
+    id: 'ORD998',
+    customerId: 'CUST005',
+    customerName: 'VIP Customer',
+    orderDate: '2024-01-23',
+    deliveryDate: '2024-03-23',
+    status: 'pending',
+    priority: 'high',
+    items: Array.from({ length: 10 }, (_, i) => ({
+      id: `ITEM${900 + i}`,
+      type: `Item ${i + 1}`,
+      fabric: 'Various',
+      color: 'Various',
+      quantity: i + 1,
+      price: (i + 1) * 100
+    })),
+    assignedWorker: 'WORK001',
+    workerName: 'Mike Tailor',
+    totalAmount: 5500,
+    paidAmount: 2000,
+    balanceAmount: 3500,
+    measurements: {},
+    notes: 'Bulk order with multiple items',
+    timeline: []
+  },
+  
+  // Order with zero advance payment
+  zeroAdvanceOrder: {
+    id: 'ORD997',
+    customerId: 'CUST002',
+    customerName: 'Emily Davis',
+    orderDate: '2024-01-23',
+    deliveryDate: '2024-02-23',
+    status: 'pending',
+    priority: 'medium',
+    items: [
+      {
+        id: 'ITEM997',
+        type: 'Standard Shirt',
+        fabric: 'Cotton',
+        color: 'Blue',
+        quantity: 1,
+        price: 700
+      }
+    ],
+    assignedWorker: null,
+    workerName: null,
+    totalAmount: 700,
+    paidAmount: 0,
+    balanceAmount: 700,
+    measurements: {},
+    notes: 'Payment on delivery',
+    timeline: []
+  },
+  
+  // Order with full payment
+  fullPaymentOrder: {
+    id: 'ORD996',
+    customerId: 'CUST003',
+    customerName: 'Michael Brown',
+    orderDate: '2024-01-23',
+    deliveryDate: '2024-02-23',
+    status: 'ready',
+    priority: 'high',
+    items: [
+      {
+        id: 'ITEM996',
+        type: 'Premium Suit',
+        fabric: 'Wool',
+        color: 'Black',
+        quantity: 1,
+        price: 5000
+      }
+    ],
+    assignedWorker: 'WORK003',
+    workerName: 'David Designer',
+    totalAmount: 5000,
+    paidAmount: 5000,
+    balanceAmount: 0,
+    measurements: {},
+    notes: 'Fully paid in advance',
+    timeline: []
+  }
+};
+
+// Helper functions for testing
+export const getWorkerById = (id) => {
+  return workers.find(worker => worker.id === id);
+};
+
+export const getCustomerById = (id) => {
+  return customers.find(customer => customer.id === id);
+};
+
+export const getOrderById = (id) => {
+  return orders.find(order => order.id === id);
+};
+
+export const getOrdersByCustomerId = (customerId) => {
+  return orders.filter(order => order.customerId === customerId);
+};
+
+export const getOrdersByWorkerId = (workerId) => {
+  return orders.filter(order => order.assignedWorker === workerId);
+};
+
+export const getOrdersByStatus = (status) => {
+  return orders.filter(order => order.status === status);
+};
+
+export const getActiveWorkers = () => {
+  return workers.filter(worker => worker.status === 'active');
+};
+
+export const getWorkersOnLeave = () => {
+  return workers.filter(worker => worker.status === 'on-leave');
+};
+
+export const getInactiveWorkers = () => {
+  return workers.filter(worker => worker.status === 'inactive');
+};
+
+// Test data for various statuses
+export const orderStatuses = ['pending', 'cutting', 'stitching', 'fitting', 'ready'];
+export const workerStatuses = ['active', 'on-leave', 'inactive'];
+export const priorities = ['low', 'medium', 'high'];
+export const specializations = ['Shirts & Formal Wear', 'Traditional & Ethnic Wear', 'Wedding & Party Wear', 'Alterations & Repairs', 'Pant Specialist', 'Both'];

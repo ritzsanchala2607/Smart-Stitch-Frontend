@@ -1,11 +1,15 @@
 import { motion } from 'framer-motion';
-import { Bell, Search, User, Menu } from 'lucide-react';
+import { Bell, Search, User, Menu, X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { useState } from 'react';
+import { useSearch } from '../../context/SearchContext';
+import { useState, useEffect, useRef } from 'react';
 
 const Topbar = () => {
   const { user } = useAuth();
+  const { searchQuery, setSearchQuery } = useSearch();
   const [showNotifications, setShowNotifications] = useState(false);
+  const [localSearchValue, setLocalSearchValue] = useState(searchQuery);
+  const debounceTimerRef = useRef(null);
 
   const notifications = [
     { id: 1, message: 'New order received', time: '5 min ago', unread: true },
@@ -14,6 +18,34 @@ const Topbar = () => {
   ];
 
   const unreadCount = notifications.filter(n => n.unread).length;
+
+  // Debounce search input (300ms)
+  useEffect(() => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    debounceTimerRef.current = setTimeout(() => {
+      setSearchQuery(localSearchValue);
+    }, 300);
+
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, [localSearchValue, setSearchQuery]);
+
+  // Handle search input change
+  const handleSearchChange = (e) => {
+    setLocalSearchValue(e.target.value);
+  };
+
+  // Handle clear search
+  const handleClearSearch = () => {
+    setLocalSearchValue('');
+    setSearchQuery('');
+  };
 
   return (
     <motion.div
@@ -28,13 +60,27 @@ const Topbar = () => {
         </button>
         
         {/* Search Bar */}
-        <div className="hidden md:flex items-center bg-gray-100 rounded-lg px-4 py-2 flex-1 max-w-md">
+        <div className="hidden md:flex items-center bg-gray-100 rounded-lg px-4 py-2 flex-1 max-w-md relative">
           <Search className="w-5 h-5 text-gray-400 mr-2" />
           <input
             type="text"
             placeholder="Search orders, customers, workers..."
             className="bg-transparent outline-none flex-1 text-sm"
+            value={localSearchValue}
+            onChange={handleSearchChange}
           />
+          {localSearchValue && (
+            <motion.button
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              onClick={handleClearSearch}
+              className="ml-2 p-1 hover:bg-gray-200 rounded-full transition-colors"
+              aria-label="Clear search"
+            >
+              <X className="w-4 h-4 text-gray-500" />
+            </motion.button>
+          )}
         </div>
       </div>
 

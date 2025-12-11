@@ -16,7 +16,11 @@ import {
   CreditCard,
   HelpCircle,
   LogOut,
-  Scissors
+  Scissors,
+  Plus,
+  UserPlus,
+  FileText,
+  Settings
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
@@ -26,13 +30,18 @@ const Sidebar = ({ role }) => {
 
   const ownerMenuItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/owner/dashboard' },
+    { icon: Plus, label: 'New Order', path: '/owner/new-order' },
     { icon: UserCog, label: 'Workers', path: '/owner/workers' },
+    { icon: UserPlus, label: 'Add Worker', path: '/owner/add-worker' },
     { icon: Users, label: 'Customers', path: '/owner/customers' },
+    { icon: UserPlus, label: 'Add Customer', path: '/owner/add-customer' },
     { icon: Package, label: 'Orders', path: '/owner/orders' },
+    { icon: FileText, label: 'Generate Invoice', path: '/owner/invoice' },
     { icon: DollarSign, label: 'Billing & Reports', path: '/owner/billing' },
     { icon: Warehouse, label: 'Inventory', path: '/owner/inventory' },
     { icon: Star, label: 'Ratings & Feedback', path: '/owner/ratings' },
     { icon: MessageSquare, label: 'Internal Chat', path: '/owner/chat' },
+    { icon: Settings, label: 'Profile & Settings', path: '/owner/profile' },
   ];
 
   const workerMenuItems = [

@@ -2,8 +2,9 @@ import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
 import { motion } from 'framer-motion';
 import { 
-  Package, Users, DollarSign, TrendingUp, 
-  AlertCircle, CheckCircle, Clock, UserCog 
+  Package, Users, DollarSign, 
+  AlertCircle, CheckCircle, Clock, UserCog,
+  Scissors
 } from 'lucide-react';
 import { dashboardStats, orders, workers } from '../../data/dummyData';
 
@@ -26,8 +27,15 @@ const OwnerDashboard = () => {
           >
             {/* Header */}
             <div className="mb-8">
-              <h1 className="text-3xl font-bold text-gray-900">Owner Dashboard</h1>
-              <p className="text-gray-600 mt-2">Welcome back! Here's what's happening today.</p>
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-3 bg-orange-100 rounded-lg">
+                  <Scissors className="w-6 h-6 text-orange-600" />
+                </div>
+                <div>
+                  <h1 className="text-3xl font-bold text-gray-900">Owner Dashboard</h1>
+                  <p className="text-gray-600">Welcome back! Here's what's happening today.</p>
+                </div>
+              </div>
             </div>
             
             {/* Stats Grid */}
