@@ -17,10 +17,9 @@ import {
   HelpCircle,
   LogOut,
   Scissors,
-  Plus,
-  UserPlus,
-  FileText,
-  Settings
+  Settings,
+  Bell,
+  Calendar
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
@@ -30,15 +29,12 @@ const Sidebar = ({ role }) => {
 
   const ownerMenuItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/owner/dashboard' },
-    { icon: Plus, label: 'New Order', path: '/owner/new-order' },
     { icon: UserCog, label: 'Workers', path: '/owner/workers' },
-    { icon: UserPlus, label: 'Add Worker', path: '/owner/add-worker' },
     { icon: Users, label: 'Customers', path: '/owner/customers' },
-    { icon: UserPlus, label: 'Add Customer', path: '/owner/add-customer' },
     { icon: Package, label: 'Orders', path: '/owner/orders' },
-    { icon: FileText, label: 'Generate Invoice', path: '/owner/invoice' },
     { icon: DollarSign, label: 'Billing & Reports', path: '/owner/billing' },
     { icon: Warehouse, label: 'Inventory', path: '/owner/inventory' },
+    { icon: TrendingUp, label: 'Analytics', path: '/owner/analytics' },
     { icon: Star, label: 'Ratings & Feedback', path: '/owner/ratings' },
     { icon: MessageSquare, label: 'Internal Chat', path: '/owner/chat' },
     { icon: Settings, label: 'Profile & Settings', path: '/owner/profile' },
@@ -50,6 +46,9 @@ const Sidebar = ({ role }) => {
     { icon: TrendingUp, label: 'Work Progress', path: '/worker/progress' },
     { icon: TrendingUp, label: 'Statistics', path: '/worker/statistics' },
     { icon: MessageSquare, label: 'Chat', path: '/worker/chat' },
+    { icon: Bell, label: 'Notifications', path: '/worker/notifications' },
+    { icon: Calendar, label: 'Calendar', path: '/worker/calendar' },
+    { icon: Settings, label: 'Profile', path: '/worker/profile' },
   ];
 
   const customerMenuItems = [
@@ -60,6 +59,7 @@ const Sidebar = ({ role }) => {
     { icon: ShoppingCart, label: 'Cart', path: '/customer/cart' },
     { icon: CreditCard, label: 'Payment', path: '/customer/payment' },
     { icon: HelpCircle, label: 'Support', path: '/customer/support' },
+    { icon: Settings, label: 'Profile', path: '/customer/profile' },
   ];
 
   const menuItems = 

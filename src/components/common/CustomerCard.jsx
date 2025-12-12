@@ -1,9 +1,9 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Eye, Edit, User, Mail, Phone, ShoppingBag, DollarSign } from 'lucide-react';
+import { Eye, Edit, Trash2, User, Mail, Phone, ShoppingBag, DollarSign } from 'lucide-react';
 import PropTypes from 'prop-types';
 
-const CustomerCard = ({ customer, onView, onEdit }) => {
+const CustomerCard = ({ customer, onView, onEdit, onDelete }) => {
   return (
     <motion.div
       className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
@@ -93,6 +93,18 @@ const CustomerCard = ({ customer, onView, onEdit }) => {
           <Edit className="w-4 h-4" />
           <span className="text-sm font-medium">Edit</span>
         </motion.button>
+
+        {onDelete && (
+          <motion.button
+            onClick={() => onDelete(customer.id)}
+            className="px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
+            whileTap={{ scale: 0.95 }}
+            data-testid="delete-button"
+            title="Delete Customer"
+          >
+            <Trash2 className="w-4 h-4" />
+          </motion.button>
+        )}
       </div>
     </motion.div>
   );
@@ -110,6 +122,7 @@ CustomerCard.propTypes = {
   }).isRequired,
   onView: PropTypes.func.isRequired,
   onEdit: PropTypes.func.isRequired,
+  onDelete: PropTypes.func,
 };
 
 export default CustomerCard;

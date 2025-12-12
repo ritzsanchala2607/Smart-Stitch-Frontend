@@ -1,8 +1,918 @@
-import PlaceholderPage from '../../components/common/PlaceholderPage';
-import { Star } from 'lucide-react';
+import { useState } from 'react';
+import Sidebar from '../../components/common/Sidebar';
+import Topbar from '../../components/common/Topbar';
+import { motion } from 'framer-motion';
+import {
+  Star, TrendingUp, Users, Award, Filter, Search,
+  Eye, MessageSquare, CheckCircle, AlertCircle, Tag,
+  ThumbsUp, Calendar, User, Briefcase, PieChart
+} from 'lucide-react';
+import { reviews, workers } from '../../data/dummyData';
 
 const Ratings = () => {
-  return <PlaceholderPage role="owner" title="Ratings & Feedback" description="View customer reviews and ratings" icon={Star} />;
+  const [activeTab, setActiveTab] = useState('overview'); // overview, feedback, workers, complaints
+  const [filterRating, setFilterRating] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedReview, setSelectedReview] = useState(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+
+  // Extended mock data for ratings
+  const [feedbackList, setFeedbackList] = useState([
+    {
+      id: 'FB001',
+      customerId: 'CUST001',
+      customerName: 'Robert Johnson',
+      customerAvatar: 'https://i.pravatar.cc/150?img=8',
+      orderId: 'ORD001',
+      workerId: 'WORK001',
+      workerName: 'Mike Tailor',
+      shopRating: 5,
+      workerRating: 5,
+      skillRating: 5,
+      deliveryRating: 4,
+      qualityRating: 5,
+      behaviorRating: 5,
+      comment: 'Excellent work! Perfect fit and great quality. Very satisfied with the service.',
+      date: '2024-01-10',
+      status: 'pending', // pending, reviewed, important
+      hasImage: false,
+      reply: null
+    },
+    {
+      id: 'FB002',
+      customerId: 'CUST002',
+      customerName: 'Emily Davis',
+      customerAvatar: 'https://i.pravatar.cc/150?img=47',
+      orderId: 'ORD002',
+      workerId: 'WORK002',
+      workerName: 'Sarah Stitcher',
+      shopRating: 4,
+      workerRating: 4,
+      skillRating: 5,
+      deliveryRating: 3,
+      qualityRating: 4,
+      behaviorRating: 5,
+      comment: 'Good service, but delivery was slightly delayed. Overall satisfied.',
+      date: '2024-01-12',
+      status: 'reviewed',
+      hasImage: true,
+      reply: 'Thank you for your feedback! We apologize for the delay and will improve.'
+    },
+    {
+      id: 'FB003',
+      customerId: 'CUST003',
+      customerName: 'Michael Brown',
+      customerAvatar: 'https://i.pravatar.cc/150?img=15',
+      orderId: 'ORD003',
+      workerId: 'WORK003',
+      workerName: 'David Designer',
+      shopRating: 5,
+      workerRating: 5,
+      skillRating: 5,
+      deliveryRating: 5,
+      qualityRating: 5,
+      behaviorRating: 5,
+      comment: 'Outstanding craftsmanship! Highly recommended. Will definitely come back.',
+      date: '2024-01-15',
+      status: 'important',
+      hasImage: false,
+      reply: 'Thank you so much! We look forward to serving you again.'
+    },
+    {
+      id: 'FB004',
+      customerId: 'CUST001',
+      customerName: 'Robert Johnson',
+      customerAvatar: 'https://i.pravatar.cc/150?img=8',
+      orderId: 'ORD005',
+      workerId: 'WORK003',
+      workerName: 'David Designer',
+      shopRating: 3,
+      workerRating: 3,
+      skillRating: 4,
+      deliveryRating: 2,
+      qualityRating: 3,
+      behaviorRating: 4,
+      comment: 'Quality was okay but took longer than expected. Could be better.',
+      date: '2024-01-18',
+      status: 'pending',
+      hasImage: false,
+      reply: null
+    }
+  ]);
+
+  // Complaints data
+  const [complaints, setComplaints] = useState([
+    {
+      id: 'COMP001',
+      customerId: 'CUST002',
+      customerName: 'Emily Davis',
+      orderId: 'ORD002',
+      subject: 'Delayed Delivery',
+      description: 'My order was delivered 3 days late without prior notice.',
+      date: '2024-01-12',
+      status: 'resolved',
+      priority: 'medium',
+      response: 'We sincerely apologize for the delay. We have improved our process.'
+    },
+    {
+      id: 'COMP002',
+      customerId: 'CUST004',
+      customerName: 'New Customer',
+      orderId: 'ORD006',
+      subject: 'Measurement Issue',
+      description: 'The measurements taken were not accurate, causing fitting issues.',
+      date: '2024-01-20',
+      status: 'in-review',
+      priority: 'high',
+      response: null
+    },
+    {
+      id: 'COMP003',
+      customerId: 'CUST001',
+      customerName: 'Robert Johnson',
+      orderId: 'ORD004',
+      subject: 'Fabric Quality',
+      description: 'The fabric quality was not as promised.',
+      date: '2024-01-22',
+      status: 'pending',
+      priority: 'high',
+      response: null
+    }
+  ]);
+
+  // Calculate statistics
+  const totalRatings = feedbackList.length;
+  const avgShopRating = (feedbackList.reduce((sum, f) => sum + f.shopRating, 0) / totalRatings).toFixed(1);
+  const avgWorkerRating = (feedbackList.reduce((sum, f) => sum + f.workerRating, 0) / totalRatings).toFixed(1);
+
+  // Rating distribution
+  const ratingDistribution = {
+    5: feedbackList.filter(f => f.shopRating === 5).length,
+    4: feedbackList.filter(f => f.shopRating === 4).length,
+    3: feedbackList.filter(f => f.shopRating === 3).length,
+    2: feedbackList.filter(f => f.shopRating === 2).length,
+    1: feedbackList.filter(f => f.shopRating === 1).length
+  };
+
+  // Worker ratings
+  const workerRatings = workers.map(worker => {
+    const workerFeedback = feedbackList.filter(f => f.workerId === worker.id);
+    const avgRating = workerFeedback.length > 0
+      ? (workerFeedback.reduce((sum, f) => sum + f.workerRating, 0) / workerFeedback.length).toFixed(1)
+      : worker.rating;
+    return {
+      ...worker,
+      feedbackCount: workerFeedback.length,
+      avgRating: parseFloat(avgRating)
+    };
+  }).sort((a, b) => b.avgRating - a.avgRating);
+
+  // Filter feedback
+  const filteredFeedback = feedbackList.filter(feedback => {
+    const matchesSearch = 
+      feedback.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      feedback.orderId.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      feedback.workerName.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesRating = filterRating === 'all' || feedback.shopRating === parseInt(filterRating);
+    
+    return matchesSearch && matchesRating;
+  });
+
+  // Handle actions
+  const handleMarkReviewed = (id) => {
+    setFeedbackList(prev => prev.map(f => 
+      f.id === id ? { ...f, status: 'reviewed' } : f
+    ));
+  };
+
+  const handleMarkImportant = (id) => {
+    setFeedbackList(prev => prev.map(f => 
+      f.id === id ? { ...f, status: f.status === 'important' ? 'reviewed' : 'important' } : f
+    ));
+  };
+
+  const handleViewDetails = (feedback) => {
+    setSelectedReview(feedback);
+    setShowDetailsModal(true);
+  };
+
+  const handleUpdateComplaintStatus = (id, newStatus) => {
+    setComplaints(prev => prev.map(c => 
+      c.id === id ? { ...c, status: newStatus } : c
+    ));
+  };
+
+  return (
+    <div className="flex h-screen bg-gray-50">
+      <Sidebar role="owner" />
+      
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <Topbar />
+        
+        <main className="flex-1 overflow-y-auto p-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="max-w-7xl mx-auto"
+          >
+            {/* Header */}
+            <div className="mb-6">
+              <h1 className="text-3xl font-bold text-gray-900">Ratings & Feedback</h1>
+              <p className="text-gray-600 mt-2">Manage customer reviews and ratings</p>
+            </div>
+
+            {/* Tabs */}
+            <div className="flex gap-2 mb-6 border-b border-gray-200">
+              <button
+                onClick={() => setActiveTab('overview')}
+                className={`px-6 py-3 font-medium transition-colors border-b-2 ${
+                  activeTab === 'overview'
+                    ? 'border-orange-500 text-orange-600'
+                    : 'border-transparent text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Overview
+              </button>
+              <button
+                onClick={() => setActiveTab('feedback')}
+                className={`px-6 py-3 font-medium transition-colors border-b-2 ${
+                  activeTab === 'feedback'
+                    ? 'border-orange-500 text-orange-600'
+                    : 'border-transparent text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                All Feedback
+              </button>
+              <button
+                onClick={() => setActiveTab('workers')}
+                className={`px-6 py-3 font-medium transition-colors border-b-2 ${
+                  activeTab === 'workers'
+                    ? 'border-orange-500 text-orange-600'
+                    : 'border-transparent text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Worker Ratings
+              </button>
+              <button
+                onClick={() => setActiveTab('complaints')}
+                className={`px-6 py-3 font-medium transition-colors border-b-2 ${
+                  activeTab === 'complaints'
+                    ? 'border-orange-500 text-orange-600'
+                    : 'border-transparent text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Complaints
+              </button>
+            </div>
+
+            {/* Overview Tab */}
+            {activeTab === 'overview' && (
+              <div className="space-y-6">
+                {/* Stats Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                  <StatCard
+                    title="Total Ratings"
+                    value={totalRatings}
+                    icon={Star}
+                    color="bg-yellow-500"
+                  />
+                  <StatCard
+                    title="Shop Rating"
+                    value={avgShopRating}
+                    icon={Award}
+                    color="bg-blue-500"
+                    suffix="/5"
+                  />
+                  <StatCard
+                    title="Worker Rating"
+                    value={avgWorkerRating}
+                    icon={Users}
+                    color="bg-green-500"
+                    suffix="/5"
+                  />
+                  <StatCard
+                    title="Pending Reviews"
+                    value={feedbackList.filter(f => f.status === 'pending').length}
+                    icon={AlertCircle}
+                    color="bg-orange-500"
+                  />
+                </div>
+
+                {/* Rating Distribution */}
+                <div className="bg-white rounded-lg shadow-md p-6">
+                  <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <PieChart className="w-5 h-5 text-orange-500" />
+                    Rating Distribution
+                  </h2>
+                  <div className="space-y-3">
+                    {[5, 4, 3, 2, 1].map(rating => {
+                      const count = ratingDistribution[rating];
+                      const percentage = totalRatings > 0 ? (count / totalRatings) * 100 : 0;
+                      return (
+                        <div key={rating} className="flex items-center gap-3">
+                          <div className="flex items-center gap-1 w-20">
+                            <span className="font-medium">{rating}</span>
+                            <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                          </div>
+                          <div className="flex-1 bg-gray-200 rounded-full h-3 overflow-hidden">
+                            <div
+                              className="bg-yellow-500 h-full rounded-full transition-all"
+                              style={{ width: `${percentage}%` }}
+                            />
+                          </div>
+                          <span className="text-sm text-gray-600 w-16 text-right">
+                            {count} ({percentage.toFixed(0)}%)
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Recent Feedback */}
+                <div className="bg-white rounded-lg shadow-md p-6">
+                  <h2 className="text-xl font-bold text-gray-900 mb-4">Recent Feedback</h2>
+                  <div className="space-y-4">
+                    {feedbackList.slice(0, 5).map(feedback => (
+                      <div key={feedback.id} className="flex items-start gap-4 p-4 bg-gray-50 rounded-lg">
+                        <img
+                          src={feedback.customerAvatar}
+                          alt={feedback.customerName}
+                          className="w-12 h-12 rounded-full"
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between mb-2">
+                            <div>
+                              <h3 className="font-semibold text-gray-900">{feedback.customerName}</h3>
+                              <p className="text-sm text-gray-500">Order: {feedback.orderId}</p>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              {[...Array(5)].map((_, i) => (
+                                <Star
+                                  key={i}
+                                  className={`w-4 h-4 ${
+                                    i < feedback.shopRating
+                                      ? 'text-yellow-500 fill-yellow-500'
+                                      : 'text-gray-300'
+                                  }`}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                          <p className="text-gray-700 text-sm">{feedback.comment}</p>
+                          <div className="flex items-center gap-2 mt-2">
+                            <span className="text-xs text-gray-500">{feedback.date}</span>
+                            <span className={`text-xs px-2 py-1 rounded-full ${
+                              feedback.status === 'important' ? 'bg-red-100 text-red-700' :
+                              feedback.status === 'reviewed' ? 'bg-green-100 text-green-700' :
+                              'bg-gray-100 text-gray-700'
+                            }`}>
+                              {feedback.status}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* All Feedback Tab */}
+            {activeTab === 'feedback' && (
+              <div className="space-y-6">
+                {/* Filters */}
+                <div className="flex flex-col md:flex-row gap-4">
+                  <div className="flex-1 relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder="Search by customer, order, or worker..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    />
+                  </div>
+                  <div className="relative">
+                    <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <select
+                      value={filterRating}
+                      onChange={(e) => setFilterRating(e.target.value)}
+                      className="pl-10 pr-8 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent appearance-none bg-white"
+                    >
+                      <option value="all">All Ratings</option>
+                      <option value="5">5 Stars</option>
+                      <option value="4">4 Stars</option>
+                      <option value="3">3 Stars</option>
+                      <option value="2">2 Stars</option>
+                      <option value="1">1 Star</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Feedback List */}
+                <div className="bg-white rounded-lg shadow-md overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-gray-50 border-b border-gray-200">
+                        <tr>
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Customer</th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Order</th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Worker</th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Rating</th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Date</th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Status</th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200">
+                        {filteredFeedback.map(feedback => (
+                          <tr key={feedback.id} className="hover:bg-gray-50">
+                            <td className="px-6 py-4">
+                              <div className="flex items-center gap-3">
+                                <img
+                                  src={feedback.customerAvatar}
+                                  alt={feedback.customerName}
+                                  className="w-10 h-10 rounded-full"
+                                />
+                                <span className="font-medium text-gray-900">{feedback.customerName}</span>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 text-gray-900">{feedback.orderId}</td>
+                            <td className="px-6 py-4 text-gray-900">{feedback.workerName}</td>
+                            <td className="px-6 py-4">
+                              <div className="flex items-center gap-1">
+                                <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                                <span className="font-semibold">{feedback.shopRating}</span>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 text-gray-600">{feedback.date}</td>
+                            <td className="px-6 py-4">
+                              <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                                feedback.status === 'important' ? 'bg-red-100 text-red-700' :
+                                feedback.status === 'reviewed' ? 'bg-green-100 text-green-700' :
+                                'bg-gray-100 text-gray-700'
+                              }`}>
+                                {feedback.status}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={() => handleViewDetails(feedback)}
+                                  className="p-2 hover:bg-blue-50 rounded-lg transition-colors"
+                                  title="View Details"
+                                >
+                                  <Eye className="w-4 h-4 text-blue-600" />
+                                </button>
+                                <button
+                                  onClick={() => handleMarkReviewed(feedback.id)}
+                                  className="p-2 hover:bg-green-50 rounded-lg transition-colors"
+                                  title="Mark as Reviewed"
+                                >
+                                  <CheckCircle className="w-4 h-4 text-green-600" />
+                                </button>
+                                <button
+                                  onClick={() => handleMarkImportant(feedback.id)}
+                                  className="p-2 hover:bg-red-50 rounded-lg transition-colors"
+                                  title="Mark as Important"
+                                >
+                                  <Tag className={`w-4 h-4 ${
+                                    feedback.status === 'important' ? 'text-red-600 fill-red-600' : 'text-gray-400'
+                                  }`} />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Worker Ratings Tab */}
+            {activeTab === 'workers' && (
+              <div className="space-y-6">
+                {/* Top 5 Workers */}
+                <div className="bg-white rounded-lg shadow-md p-6">
+                  <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <Award className="w-5 h-5 text-orange-500" />
+                    Top 5 Workers by Rating
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                    {workerRatings.slice(0, 5).map((worker, index) => (
+                      <div key={worker.id} className="text-center p-4 bg-gray-50 rounded-lg">
+                        <div className="relative inline-block mb-3">
+                          <img
+                            src={worker.avatar}
+                            alt={worker.name}
+                            className="w-16 h-16 rounded-full mx-auto"
+                          />
+                          {index === 0 && (
+                            <div className="absolute -top-2 -right-2 bg-yellow-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">
+                              1
+                            </div>
+                          )}
+                        </div>
+                        <h3 className="font-semibold text-gray-900 text-sm">{worker.name}</h3>
+                        <div className="flex items-center justify-center gap-1 mt-2">
+                          <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                          <span className="font-bold text-lg">{worker.avgRating}</span>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">{worker.feedbackCount} reviews</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* All Workers List */}
+                <div className="bg-white rounded-lg shadow-md overflow-hidden">
+                  <div className="p-6 border-b border-gray-200">
+                    <h2 className="text-xl font-bold text-gray-900">Worker Performance</h2>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-gray-50 border-b border-gray-200">
+                        <tr>
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Worker</th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Specialization</th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Avg Rating</th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Reviews</th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Performance</th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200">
+                        {workerRatings.map(worker => (
+                          <tr key={worker.id} className="hover:bg-gray-50">
+                            <td className="px-6 py-4">
+                              <div className="flex items-center gap-3">
+                                <img
+                                  src={worker.avatar}
+                                  alt={worker.name}
+                                  className="w-10 h-10 rounded-full"
+                                />
+                                <span className="font-medium text-gray-900">{worker.name}</span>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 text-gray-600">{worker.specialization}</td>
+                            <td className="px-6 py-4">
+                              <div className="flex items-center gap-1">
+                                <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                                <span className="font-semibold">{worker.avgRating}</span>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 text-gray-600">{worker.feedbackCount}</td>
+                            <td className="px-6 py-4">
+                              <div className="flex items-center gap-2">
+                                <div className="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
+                                  <div
+                                    className={`h-full rounded-full ${
+                                      worker.performance >= 90 ? 'bg-green-500' :
+                                      worker.performance >= 70 ? 'bg-blue-500' :
+                                      worker.performance >= 50 ? 'bg-yellow-500' :
+                                      'bg-red-500'
+                                    }`}
+                                    style={{ width: `${worker.performance}%` }}
+                                  />
+                                </div>
+                                <span className="text-sm text-gray-600">{worker.performance}%</span>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                                worker.avgRating >= 4.5 ? 'bg-green-100 text-green-700' :
+                                worker.avgRating >= 3.5 ? 'bg-blue-100 text-blue-700' :
+                                worker.avgRating >= 2.5 ? 'bg-yellow-100 text-yellow-700' :
+                                'bg-red-100 text-red-700'
+                              }`}>
+                                {worker.avgRating >= 4.5 ? 'Excellent' :
+                                 worker.avgRating >= 3.5 ? 'Good' :
+                                 worker.avgRating >= 2.5 ? 'Average' :
+                                 'Needs Improvement'}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Low Performance Warning */}
+                {workerRatings.filter(w => w.avgRating < 3.5).length > 0 && (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+                    <div className="flex items-start gap-3">
+                      <AlertCircle className="w-6 h-6 text-red-600 flex-shrink-0 mt-1" />
+                      <div>
+                        <h3 className="font-semibold text-red-900 mb-2">Low Performance Alert</h3>
+                        <p className="text-red-700 text-sm mb-3">
+                          The following workers have ratings below 3.5 and may need additional training or support:
+                        </p>
+                        <ul className="space-y-1">
+                          {workerRatings.filter(w => w.avgRating < 3.5).map(worker => (
+                            <li key={worker.id} className="text-red-700 text-sm">
+                              • {worker.name} - {worker.avgRating} stars ({worker.feedbackCount} reviews)
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Complaints Tab */}
+            {activeTab === 'complaints' && (
+              <div className="space-y-6">
+                {/* Complaints Stats */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="bg-white rounded-lg shadow-md p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-gray-500 text-sm">Pending</p>
+                        <p className="text-3xl font-bold text-orange-600">
+                          {complaints.filter(c => c.status === 'pending').length}
+                        </p>
+                      </div>
+                      <AlertCircle className="w-12 h-12 text-orange-500" />
+                    </div>
+                  </div>
+                  <div className="bg-white rounded-lg shadow-md p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-gray-500 text-sm">In Review</p>
+                        <p className="text-3xl font-bold text-blue-600">
+                          {complaints.filter(c => c.status === 'in-review').length}
+                        </p>
+                      </div>
+                      <MessageSquare className="w-12 h-12 text-blue-500" />
+                    </div>
+                  </div>
+                  <div className="bg-white rounded-lg shadow-md p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-gray-500 text-sm">Resolved</p>
+                        <p className="text-3xl font-bold text-green-600">
+                          {complaints.filter(c => c.status === 'resolved').length}
+                        </p>
+                      </div>
+                      <CheckCircle className="w-12 h-12 text-green-500" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Complaints List */}
+                <div className="bg-white rounded-lg shadow-md overflow-hidden">
+                  <div className="p-6 border-b border-gray-200">
+                    <h2 className="text-xl font-bold text-gray-900">All Complaints</h2>
+                  </div>
+                  <div className="divide-y divide-gray-200">
+                    {complaints.map(complaint => (
+                      <div key={complaint.id} className="p-6 hover:bg-gray-50">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex items-start gap-3">
+                            <div className={`p-2 rounded-lg ${
+                              complaint.priority === 'high' ? 'bg-red-100' :
+                              complaint.priority === 'medium' ? 'bg-yellow-100' :
+                              'bg-blue-100'
+                            }`}>
+                              <AlertCircle className={`w-5 h-5 ${
+                                complaint.priority === 'high' ? 'text-red-600' :
+                                complaint.priority === 'medium' ? 'text-yellow-600' :
+                                'text-blue-600'
+                              }`} />
+                            </div>
+                            <div>
+                              <h3 className="font-semibold text-gray-900">{complaint.subject}</h3>
+                              <p className="text-sm text-gray-600 mt-1">
+                                {complaint.customerName} • Order: {complaint.orderId}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                              complaint.status === 'resolved' ? 'bg-green-100 text-green-700' :
+                              complaint.status === 'in-review' ? 'bg-blue-100 text-blue-700' :
+                              'bg-orange-100 text-orange-700'
+                            }`}>
+                              {complaint.status}
+                            </span>
+                            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                              complaint.priority === 'high' ? 'bg-red-100 text-red-700' :
+                              complaint.priority === 'medium' ? 'bg-yellow-100 text-yellow-700' :
+                              'bg-blue-100 text-blue-700'
+                            }`}>
+                              {complaint.priority} priority
+                            </span>
+                          </div>
+                        </div>
+                        
+                        <p className="text-gray-700 mb-3 ml-11">{complaint.description}</p>
+                        
+                        {complaint.response && (
+                          <div className="ml-11 bg-blue-50 border-l-4 border-blue-500 p-3 rounded">
+                            <p className="text-sm font-medium text-blue-900 mb-1">Response:</p>
+                            <p className="text-sm text-blue-800">{complaint.response}</p>
+                          </div>
+                        )}
+                        
+                        <div className="flex items-center justify-between mt-4 ml-11">
+                          <span className="text-xs text-gray-500 flex items-center gap-1">
+                            <Calendar className="w-3 h-3" />
+                            {complaint.date}
+                          </span>
+                          
+                          {complaint.status !== 'resolved' && (
+                            <div className="flex gap-2">
+                              {complaint.status === 'pending' && (
+                                <button
+                                  onClick={() => handleUpdateComplaintStatus(complaint.id, 'in-review')}
+                                  className="px-3 py-1 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 transition-colors"
+                                >
+                                  Start Review
+                                </button>
+                              )}
+                              {complaint.status === 'in-review' && (
+                                <button
+                                  onClick={() => handleUpdateComplaintStatus(complaint.id, 'resolved')}
+                                  className="px-3 py-1 bg-green-500 text-white text-sm rounded-lg hover:bg-green-600 transition-colors"
+                                >
+                                  Mark Resolved
+                                </button>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </motion.div>
+        </main>
+      </div>
+
+      {/* Review Details Modal */}
+      {showDetailsModal && selectedReview && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+          onClick={() => setShowDetailsModal(false)}
+        >
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+          >
+            <div className="p-6 border-b border-gray-200">
+              <h2 className="text-2xl font-bold text-gray-900">Review Details</h2>
+            </div>
+            
+            <div className="p-6 space-y-6">
+              {/* Customer Info */}
+              <div className="flex items-center gap-4">
+                <img
+                  src={selectedReview.customerAvatar}
+                  alt={selectedReview.customerName}
+                  className="w-16 h-16 rounded-full"
+                />
+                <div>
+                  <h3 className="font-semibold text-gray-900 text-lg">{selectedReview.customerName}</h3>
+                  <p className="text-gray-600">Order: {selectedReview.orderId}</p>
+                  <p className="text-sm text-gray-500">{selectedReview.date}</p>
+                </div>
+              </div>
+
+              {/* Ratings */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <p className="text-sm text-gray-600 mb-2">Shop Rating</p>
+                  <div className="flex items-center gap-1">
+                    {[...Array(5)].map((_, i) => (
+                      <Star
+                        key={i}
+                        className={`w-5 h-5 ${
+                          i < selectedReview.shopRating
+                            ? 'text-yellow-500 fill-yellow-500'
+                            : 'text-gray-300'
+                        }`}
+                      />
+                    ))}
+                    <span className="ml-2 font-bold text-lg">{selectedReview.shopRating}</span>
+                  </div>
+                </div>
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <p className="text-sm text-gray-600 mb-2">Worker Rating</p>
+                  <div className="flex items-center gap-1">
+                    {[...Array(5)].map((_, i) => (
+                      <Star
+                        key={i}
+                        className={`w-5 h-5 ${
+                          i < selectedReview.workerRating
+                            ? 'text-yellow-500 fill-yellow-500'
+                            : 'text-gray-300'
+                        }`}
+                      />
+                    ))}
+                    <span className="ml-2 font-bold text-lg">{selectedReview.workerRating}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Detailed Ratings */}
+              <div className="space-y-3">
+                <h4 className="font-semibold text-gray-900">Detailed Ratings</h4>
+                <RatingBar label="Skill" value={selectedReview.skillRating} />
+                <RatingBar label="Delivery Time" value={selectedReview.deliveryRating} />
+                <RatingBar label="Quality" value={selectedReview.qualityRating} />
+                <RatingBar label="Behavior" value={selectedReview.behaviorRating} />
+              </div>
+
+              {/* Worker Info */}
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <p className="text-sm text-gray-600 mb-1">Assigned Worker</p>
+                <p className="font-semibold text-gray-900">{selectedReview.workerName}</p>
+              </div>
+
+              {/* Comment */}
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-2">Customer Comment</h4>
+                <p className="text-gray-700 bg-gray-50 p-4 rounded-lg">{selectedReview.comment}</p>
+              </div>
+
+              {/* Reply */}
+              {selectedReview.reply && (
+                <div className="bg-green-50 border-l-4 border-green-500 p-4 rounded">
+                  <p className="text-sm font-medium text-green-900 mb-1">Your Reply:</p>
+                  <p className="text-green-800">{selectedReview.reply}</p>
+                </div>
+              )}
+            </div>
+
+            <div className="p-6 border-t border-gray-200 flex justify-end gap-3">
+              <button
+                onClick={() => setShowDetailsModal(false)}
+                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Close
+              </button>
+              <button
+                onClick={() => {
+                  handleMarkImportant(selectedReview.id);
+                  setShowDetailsModal(false);
+                }}
+                className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
+              >
+                Mark as Important
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Stat Card Component
+const StatCard = ({ title, value, icon: Icon, color, suffix = '' }) => {
+  return (
+    <motion.div
+      whileHover={{ scale: 1.02, y: -5 }}
+      className="bg-white rounded-lg shadow-md p-6"
+    >
+      <div className="flex items-center justify-between mb-4">
+        <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${color}`}>
+          <Icon className="w-6 h-6 text-white" />
+        </div>
+      </div>
+      <p className="text-gray-500 text-sm">{title}</p>
+      <p className="text-2xl font-bold text-gray-900 mt-2">
+        {value}{suffix}
+      </p>
+    </motion.div>
+  );
+};
+
+// Rating Bar Component
+const RatingBar = ({ label, value }) => {
+  return (
+    <div className="flex items-center gap-3">
+      <span className="text-sm text-gray-600 w-32">{label}</span>
+      <div className="flex-1 bg-gray-200 rounded-full h-2 overflow-hidden">
+        <div
+          className="bg-yellow-500 h-full rounded-full"
+          style={{ width: `${(value / 5) * 100}%` }}
+        />
+      </div>
+      <span className="text-sm font-semibold text-gray-900 w-8">{value}/5</span>
+    </div>
+  );
 };
 
 export default Ratings;

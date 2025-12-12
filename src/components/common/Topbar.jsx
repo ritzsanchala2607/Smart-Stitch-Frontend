@@ -1,15 +1,21 @@
-import { motion } from 'framer-motion';
-import { Bell, Search, User, Menu, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Bell, Search, User, Menu, X, Moon, Sun, Settings, LogOut } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useSearch } from '../../context/SearchContext';
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const Topbar = () => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const { searchQuery, setSearchQuery } = useSearch();
+  const navigate = useNavigate();
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
   const [localSearchValue, setLocalSearchValue] = useState(searchQuery);
   const debounceTimerRef = useRef(null);
+  const notificationRef = useRef(null);
+  const profileRef = useRef(null);
 
   const notifications = [
     { id: 1, message: 'New order received', time: '5 min ago', unread: true },
@@ -18,6 +24,21 @@ const Topbar = () => {
   ];
 
   const unreadCount = notifications.filter(n => n.unread).length;
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (notificationRef.current && !notificationRef.current.contains(event.target)) {
+        setShowNotifications(false);
+      }
+      if (profileRef.current && !profileRef.current.contains(event.target)) {
+        setShowProfileMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Debounce search input (300ms)
   useEffect(() => {
@@ -86,8 +107,23 @@ const Topbar = () => {
 
       {/* Right Side */}
       <div className="flex items-center gap-4">
+        {/* Dark/Light Mode Toggle */}
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => setDarkMode(!darkMode)}
+          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          title={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+        >
+          {darkMode ? (
+            <Sun className="w-6 h-6 text-gray-600" />
+          ) : (
+            <Moon className="w-6 h-6 text-gray-600" />
+          )}
+        </motion.button>
+
         {/* Notifications */}
-        <div className="relative">
+        <div className="relative" ref={notificationRef}>
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -103,46 +139,105 @@ const Topbar = () => {
           </motion.button>
 
           {/* Notifications Dropdown */}
-          {showNotifications && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-200 z-50"
-            >
-              <div className="p-4 border-b border-gray-200">
-                <h3 className="font-semibold text-gray-900">Notifications</h3>
-              </div>
-              <div className="max-h-96 overflow-y-auto">
-                {notifications.map((notif) => (
-                  <div
-                    key={notif.id}
-                    className={`p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer ${
-                      notif.unread ? 'bg-blue-50' : ''
-                    }`}
+          <AnimatePresence>
+            {showNotifications && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-200 z-50"
+              >
+                <div className="p-4 border-b border-gray-200">
+                  <h3 className="font-semibold text-gray-900">Notifications</h3>
+                </div>
+                <div className="max-h-96 overflow-y-auto">
+                  {notifications.map((notif) => (
+                    <div
+                      key={notif.id}
+                      className={`p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer ${
+                        notif.unread ? 'bg-blue-50' : ''
+                      }`}
+                    >
+                      <p className="text-sm text-gray-900">{notif.message}</p>
+                      <p className="text-xs text-gray-500 mt-1">{notif.time}</p>
+                    </div>
+                  ))}
+                </div>
+                <div className="p-3 text-center border-t border-gray-200">
+                  <button 
+                    onClick={() => {
+                      setShowNotifications(false);
+                      navigate(`/${user?.role}/notifications`);
+                    }}
+                    className="text-sm text-orange-600 hover:text-orange-700 font-medium"
                   >
-                    <p className="text-sm text-gray-900">{notif.message}</p>
-                    <p className="text-xs text-gray-500 mt-1">{notif.time}</p>
-                  </div>
-                ))}
-              </div>
-              <div className="p-3 text-center border-t border-gray-200">
-                <button className="text-sm text-orange-600 hover:text-orange-700 font-medium">
-                  View All Notifications
-                </button>
-              </div>
-            </motion.div>
-          )}
+                    View All Notifications
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* User Profile */}
-        <div className="flex items-center gap-3 pl-4 border-l border-gray-200">
-          <div className="text-right hidden sm:block">
-            <p className="text-sm font-semibold text-gray-900">{user?.name}</p>
-            <p className="text-xs text-gray-500 capitalize">{user?.role}</p>
-          </div>
-          <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center">
-            <User className="w-6 h-6 text-white" />
-          </div>
+        <div className="relative" ref={profileRef}>
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => setShowProfileMenu(!showProfileMenu)}
+            className="flex items-center gap-3 pl-4 border-l border-gray-200 hover:bg-gray-100 rounded-lg p-2 transition-colors"
+          >
+            <div className="text-right hidden sm:block">
+              <p className="text-sm font-semibold text-gray-900">{user?.name}</p>
+              <p className="text-xs text-gray-500 capitalize">{user?.role}</p>
+            </div>
+            <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center">
+              <User className="w-6 h-6 text-white" />
+            </div>
+          </motion.button>
+
+          {/* Profile Dropdown */}
+          <AnimatePresence>
+            {showProfileMenu && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 z-50"
+              >
+                <div className="p-4 border-b border-gray-200">
+                  <p className="font-semibold text-gray-900">{user?.name}</p>
+                  <p className="text-sm text-gray-500">{user?.email}</p>
+                </div>
+                
+                <div className="p-2">
+                  {/* Profile Settings */}
+                  <button
+                    onClick={() => {
+                      setShowProfileMenu(false);
+                      navigate(`/${user?.role}/profile`);
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 rounded-lg transition-colors"
+                  >
+                    <Settings className="w-5 h-5 text-gray-600" />
+                    <span className="text-sm text-gray-700">Profile & Settings</span>
+                  </button>
+
+                  {/* Logout */}
+                  <button
+                    onClick={() => {
+                      setShowProfileMenu(false);
+                      logout();
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-red-50 rounded-lg transition-colors text-red-600"
+                  >
+                    <LogOut className="w-5 h-5" />
+                    <span className="text-sm font-medium">Logout</span>
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
     </motion.div>

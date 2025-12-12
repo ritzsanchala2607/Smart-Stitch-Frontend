@@ -1,18 +1,106 @@
+import { useState } from 'react';
 import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
 import { motion } from 'framer-motion';
 import { 
-  Package, Users, DollarSign, 
-  AlertCircle, CheckCircle, Clock, UserCog,
-  Scissors
+  Package, Users, DollarSign, AlertCircle, CheckCircle, Clock, UserCog,
+  Scissors, TrendingUp, Calendar, MessageSquare, Star, Search, X,
+  ShoppingBag, FileText, BarChart3, Activity, Bell, ChevronRight,
+  Eye, Zap, Box, AlertTriangle
 } from 'lucide-react';
-import { dashboardStats, orders, workers } from '../../data/dummyData';
+import { dashboardStats, orders, workers, customers, inventory, notifications, reviews } from '../../data/dummyData';
+import { useNavigate } from 'react-router-dom';
 
 const OwnerDashboard = () => {
   const stats = dashboardStats.owner;
+  const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showSearchResults, setShowSearchResults] = useState(false);
 
+  // Calculate today's and weekly orders
+  const today = new Date().toISOString().split('T')[0];
+  const todayOrders = orders.filter(o => o.orderDate === today);
+  const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+  const weeklyOrders = orders.filter(o => o.orderDate >= weekAgo);
+  
+  // Pending work with urgency
+  const pendingOrders = orders.filter(o => o.status !== 'ready');
+  const urgentOrders = pendingOrders.filter(o => o.priority === 'high').length;
+  const mediumOrders = pendingOrders.filter(o => o.priority === 'medium').length;
+  const lowOrders = pendingOrders.filter(o => o.priority === 'low').length;
+
+  // Worker performance
+  const totalPerformance = workers.reduce((sum, w) => sum + w.performance, 0);
+  const avgPerformance = Math.round(totalPerformance / workers.length);
+
+  // Recent orders
   const recentOrders = orders.slice(0, 5);
   const activeWorkers = workers.filter(w => w.status === 'active');
+
+  // Low stock items
+  const lowStockItems = inventory.filter(item => item.quantity <= item.minStock);
+
+  // Delivery calendar
+  const upcomingDeliveries = orders
+    .filter(o => o.status !== 'ready')
+    .sort((a, b) => new Date(a.deliveryDate) - new Date(b.deliveryDate))
+    .slice(0, 5);
+
+  // Mock chat messages
+  const recentMessages = [
+    { id: 1, worker: 'Mike Tailor', message: 'Order #ORD001 is ready for fitting', time: '5 min ago', avatar: 'https://i.pravatar.cc/150?img=12' },
+    { id: 2, worker: 'Sarah Stitcher', message: 'Need more silk fabric for ORD002', time: '15 min ago', avatar: 'https://i.pravatar.cc/150?img=45' },
+    { id: 3, worker: 'David Designer', message: 'Customer approved the design', time: '1 hour ago', avatar: 'https://i.pravatar.cc/150?img=33' }
+  ];
+
+  // Order timeline
+  const orderTimeline = [
+    { status: 'completed', count: orders.filter(o => o.status === 'ready').length, color: 'bg-green-500' },
+    { status: 'active', count: orders.filter(o => ['stitching', 'cutting', 'fitting'].includes(o.status)).length, color: 'bg-blue-500' },
+    { status: 'delayed', count: orders.filter(o => new Date(o.deliveryDate) < new Date() && o.status !== 'ready').length, color: 'bg-red-500' }
+  ];
+
+  // Weekly data for chart
+  const weeklyData = [
+    { day: 'Mon', orders: 12, revenue: 15000 },
+    { day: 'Tue', orders: 15, revenue: 18000 },
+    { day: 'Wed', orders: 18, revenue: 22000 },
+    { day: 'Thu', orders: 14, revenue: 17000 },
+    { day: 'Fri', orders: 20, revenue: 25000 },
+    { day: 'Sat', orders: 17, revenue: 21000 },
+    { day: 'Sun', orders: 22, revenue: 28000 }
+  ];
+
+  const maxOrders = Math.max(...weeklyData.map(d => d.orders));
+
+  // Quick actions
+  const quickActions = [
+    { icon: Package, label: 'New Order', color: 'bg-blue-500', path: '/owner/orders' },
+    { icon: Users, label: 'Add Customer', color: 'bg-purple-500', path: '/owner/customers' },
+    { icon: UserCog, label: 'Add Worker', color: 'bg-green-500', path: '/owner/workers' },
+    { icon: DollarSign, label: 'Generate Invoice', color: 'bg-orange-500', path: '/owner/billing' },
+    { icon: Box, label: 'Add Inventory', color: 'bg-indigo-500', path: '/owner/inventory' },
+    { icon: BarChart3, label: 'Reports', color: 'bg-pink-500', path: '/owner/analytics' },
+  ];
+
+  // Search functionality
+  const handleSearch = (query) => {
+    setSearchQuery(query);
+    setShowSearchResults(query.length > 0);
+  };
+
+  const searchResults = {
+    orders: orders.filter(o => 
+      o.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      o.customerName.toLowerCase().includes(searchQuery.toLowerCase())
+    ).slice(0, 3),
+    customers: customers.filter(c => 
+      c.name.toLowerCase().includes(searchQuery.toLowerCase())
+    ).slice(0, 3),
+    workers: workers.filter(w => 
+      w.name.toLowerCase().includes(searchQuery.toLowerCase())
+    ).slice(0, 3)
+  };
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -23,11 +111,12 @@ const OwnerDashboard = () => {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="max-w-7xl mx-auto"
+            className="max-w-7xl mx-auto space-y-6"
           >
-            {/* Header */}
-            <div className="mb-8">
-              <div className="flex items-center gap-3 mb-2">
+
+            {/* Header with Search */}
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
                 <div className="p-3 bg-orange-100 rounded-lg">
                   <Scissors className="w-6 h-6 text-orange-600" />
                 </div>
@@ -36,138 +125,557 @@ const OwnerDashboard = () => {
                   <p className="text-gray-600">Welcome back! Here's what's happening today.</p>
                 </div>
               </div>
+
+              {/* Global Search */}
+              <div className="relative w-96">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search orders, customers, workers..."
+                  value={searchQuery}
+                  onChange={(e) => handleSearch(e.target.value)}
+                  className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => {
+                      setSearchQuery('');
+                      setShowSearchResults(false);
+                    }}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                  >
+                    <X className="w-4 h-4 text-gray-400 hover:text-gray-600" />
+                  </button>
+                )}
+
+                {/* Search Results Dropdown */}
+                {showSearchResults && (
+                  <div className="absolute top-full mt-2 w-full bg-white rounded-lg shadow-xl border border-gray-200 z-50 max-h-96 overflow-y-auto">
+                    {searchResults.orders.length > 0 && (
+                      <div className="p-3 border-b border-gray-100">
+                        <p className="text-xs font-semibold text-gray-500 mb-2">ORDERS</p>
+                        {searchResults.orders.map(order => (
+                          <div
+                            key={order.id}
+                            onClick={() => navigate('/owner/orders')}
+                            className="p-2 hover:bg-gray-50 rounded cursor-pointer"
+                          >
+                            <p className="font-medium text-sm">{order.id}</p>
+                            <p className="text-xs text-gray-600">{order.customerName}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {searchResults.customers.length > 0 && (
+                      <div className="p-3 border-b border-gray-100">
+                        <p className="text-xs font-semibold text-gray-500 mb-2">CUSTOMERS</p>
+                        {searchResults.customers.map(customer => (
+                          <div
+                            key={customer.id}
+                            onClick={() => navigate('/owner/customers')}
+                            className="p-2 hover:bg-gray-50 rounded cursor-pointer"
+                          >
+                            <p className="font-medium text-sm">{customer.name}</p>
+                            <p className="text-xs text-gray-600">{customer.phone}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {searchResults.workers.length > 0 && (
+                      <div className="p-3">
+                        <p className="text-xs font-semibold text-gray-500 mb-2">WORKERS</p>
+                        {searchResults.workers.map(worker => (
+                          <div
+                            key={worker.id}
+                            onClick={() => navigate('/owner/workers')}
+                            className="p-2 hover:bg-gray-50 rounded cursor-pointer"
+                          >
+                            <p className="font-medium text-sm">{worker.name}</p>
+                            <p className="text-xs text-gray-600">{worker.specialization}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {searchResults.orders.length === 0 && searchResults.customers.length === 0 && searchResults.workers.length === 0 && (
+                      <div className="p-4 text-center text-gray-500 text-sm">
+                        No results found
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
-            
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+
+            {/* Quick Actions Toolbar */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+            >
+              <h2 className="text-lg font-bold text-gray-900 mb-3">Quick Actions</h2>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+                {quickActions.map((action, index) => (
+                  <QuickActionButton 
+                    key={index}
+                    icon={action.icon} 
+                    label={action.label} 
+                    color={action.color}
+                    onClick={() => navigate(action.path)}
+                  />
+                ))}
+              </div>
+            </motion.div>
+
+            {/* Dashboard Summary Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
               <StatCard 
-                title="Total Orders" 
-                value={stats.totalOrders} 
+                title="Daily Orders" 
+                value={todayOrders.length} 
                 icon={Package}
                 color="bg-blue-500"
-                trend="+12%"
+                subtitle="Today"
               />
               <StatCard 
-                title="Active Orders" 
-                value={stats.activeOrders} 
-                icon={Clock}
-                color="bg-orange-500"
-                trend="+5%"
+                title="Weekly Orders" 
+                value={weeklyOrders.length} 
+                icon={TrendingUp}
+                color="bg-purple-500"
+                subtitle="Last 7 days"
               />
               <StatCard 
-                title="Monthly Revenue" 
-                value={`$${stats.monthlyRevenue.toLocaleString()}`} 
+                title="Total Revenue" 
+                value={`$${stats.totalRevenue.toLocaleString()}`} 
                 icon={DollarSign}
                 color="bg-green-500"
-                trend="+18%"
+                subtitle="All time"
               />
               <StatCard 
-                title="Total Customers" 
-                value={stats.totalCustomers} 
-                icon={Users}
-                color="bg-purple-500"
-                trend="+8%"
+                title="Pending Work" 
+                value={pendingOrders.length} 
+                icon={Clock}
+                color={urgentOrders > 5 ? 'bg-red-500' : mediumOrders > 10 ? 'bg-yellow-500' : 'bg-blue-500'}
+                subtitle={`${urgentOrders} urgent`}
+              />
+              <StatCard 
+                title="Worker Performance" 
+                value={`${avgPerformance}%`} 
+                icon={Activity}
+                color="bg-indigo-500"
+                subtitle="Average"
               />
             </div>
 
-            {/* Charts and Tables Row */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-              {/* Recent Orders */}
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.2 }}
-                className="bg-white rounded-lg shadow-md p-6"
-              >
-                <h2 className="text-xl font-bold text-gray-900 mb-4">Recent Orders</h2>
-                <div className="space-y-4">
-                  {recentOrders.map((order) => (
-                    <div key={order.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                      <div className="flex items-center gap-4">
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                          order.status === 'ready' ? 'bg-green-100' :
-                          order.status === 'stitching' ? 'bg-blue-100' :
-                          'bg-orange-100'
-                        }`}>
-                          {order.status === 'ready' ? <CheckCircle className="w-5 h-5 text-green-600" /> :
-                           order.status === 'stitching' ? <Clock className="w-5 h-5 text-blue-600" /> :
-                           <AlertCircle className="w-5 h-5 text-orange-600" />}
-                        </div>
-                        <div>
-                          <p className="font-semibold text-gray-900">{order.id}</p>
-                          <p className="text-sm text-gray-600">{order.customerName}</p>
-                        </div>
+            {/* Main Content Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Left Column - 2/3 width */}
+              <div className="lg:col-span-2 space-y-6">
+                {/* Orders Overview Chart */}
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.2 }}
+                  className="bg-white rounded-lg shadow-md p-6"
+                >
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-xl font-bold text-gray-900">Orders Overview</h2>
+                    <div className="flex gap-4 text-sm">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                        <span className="text-gray-600">Orders</span>
                       </div>
-                      <div className="text-right">
-                        <p className="font-semibold text-gray-900">${order.totalAmount}</p>
-                        <span className={`text-xs px-2 py-1 rounded-full ${
-                          order.status === 'ready' ? 'bg-green-100 text-green-700' :
-                          order.status === 'stitching' ? 'bg-blue-100 text-blue-700' :
-                          'bg-orange-100 text-orange-700'
-                        }`}>
-                          {order.status}
-                        </span>
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                        <span className="text-gray-600">Revenue</span>
                       </div>
                     </div>
-                  ))}
-                </div>
-              </motion.div>
+                  </div>
+                  <div className="flex items-end justify-between h-64 gap-2">
+                    {weeklyData.map((data, index) => (
+                      <div key={index} className="flex-1 flex flex-col items-center gap-2">
+                        <div className="w-full flex flex-col items-center gap-1">
+                          <div className="relative w-full">
+                            <div
+                              className="bg-blue-500 rounded-t-lg transition-all hover:bg-blue-600"
+                              style={{ height: `${(data.orders / maxOrders) * 200}px` }}
+                            ></div>
+                            <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-xs font-semibold text-gray-700">
+                              {data.orders}
+                            </div>
+                          </div>
+                        </div>
+                        <span className="text-xs text-gray-600 font-medium">{data.day}</span>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
 
-              {/* Active Workers */}
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.3 }}
-                className="bg-white rounded-lg shadow-md p-6"
-              >
-                <h2 className="text-xl font-bold text-gray-900 mb-4">Active Workers</h2>
-                <div className="space-y-4">
-                  {activeWorkers.map((worker) => (
-                    <div key={worker.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                      <div className="flex items-center gap-4">
+                {/* Worker Efficiency Chart */}
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="bg-white rounded-lg shadow-md p-6"
+                >
+                  <h2 className="text-xl font-bold text-gray-900 mb-4">Worker Efficiency</h2>
+                  <div className="space-y-4">
+                    {workers.slice(0, 5).map((worker) => (
+                      <div key={worker.id} className="flex items-center gap-4">
                         <img 
                           src={worker.avatar} 
                           alt={worker.name}
                           className="w-10 h-10 rounded-full"
                         />
-                        <div>
-                          <p className="font-semibold text-gray-900">{worker.name}</p>
-                          <p className="text-sm text-gray-600">{worker.specialization}</p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm font-semibold text-gray-900">{worker.assignedOrders} tasks</p>
-                        <div className="flex items-center gap-1 mt-1">
-                          <div className="w-16 h-2 bg-gray-200 rounded-full overflow-hidden">
-                            <div 
-                              className="h-full bg-green-500 rounded-full"
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="font-medium text-gray-900 text-sm">{worker.name}</span>
+                            <span className="text-sm font-semibold text-gray-700">{worker.performance}%</span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                            <div
+                              className={`h-full rounded-full transition-all ${
+                                worker.performance >= 90 ? 'bg-green-500' :
+                                worker.performance >= 70 ? 'bg-blue-500' :
+                                worker.performance >= 50 ? 'bg-yellow-500' :
+                                'bg-red-500'
+                              }`}
                               style={{ width: `${worker.performance}%` }}
                             />
                           </div>
-                          <span className="text-xs text-gray-600">{worker.performance}%</span>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              </motion.div>
-            </div>
+                    ))}
+                  </div>
+                </motion.div>
 
-            {/* Quick Actions */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              className="bg-white rounded-lg shadow-md p-6"
-            >
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Quick Actions</h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <QuickActionButton icon={Package} label="New Order" color="bg-blue-500" />
-                <QuickActionButton icon={UserCog} label="Add Worker" color="bg-green-500" />
-                <QuickActionButton icon={Users} label="Add Customer" color="bg-purple-500" />
-                <QuickActionButton icon={DollarSign} label="Generate Invoice" color="bg-orange-500" />
+                {/* Recent Orders Table */}
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.4 }}
+                  className="bg-white rounded-lg shadow-md overflow-hidden"
+                >
+                  <div className="p-6 border-b border-gray-200">
+                    <h2 className="text-xl font-bold text-gray-900">Recent Orders</h2>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-gray-50 border-b border-gray-200">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600">Order ID</th>
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600">Customer</th>
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600">Type</th>
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600">Worker</th>
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600">Status</th>
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600">Delivery</th>
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200">
+                        {recentOrders.map((order) => (
+                          <tr key={order.id} className="hover:bg-gray-50">
+                            <td className="px-6 py-4 text-sm font-medium text-gray-900">{order.id}</td>
+                            <td className="px-6 py-4 text-sm text-gray-600">{order.customerName}</td>
+                            <td className="px-6 py-4 text-sm text-gray-600">{order.items[0]?.type || 'N/A'}</td>
+                            <td className="px-6 py-4 text-sm text-gray-600">{order.workerName || 'Unassigned'}</td>
+                            <td className="px-6 py-4">
+                              <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                                order.status === 'ready' ? 'bg-green-100 text-green-700' :
+                                order.status === 'stitching' ? 'bg-blue-100 text-blue-700' :
+                                order.status === 'cutting' ? 'bg-purple-100 text-purple-700' :
+                                'bg-orange-100 text-orange-700'
+                              }`}>
+                                {order.status}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 text-sm text-gray-600">{order.deliveryDate}</td>
+                            <td className="px-6 py-4">
+                              <button
+                                onClick={() => navigate('/owner/orders')}
+                                className="text-blue-600 hover:text-blue-800"
+                              >
+                                <Eye className="w-4 h-4" />
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </motion.div>
+
+                {/* Customer Order Timeline Widget */}
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.5 }}
+                  className="bg-white rounded-lg shadow-md p-6"
+                >
+                  <h2 className="text-xl font-bold text-gray-900 mb-4">Order Timeline</h2>
+                  <div className="flex items-center justify-between">
+                    {orderTimeline.map((item, index) => (
+                      <div key={index} className="flex-1 text-center">
+                        <div className={`${item.color} text-white rounded-lg p-4 mb-2`}>
+                          <p className="text-3xl font-bold">{item.count}</p>
+                        </div>
+                        <p className="text-sm font-medium text-gray-600 capitalize">{item.status}</p>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
               </div>
-            </motion.div>
+
+              {/* Right Column - 1/3 width */}
+              <div className="space-y-6">
+                {/* Notifications Panel */}
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.2 }}
+                  className="bg-white rounded-lg shadow-md p-6"
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-lg font-bold text-gray-900">Notifications</h2>
+                    <Bell className="w-5 h-5 text-gray-400" />
+                  </div>
+                  <div className="space-y-3">
+                    {/* Low Stock Alert */}
+                    {lowStockItems.length > 0 && (
+                      <div className="flex items-start gap-3 p-3 bg-red-50 rounded-lg border border-red-200">
+                        <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-sm font-semibold text-red-900">Low Stock Alert</p>
+                          <p className="text-xs text-red-700">{lowStockItems.length} items running low</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Urgent Deliveries */}
+                    {urgentOrders > 0 && (
+                      <div className="flex items-start gap-3 p-3 bg-orange-50 rounded-lg border border-orange-200">
+                        <Clock className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-sm font-semibold text-orange-900">Urgent Deliveries</p>
+                          <p className="text-xs text-orange-700">{urgentOrders} orders need attention</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* New Feedback */}
+                    <div className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                      <Star className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-sm font-semibold text-blue-900">New Feedback</p>
+                        <p className="text-xs text-blue-700">{reviews.length} customer reviews</p>
+                      </div>
+                    </div>
+
+                    {/* Worker Performance */}
+                    {workers.filter(w => w.performance < 70).length > 0 && (
+                      <div className="flex items-start gap-3 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                        <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-sm font-semibold text-yellow-900">Performance Issue</p>
+                          <p className="text-xs text-yellow-700">{workers.filter(w => w.performance < 70).length} workers need support</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* New Customers */}
+                    <div className="flex items-start gap-3 p-3 bg-green-50 rounded-lg border border-green-200">
+                      <Users className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-sm font-semibold text-green-900">New Customers</p>
+                        <p className="text-xs text-green-700">{customers.filter(c => c.totalOrders === 0).length} new signups</p>
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => navigate('/owner/notifications')}
+                    className="w-full mt-4 text-sm text-orange-600 hover:text-orange-700 font-medium flex items-center justify-center gap-1"
+                  >
+                    View All <ChevronRight className="w-4 h-4" />
+                  </button>
+                </motion.div>
+
+                {/* Delivery Calendar Widget */}
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="bg-white rounded-lg shadow-md p-6"
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-lg font-bold text-gray-900">Upcoming Deliveries</h2>
+                    <Calendar className="w-5 h-5 text-gray-400" />
+                  </div>
+                  <div className="space-y-3">
+                    {upcomingDeliveries.map((order) => {
+                      const deliveryDate = new Date(order.deliveryDate);
+                      const isLate = deliveryDate < new Date() && order.status !== 'ready';
+                      const isToday = deliveryDate.toDateString() === new Date().toDateString();
+                      
+                      return (
+                        <div key={order.id} className={`p-3 rounded-lg border ${
+                          isLate ? 'bg-red-50 border-red-200' :
+                          isToday ? 'bg-green-50 border-green-200' :
+                          'bg-gray-50 border-gray-200'
+                        }`}>
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="font-semibold text-sm text-gray-900">{order.id}</span>
+                            <span className={`text-xs font-medium ${
+                              isLate ? 'text-red-600' :
+                              isToday ? 'text-green-600' :
+                              'text-gray-600'
+                            }`}>
+                              {isLate ? 'Late' : isToday ? 'Today' : order.deliveryDate}
+                            </span>
+                          </div>
+                          <p className="text-xs text-gray-600">{order.customerName}</p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </motion.div>
+
+                {/* Mini Chat Preview */}
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.4 }}
+                  className="bg-white rounded-lg shadow-md p-6"
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-lg font-bold text-gray-900">Recent Messages</h2>
+                    <MessageSquare className="w-5 h-5 text-gray-400" />
+                  </div>
+                  <div className="space-y-3">
+                    {recentMessages.map((msg) => (
+                      <div key={msg.id} className="flex items-start gap-3 p-2 hover:bg-gray-50 rounded-lg cursor-pointer">
+                        <img 
+                          src={msg.avatar} 
+                          alt={msg.worker}
+                          className="w-10 h-10 rounded-full"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="font-medium text-sm text-gray-900">{msg.worker}</span>
+                            <span className="text-xs text-gray-500">{msg.time}</span>
+                          </div>
+                          <p className="text-xs text-gray-600 truncate">{msg.message}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <button
+                    onClick={() => navigate('/owner/chat')}
+                    className="w-full mt-4 text-sm text-orange-600 hover:text-orange-700 font-medium flex items-center justify-center gap-1"
+                  >
+                    Open Chat <ChevronRight className="w-4 h-4" />
+                  </button>
+                </motion.div>
+
+                {/* Feedback & Ratings Preview */}
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.5 }}
+                  className="bg-white rounded-lg shadow-md p-6"
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-lg font-bold text-gray-900">Latest Reviews</h2>
+                    <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
+                  </div>
+                  <div className="space-y-3">
+                    {reviews.slice(0, 3).map((review) => (
+                      <div key={review.id} className="p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="font-medium text-sm text-gray-900">{review.customerName}</span>
+                          <div className="flex items-center gap-1">
+                            {[...Array(5)].map((_, i) => (
+                              <Star
+                                key={i}
+                                className={`w-3 h-3 ${
+                                  i < review.rating
+                                    ? 'text-yellow-500 fill-yellow-500'
+                                    : 'text-gray-300'
+                                }`}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                        <p className="text-xs text-gray-600 line-clamp-2">{review.comment}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-4 p-3 bg-orange-50 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-gray-700">Average Rating</span>
+                      <span className="text-lg font-bold text-orange-600">{stats.avgRating}/5</span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => navigate('/owner/ratings')}
+                    className="w-full mt-4 text-sm text-orange-600 hover:text-orange-700 font-medium flex items-center justify-center gap-1"
+                  >
+                    View All Feedback <ChevronRight className="w-4 h-4" />
+                  </button>
+                </motion.div>
+
+                {/* Worker Availability Bar */}
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.6 }}
+                  className="bg-white rounded-lg shadow-md p-6"
+                >
+                  <h2 className="text-lg font-bold text-gray-900 mb-4">Worker Availability</h2>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">Available</span>
+                      <span className="text-sm font-bold text-green-600">
+                        {workers.filter(w => w.status === 'active' && w.assignedOrders < 5).length}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">Busy</span>
+                      <span className="text-sm font-bold text-orange-600">
+                        {workers.filter(w => w.status === 'active' && w.assignedOrders >= 5).length}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">On Leave</span>
+                      <span className="text-sm font-bold text-gray-600">
+                        {workers.filter(w => w.status === 'on-leave').length}
+                      </span>
+                    </div>
+                  </div>
+                </motion.div>
+
+                {/* Fabric Stock Status */}
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.7 }}
+                  className="bg-white rounded-lg shadow-md p-6"
+                >
+                  <h2 className="text-lg font-bold text-gray-900 mb-4">Low Stock Items</h2>
+                  <div className="space-y-2">
+                    {lowStockItems.slice(0, 5).map((item) => (
+                      <div key={item.id} className="flex items-center justify-between p-2 bg-red-50 rounded">
+                        <span className="text-sm text-gray-900">{item.name}</span>
+                        <span className="text-sm font-bold text-red-600">{item.quantity} {item.unit}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <button
+                    onClick={() => navigate('/owner/inventory')}
+                    className="w-full mt-4 text-sm text-orange-600 hover:text-orange-700 font-medium flex items-center justify-center gap-1"
+                  >
+                    Manage Inventory <ChevronRight className="w-4 h-4" />
+                  </button>
+                </motion.div>
+              </div>
+            </div>
           </motion.div>
         </main>
       </div>
@@ -175,7 +683,8 @@ const OwnerDashboard = () => {
   );
 };
 
-const StatCard = ({ title, value, icon: Icon, color, trend }) => {
+// Stat Card Component
+const StatCard = ({ title, value, icon: Icon, color, subtitle }) => {
   return (
     <motion.div
       whileHover={{ scale: 1.02, y: -5 }}
@@ -185,25 +694,25 @@ const StatCard = ({ title, value, icon: Icon, color, trend }) => {
         <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${color}`}>
           <Icon className="w-6 h-6 text-white" />
         </div>
-        {trend && (
-          <span className="text-sm font-semibold text-green-600">{trend}</span>
-        )}
       </div>
       <p className="text-gray-500 text-sm">{title}</p>
       <p className="text-2xl font-bold text-gray-900 mt-2">{value}</p>
+      {subtitle && <p className="text-xs text-gray-500 mt-1">{subtitle}</p>}
     </motion.div>
   );
 };
 
-const QuickActionButton = ({ icon: Icon, label, color }) => {
+// Quick Action Button Component
+const QuickActionButton = ({ icon: Icon, label, color, onClick }) => {
   return (
     <motion.button
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
+      onClick={onClick}
       className={`${color} text-white rounded-lg p-4 flex flex-col items-center gap-2 hover:shadow-lg transition-shadow`}
     >
       <Icon className="w-6 h-6" />
-      <span className="text-sm font-semibold">{label}</span>
+      <span className="text-xs font-semibold text-center">{label}</span>
     </motion.button>
   );
 };
