@@ -4,6 +4,7 @@ import { Eye, EyeOff } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import GoogleAuthButton from './GoogleAuthButton';
+import { API_URL } from '../config'; 
 
 /**
  * Signup Component
@@ -40,6 +41,7 @@ function Signup() {
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   // Form validation
   const validateForm = () => {
@@ -76,66 +78,80 @@ function Signup() {
   };
 
   // Handle form submission
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!validateForm()) return;
-    
-    setIsLoading(true);
+// Handle form submission
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  if (!validateForm()) return;
 
-    try {
-      const response = await fetch(`${API_URL}/auth/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name :formData.fullName,
-          email: formData.email,
-          password: formData.password,
-          role: formData.role,
-        }),
-      });
+  setIsLoading(true);
 
-      const data = await response.json();
+  try {
+    const response = await fetch(`${API_URL}/auth/register`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        name: formData.fullName,
+        email: formData.email,
+        password: formData.password,
+        role: formData.role,
+      }),
+    });
 
-      if (!response.ok) {
-        setErrors({ submit: data.message || "Registration failed. Please try again." });
-        setIsLoading(false);
-        return;
-      }
+    const data = await response.json();
 
-      // Save token to localStorage
-      localStorage.setItem("token", data.token);
-
-      // Show success modal
+    if (!response.ok) {
+      setErrors({ submit: data.message || "Registration failed. Please try again." });
       setIsLoading(false);
-      setShowSuccessModal(true);
+      return;
+    }
 
-    } catch (error) {
-      setErrors({ submit: "Server error. Please try again later." });
-      console.log(error);
-      setIsLoading(false);
-    }, 1000);
-  };
+    // Save token to localStorage
+    localStorage.setItem("token", data.token);
+
+    // Show success modal
+    setIsLoading(false);
+    setShowSuccessModal(true);
+
+  } catch (error) {
+    setErrors({ submit: "Server error. Please try again later." });
+    console.log(error);
+    setIsLoading(false);
+  }
+};
+
 
   // Handle Google Sign-Up
-  const handleGoogleSignUp = async () => {
-    setIsGoogleLoading(true);
+  // Handle Google Sign-Up (integrated with backend OAuth endpoint)
+const handleGoogleSignUp = async () => {
+  setIsGoogleLoading(true);
 
-    // TODO: Backend Integration
-    // Replace this with actual Google OAuth flow
-    // Example:
-    // const response = await gapi.auth2.getAuthInstance().signIn();
-    // const profile = response.getBasicProfile();
-    // const idToken = response.getAuthResponse().id_token;
-    // Send idToken to backend for verification and account creation
+  try {
+    // Save the chosen role so it survives the full-page redirect.
+    // sessionStorage is used so the value survives redirect but clears when the tab closes.
+    sessionStorage.setItem('pre_oauth_role', 'customer');
 
-    setTimeout(() => {
-      console.log('Google Sign-Up attempt for role:', formData.role);
-      setIsGoogleLoading(false);
-      alert('Google Sign-Up clicked! (Frontend only - no backend)');
-    }, 1500);
-  };
+    // Determine backend origin: use API_URL if provided, otherwise fallback to localhost:8080
+    const backendOrigin = (typeof API_URL !== 'undefined' && API_URL) ? API_URL : 'http://localhost:8080';
+
+    // Kick off the OAuth2 flow on the backend which will redirect to Google.
+    // Option A: simple redirect (backend reads nothing from frontend)
+    const authUrl = `${backendOrigin}/oauth2/authorization/google`;
+
+    // Option B (uncomment if you want to send role as a query param and handle it on backend):
+    // const authUrl = `${backendOrigin}/login/oauth2/authorization/google?role=${encodeURIComponent(formData.role)}`;
+
+    // Navigate to backend endpoint to begin OAuth flow
+    window.location.href = authUrl;
+
+  } catch (err) {
+    console.error('Google sign-up redirect failed', err);
+    alert('Failed to start Google sign-up. Please try again.');
+    setIsGoogleLoading(false);
+  }
+};
+
 
   // Handle input change
   const handleInputChange = (e) => {

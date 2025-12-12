@@ -5,6 +5,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import GoogleAuthButton from './GoogleAuthButton';
 import ForgotPasswordModal from './ForgotPasswordModal';
+import { API_URL } from '../config'; 
+
 
 /**
  * Login Component
@@ -77,22 +79,26 @@ function Login() {
 
   // Handle Google Sign-In
   const handleGoogleSignIn = async () => {
-    setIsGoogleLoading(true);
+  setIsGoogleLoading(true);
+  try {
+    // Save the chosen role so we can use it after redirect (frontend-only storage).
+    // sessionStorage is chosen so it survives the redirect but is cleared when tab closes.
+    sessionStorage.setItem('pre_oauth_role', 'customer');
 
-    // TODO: Backend Integration
-    // Replace this with actual Google OAuth flow
-    // Example:
-    // const response = await gapi.auth2.getAuthInstance().signIn();
-    // const profile = response.getBasicProfile();
-    // const idToken = response.getAuthResponse().id_token;
-    // Send idToken to backend for verification
+    // Kick off the OAuth2 flow on the backend which will redirect to Google.
+    // Replace API_URL if you have one; otherwise use hard-coded backend origin.
+    const backendOrigin = (typeof API_URL !== 'undefined' && API_URL) ? API_URL : 'http://localhost:8080';
+    const authUrl = `${backendOrigin}/oauth2/authorization/google`;
 
-    setTimeout(() => {
-      console.log('Google Sign-In attempt for role:', formData.role);
-      setIsGoogleLoading(false);
-      alert('Google Sign-In clicked! (Frontend only - no backend)');
-    }, 1500);
-  };
+    // Navigate the whole page to the backend endpoint (Spring Boot will redirect to Google).
+    window.location.href = authUrl;
+  } catch (err) {
+    console.error('Google sign-in redirect failed', err);
+    setIsGoogleLoading(false);
+    alert('Failed to start Google sign-in.');
+  }
+};
+
 
   // Handle input change
   const handleInputChange = (e) => {
