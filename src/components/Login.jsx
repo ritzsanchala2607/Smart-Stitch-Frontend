@@ -32,7 +32,7 @@ function Login() {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    role: 'owner',
+    role: 'Owner',
   });
 
   const [showPassword, setShowPassword] = useState(false);
@@ -63,18 +63,46 @@ function Login() {
 
   // Handle form submission
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!validateForm()) return;
+  e.preventDefault();
+  if (!validateForm()) return;
+
+  setIsLoading(true);
+  try {
+    const res = await fetch(`${API_URL}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: formData.email,
+        password: formData.password,
+        role: formData.role
+      })
+    });
+
+    if (!res.ok) {
+      throw new Error('Invalid credentials');
+    }
+
+    const data = await res.json();
     
-    setIsLoading(true);
+    // Handle different response structures
+    const user = data.user || data;
+    const token = data.token || data.accessToken;
     
-    setTimeout(() => {
-      const role = formData.role.toLowerCase();
-      login(formData.email, formData.password, role);
-      navigate(`/${role}/dashboard`);
-      setIsLoading(false);
-    }, 1000);
-  };
+    if (!user || !user.role) {
+      throw new Error('Invalid response from server');
+    }
+    
+    login(user, token);
+    const userRole = user.role.toLowerCase();
+    navigate(`/${userRole}/dashboard`);
+    
+  } catch (err) {
+    setErrors({ submit: err.message });
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 
 
   // Handle Google Sign-In
@@ -319,9 +347,9 @@ function Login() {
                   onChange={handleInputChange}
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all bg-white"
                 >
-                  <option value="owner">Shop Owner</option>
-                  <option value="worker">Worker</option>
-                  <option value="customer">Customer</option>
+                  <option value="Owner">Shop Owner</option>
+                  <option value="Worker">Worker</option>
+                  <option value="Customer">Customer</option>
                 </select>
               </motion.div>
 

@@ -32,7 +32,7 @@ function Signup() {
     email: '',
     password: '',
     confirmPassword: '',
-    role: 'owner',
+    role: 'Owner',
     agreeToTerms: false,
   });
 
@@ -78,11 +78,17 @@ function Signup() {
   };
 
   // Handle form submission
-// Handle form submission
 const handleSubmit = async (e) => {
   e.preventDefault();
-  if (!validateForm()) return;
+  console.log("SIGNUP CLICKED");
+  console.log("FORM DATA:", formData);
 
+  if (!validateForm()) {
+    console.log("VALIDATION FAILED");
+    return;
+  } // ✅ MISSING BRACE FIXED HERE
+
+  console.log("VALIDATION PASSED, CALLING API");
   setIsLoading(true);
 
   try {
@@ -107,19 +113,17 @@ const handleSubmit = async (e) => {
       return;
     }
 
-    // Save token to localStorage
     localStorage.setItem("token", data.token);
-
-    // Show success modal
     setIsLoading(false);
     setShowSuccessModal(true);
 
   } catch (error) {
+    console.error(error);
     setErrors({ submit: "Server error. Please try again later." });
-    console.log(error);
     setIsLoading(false);
   }
 };
+
 
 
   // Handle Google Sign-Up
@@ -130,7 +134,7 @@ const handleGoogleSignUp = async () => {
   try {
     // Save the chosen role so it survives the full-page redirect.
     // sessionStorage is used so the value survives redirect but clears when the tab closes.
-    sessionStorage.setItem('pre_oauth_role', 'customer');
+    sessionStorage.setItem('pre_oauth_role', 'Customer');
 
     // Determine backend origin: use API_URL if provided, otherwise fallback to localhost:8080
     const backendOrigin = (typeof API_URL !== 'undefined' && API_URL) ? API_URL : 'http://localhost:8080';
@@ -442,9 +446,9 @@ const handleGoogleSignUp = async () => {
                   onChange={handleInputChange}
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all bg-white"
                 >
-                  <option value="owner">Shop Owner</option>
-                  <option value="worker">Worker</option>
-                  <option value="customer">Customer</option>
+                  <option value="Owner">Shop Owner</option>
+                  <option value="Worker">Worker</option>
+                  <option value="Customer">Customer</option>
                 </select>
               </motion.div>
 
@@ -663,6 +667,25 @@ const handleGoogleSignUp = async () => {
         </motion.div>
         </div>
       </motion.div>
+      
+      {showSuccessModal && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+    <div className="bg-white rounded-xl p-6 w-full max-w-sm text-center shadow-xl">
+      <h2 className="text-2xl font-bold text-green-600 mb-2">
+        Signup Successful 🎉
+      </h2>
+      <p className="text-gray-600 mb-6">
+        Your account has been created successfully.
+      </p>
+      <button
+        onClick={() => navigate("/login")}
+        className="w-full bg-orange-500 text-white py-2 rounded-lg hover:bg-orange-600"
+      >
+        Go to Login
+      </button>
+    </div>
+  </div>
+)}
 
 
     </div>

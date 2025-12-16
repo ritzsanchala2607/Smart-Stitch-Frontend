@@ -23,18 +23,19 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
-  const login = (email, password, role) => {
-    // Dummy login logic
-    const userData = {
-      id: Math.random().toString(36).substr(2, 9),
-      email,
-      role,
-      name: role === 'owner' ? 'John Owner' : role === 'worker' ? 'Mike Worker' : 'Sarah Customer',
+  const login = (userData, token) => {
+    // Store user data and token from backend response
+    const normalizedUser = {
+      ...userData,
+      role: userData.role.toLowerCase(),
     };
     
-    setUser(userData);
-    localStorage.setItem('user', JSON.stringify(userData));
-    return userData;
+    setUser(normalizedUser);
+    localStorage.setItem('user', JSON.stringify(normalizedUser));
+    if (token) {
+      localStorage.setItem('token', token);
+    }
+    return normalizedUser;
   };
 
   const signup = (fullName, email, password, role) => {
