@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import Sidebar from '../../components/common/Sidebar';
-import Topbar from '../../components/common/Topbar';
+import Layout from '../../components/common/Layout';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard,
@@ -246,32 +245,29 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      <Sidebar role="customer" />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <Topbar />
-        <main className="flex-1 overflow-y-auto p-6">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="max-w-7xl mx-auto space-y-6"
-          >
+    <Layout role="customer">
+      <div className="p-4 sm:p-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="max-w-7xl mx-auto space-y-4 sm:space-y-6"
+        >
             {/* Header with Loyalty Points */}
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <div className="p-3 bg-blue-100 rounded-lg">
-                  <LayoutDashboard className="w-6 h-6 text-blue-600" />
+                <div className="p-2 sm:p-3 bg-blue-100 rounded-lg">
+                  <LayoutDashboard className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
                 </div>
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-900">Welcome back, {customerData.name}!</h1>
-                  <p className="text-gray-600">Here's your tailoring journey</p>
+                  <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">Welcome back, {customerData.name}!</h1>
+                  <p className="text-sm sm:text-base text-gray-600">Here's your tailoring journey</p>
                 </div>
               </div>
               
               {/* Loyalty Points Card */}
               <motion.div
                 whileHover={{ scale: 1.05 }}
-                className="bg-gradient-to-br from-yellow-400 to-orange-500 rounded-lg shadow-lg p-4 text-white cursor-pointer"
+                className="bg-gradient-to-br from-yellow-400 to-orange-500 rounded-lg shadow-lg p-3 sm:p-4 text-white cursor-pointer w-full sm:w-auto"
               >
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
@@ -289,7 +285,7 @@ const Dashboard = () => {
             </div>
 
             {/* Summary Cards - 5 cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
               <StatCard
                 title="Total Orders"
                 value={customerData.totalOrders}
@@ -328,14 +324,14 @@ const Dashboard = () => {
             </div>
 
             {/* Main Content Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
               {/* Left Column - 2/3 */}
-              <div className="lg:col-span-2 space-y-6">
+              <div className="lg:col-span-2 space-y-4 sm:space-y-6">
                 {/* Order Progress with Visual Animation */}
                 <motion.div
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  className="bg-white rounded-lg shadow-md p-6"
+                  className="bg-white rounded-lg shadow-md p-4 sm:p-6"
                 >
                   <div className="flex items-center justify-between mb-6">
                     <h2 className="text-xl font-bold text-gray-900">Active Orders Progress</h2>
@@ -580,7 +576,7 @@ const Dashboard = () => {
                       <h2 className="text-xl font-bold text-gray-900">Recommended for You</h2>
                     </div>
                   </div>
-                  <div className="grid grid-cols-4 gap-4">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
                     {recommendedItems.map((item) => (
                       <motion.div
                         key={item.id}
@@ -755,7 +751,7 @@ const Dashboard = () => {
               </div>
 
               {/* Right Column - 1/3 */}
-              <div className="space-y-6">
+              <div className="space-y-4 sm:space-y-6">
                 {/* Upcoming Delivery Section */}
                 <motion.div
                   initial={{ opacity: 0, x: 20 }}
@@ -1028,8 +1024,7 @@ const Dashboard = () => {
                 </motion.div>
               </div>
             </div>
-          </motion.div>
-        </main>
+        </motion.div>
       </div>
 
       {/* Style Detail Modal */}
@@ -1091,7 +1086,7 @@ const Dashboard = () => {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </Layout>
   );
 };
 
@@ -1101,15 +1096,15 @@ const StatCard = ({ title, value, icon: Icon, color, onClick }) => {
     <motion.div
       whileHover={{ scale: 1.05, y: -5 }}
       onClick={onClick}
-      className="bg-white rounded-lg shadow-md p-6 cursor-pointer"
+      className="bg-white rounded-lg shadow-md p-3 sm:p-4 lg:p-6 cursor-pointer"
     >
-      <div className="flex items-center justify-between mb-4">
-        <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${color}`}>
-          <Icon className="w-6 h-6 text-white" />
+      <div className="flex items-center justify-between mb-2 sm:mb-4">
+        <div className={`w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded-lg flex items-center justify-center ${color}`}>
+          <Icon className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-white" />
         </div>
       </div>
-      <p className="text-gray-500 text-sm">{title}</p>
-      <p className="text-2xl font-bold text-gray-900 mt-2">{value}</p>
+      <p className="text-gray-500 text-xs sm:text-sm">{title}</p>
+      <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mt-1 sm:mt-2">{value}</p>
     </motion.div>
   );
 };

@@ -5,7 +5,7 @@ import { useSearch } from '../../context/SearchContext';
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const Topbar = () => {
+const Topbar = ({ onMenuClick }) => {
   const { user, logout } = useAuth();
   const { searchQuery, setSearchQuery } = useSearch();
   const navigate = useNavigate();
@@ -76,7 +76,10 @@ const Topbar = () => {
     >
       {/* Left Side */}
       <div className="flex items-center gap-4 flex-1">
-        <button className="lg:hidden">
+        <button 
+          onClick={onMenuClick}
+          className="lg:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors"
+        >
           <Menu className="w-6 h-6 text-gray-600" />
         </button>
         

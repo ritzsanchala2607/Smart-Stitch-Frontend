@@ -1,5 +1,6 @@
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useLocation } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import {
   LayoutDashboard,
   Users,
@@ -19,13 +20,26 @@ import {
   Scissors,
   Settings,
   Bell,
-  Calendar
+  Calendar,
+  X
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
-const Sidebar = ({ role }) => {
+const Sidebar = ({ role, isOpen, onClose }) => {
   const location = useLocation();
   const { logout } = useAuth();
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect mobile screen size
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const ownerMenuItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/owner/dashboard' },
@@ -69,12 +83,47 @@ const Sidebar = ({ role }) => {
 
   const isActive = (path) => location.pathname === path;
 
+  // Close sidebar when route changes on mobile
+  useEffect(() => {
+    if (isMobile && onClose) {
+      onClose();
+    }
+  }, [location.pathname, isMobile, onClose]);
+
   return (
-    <motion.div
-      initial={{ x: -250 }}
-      animate={{ x: 0 }}
-      className="w-64 bg-gradient-to-b from-[#004E89] to-[#003366] text-white h-screen flex flex-col shadow-2xl"
-    >
+    <>
+      {/* Overlay for mobile */}
+      <AnimatePresence>
+        {isMobile && isOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Sidebar */}
+      <motion.div
+        initial={isMobile ? { x: -280 } : { x: 0 }}
+        animate={isMobile ? { x: isOpen ? 0 : -280 } : { x: 0 }}
+        transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+        className={`
+          ${isMobile ? 'fixed' : 'relative'}
+          w-64 bg-gradient-to-b from-[#004E89] to-[#003366] text-white h-screen flex flex-col shadow-2xl z-50
+        `}
+      >
+        {/* Close button for mobile */}
+        {isMobile && (
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 p-2 hover:bg-white/10 rounded-lg transition-colors lg:hidden"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        )}
       {/* Logo */}
       <div className="p-6 border-b border-white/10">
         <div className="flex items-center gap-3">
@@ -125,7 +174,8 @@ const Sidebar = ({ role }) => {
           <span className="font-medium">Logout</span>
         </motion.button>
       </div>
-    </motion.div>
+      </motion.div>
+    </>
   );
 };
 

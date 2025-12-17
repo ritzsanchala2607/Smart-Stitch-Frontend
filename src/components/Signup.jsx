@@ -288,13 +288,13 @@ const handleGoogleSignUp = async () => {
 
       {/* Main Card */}
       <motion.div
-        className="relative z-10 w-full max-w-6xl bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col lg:flex-row"
+        className="relative z-10 w-full max-w-6xl bg-white rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col lg:flex-row"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
       >
         {/* Left Side - Form */}
-        <div className="w-full lg:w-1/2 p-8 lg:p-12 flex items-center justify-center">
+        <div className="w-full lg:w-1/2 p-6 sm:p-8 lg:p-12 flex items-center justify-center">
           <motion.div
             className="w-full max-w-md"
             variants={containerVariants}
@@ -302,14 +302,14 @@ const handleGoogleSignUp = async () => {
             animate="visible"
           >
             {/* Logo and Branding */}
-            <motion.div className="mb-10" variants={itemVariants}>
-              <div className="flex items-center gap-3 mb-8">
+            <motion.div className="mb-6 sm:mb-10" variants={itemVariants}>
+              <div className="flex items-center gap-3 mb-6 sm:mb-8">
                 <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center">
                   <span className="text-white font-bold text-lg">SS</span>
                 </div>
-                <span className="text-xl font-bold text-gray-900">Smart Stitch</span>
+                <span className="text-lg sm:text-xl font-bold text-gray-900">Smart Stitch</span>
               </div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">Create an account</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Create an account</h1>
               <p className="text-gray-500 text-sm">Start your tailoring journey today</p>
             </motion.div>
 
