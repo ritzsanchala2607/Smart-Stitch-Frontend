@@ -25,7 +25,10 @@ export const workers = [
     completedOrders: 145,
     rating: 4.8,
     performance: 92,
-    salary: 3000,
+    garmentTypes: [
+      { type: 'shirt', rate: 50 },
+      { type: 'pant', rate: 40 }
+    ],
     avatar: 'https://i.pravatar.cc/150?img=12'
   },
   {
@@ -40,7 +43,10 @@ export const workers = [
     completedOrders: 98,
     rating: 4.6,
     performance: 88,
-    salary: 2800,
+    garmentTypes: [
+      { type: 'kurta', rate: 60 },
+      { type: 'blouse', rate: 50 }
+    ],
     avatar: 'https://i.pravatar.cc/150?img=45'
   },
   {
@@ -55,7 +61,9 @@ export const workers = [
     completedOrders: 67,
     rating: 4.9,
     performance: 95,
-    salary: 3200,
+    garmentTypes: [
+      { type: 'suit', rate: 180 }
+    ],
     avatar: 'https://i.pravatar.cc/150?img=33'
   },
   {
@@ -70,7 +78,9 @@ export const workers = [
     completedOrders: 45,
     rating: 4.5,
     performance: 85,
-    salary: 2500,
+    garmentTypes: [
+      { type: 'alteration', rate: 25 }
+    ],
     avatar: 'https://i.pravatar.cc/150?img=23'
   },
   {
@@ -85,7 +95,10 @@ export const workers = [
     completedOrders: 0,
     rating: 0,
     performance: 0,
-    salary: 2000,
+    garmentTypes: [
+      { type: 'pant', rate: 35 },
+      { type: 'shirt', rate: 30 }
+    ],
     avatar: 'https://i.pravatar.cc/150?img=60'
   },
   {
@@ -100,7 +113,11 @@ export const workers = [
     completedOrders: 200,
     rating: 5.0,
     performance: 100,
-    salary: 3500,
+    garmentTypes: [
+      { type: 'blouse', rate: 60 },
+      { type: 'kurta', rate: 70 },
+      { type: 'suit', rate: 200 }
+    ],
     avatar: 'https://i.pravatar.cc/150?img=25'
   }
 ];
@@ -686,7 +703,14 @@ export const edgeCases = {
     completedOrders: 9999,
     rating: 5.0,
     performance: 100,
-    salary: 99999,
+    garmentTypes: [
+      { type: 'shirt', rate: 100 },
+      { type: 'pant', rate: 100 },
+      { type: 'kurta', rate: 100 },
+      { type: 'blouse', rate: 100 },
+      { type: 'suit', rate: 300 },
+      { type: 'alteration', rate: 50 }
+    ],
     avatar: 'https://i.pravatar.cc/150?img=99'
   },
   
@@ -703,7 +727,9 @@ export const edgeCases = {
     completedOrders: 0,
     rating: 0,
     performance: 0,
-    salary: 1000,
+    garmentTypes: [
+      { type: 'alteration', rate: 10 }
+    ],
     avatar: 'https://i.pravatar.cc/150?img=1'
   },
   

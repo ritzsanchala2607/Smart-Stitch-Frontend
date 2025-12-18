@@ -4,9 +4,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Plus, Package, Search, Filter, Eye, Edit, Trash2,
   Clock, CheckCircle, AlertCircle, X, Calendar,
-  DollarSign, FileText, User, Ruler
+  DollarSign, FileText, User, Users
 } from 'lucide-react';
-import { orders as initialOrders, customers } from '../../data/dummyData';
+import { orders as initialOrders, customers, workers } from '../../data/dummyData';
 import { useState } from 'react';
 import { isValidDate, isValidAmount } from '../../utils/validation';
 import AddCustomerModal from '../../components/AddCustomerModal';
@@ -35,21 +35,30 @@ const Orders = () => {
     custom: ''
   });
   const [orderItems, setOrderItems] = useState([
-    { id: Date.now(), name: '', quantity: '', price: '', fabricType: '' }
+    { id: Date.now(), name: '', quantity: '', price: '', fabricType: '', assignedWorker: null }
   ]);
   const [errors, setErrors] = useState({});
+  
+  // Worker assignment state
+  const [assignmentMode, setAssignmentMode] = useState('individual'); // 'individual' or 'whole'
+  const [wholeOrderWorker, setWholeOrderWorker] = useState(null);
+
+  // Customer search state
+  const [customerSearchQuery, setCustomerSearchQuery] = useState('');
+  const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
+
+  // Filter customers based on search query
+  const filteredCustomers = customerList.filter(customer =>
+    customer.name.toLowerCase().includes(customerSearchQuery.toLowerCase()) ||
+    customer.phone.includes(customerSearchQuery) ||
+    customer.email.toLowerCase().includes(customerSearchQuery.toLowerCase())
+  );
 
   // Handle customer selection
-  const handleCustomerSelect = (e) => {
-    const customerId = e.target.value;
-    
-    if (customerId === 'add-new') {
-      setShowCustomerModal(true);
-      return;
-    }
-    
-    const customer = customerList.find(c => c.id === customerId);
+  const handleCustomerSelect = (customer) => {
     setSelectedCustomer(customer);
+    setCustomerSearchQuery(customer.name);
+    setShowCustomerDropdown(false);
     
     if (customer && customer.measurements) {
       setMeasurements(prev => ({
@@ -60,6 +69,14 @@ const Orders = () => {
     
     if (errors.customer) {
       setErrors(prev => ({ ...prev, customer: null }));
+    }
+  };
+
+  const handleCustomerSearchChange = (e) => {
+    setCustomerSearchQuery(e.target.value);
+    setShowCustomerDropdown(true);
+    if (!e.target.value) {
+      setSelectedCustomer(null);
     }
   };
 
@@ -100,7 +117,7 @@ const Orders = () => {
   const handleAddItem = () => {
     setOrderItems(prev => [
       ...prev,
-      { id: Date.now(), name: '', quantity: '', price: '', fabricType: '' }
+      { id: Date.now(), name: '', quantity: '', price: '', fabricType: '', assignedWorker: null }
     ]);
   };
 
@@ -165,6 +182,22 @@ const Orders = () => {
       0
     );
 
+    // Determine worker assignment based on mode
+    let assignedWorker = null;
+    let workerName = null;
+    let itemsWithWorkers = orderItems;
+
+    if (assignmentMode === 'whole' && wholeOrderWorker) {
+      assignedWorker = wholeOrderWorker.id;
+      workerName = wholeOrderWorker.name;
+      // Assign the same worker to all items
+      itemsWithWorkers = orderItems.map(item => ({
+        ...item,
+        assignedWorker: wholeOrderWorker.id,
+        workerName: wholeOrderWorker.name
+      }));
+    }
+
     const newOrder = {
       id: `ORD${String(orders.length + 1).padStart(3, '0')}`,
       customerId: selectedCustomer.id,
@@ -173,20 +206,23 @@ const Orders = () => {
       deliveryDate,
       status: 'pending',
       priority: 'medium',
-      items: orderItems.map(item => ({
+      items: itemsWithWorkers.map(item => ({
         id: `ITEM${item.id}`,
         type: item.name,
         fabric: item.fabricType || 'Standard',
         quantity: Number(item.quantity),
-        price: Number(item.price)
+        price: Number(item.price),
+        assignedWorker: item.assignedWorker || null,
+        workerName: item.workerName || null
       })),
       totalAmount,
       paidAmount: advancePayment ? Number(advancePayment) : 0,
       balanceAmount: totalAmount - (advancePayment ? Number(advancePayment) : 0),
       measurements,
       notes,
-      assignedWorker: null,
-      workerName: null
+      assignedWorker,
+      workerName,
+      assignmentMode
     };
 
     setOrders(prev => [newOrder, ...prev]);
@@ -200,6 +236,8 @@ const Orders = () => {
 
   const resetForm = () => {
     setSelectedCustomer(null);
+    setCustomerSearchQuery('');
+    setShowCustomerDropdown(false);
     setDeliveryDate('');
     setAdvancePayment('');
     setNotes('');
@@ -209,8 +247,10 @@ const Orders = () => {
       custom: ''
     });
     setOrderItems([
-      { id: Date.now(), name: '', quantity: '', price: '', fabricType: '' }
+      { id: Date.now(), name: '', quantity: '', price: '', fabricType: '', assignedWorker: null }
     ]);
+    setAssignmentMode('individual');
+    setWholeOrderWorker(null);
     setErrors({});
   };
 
@@ -533,27 +573,56 @@ const Orders = () => {
                     Customer Information
                   </h3>
                   
-                  <div>
+                  <div className="relative">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Select Customer <span className="text-red-500">*</span>
                     </label>
-                    <select
-                      value={selectedCustomer?.id || ''}
-                      onChange={handleCustomerSelect}
-                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors ${
-                        errors.customer ? 'border-red-500' : 'border-gray-300'
-                      }`}
-                    >
-                      <option value="">-- Select a customer --</option>
-                      {customerList.map(customer => (
-                        <option key={customer.id} value={customer.id}>
-                          {customer.name} - {customer.phone}
-                        </option>
-                      ))}
-                      <option value="add-new" className="font-semibold text-orange-600">
-                        + Add New Customer
-                      </option>
-                    </select>
+                    <div className="flex gap-2">
+                      <div className="flex-1 relative">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                        <input
+                          type="text"
+                          value={customerSearchQuery}
+                          onChange={handleCustomerSearchChange}
+                          onFocus={() => setShowCustomerDropdown(true)}
+                          placeholder="Search customer by name, phone, or email..."
+                          className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors ${
+                            errors.customer ? 'border-red-500' : 'border-gray-300'
+                          }`}
+                        />
+                        
+                        {/* Customer Dropdown */}
+                        {showCustomerDropdown && customerSearchQuery && (
+                          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                            {filteredCustomers.length > 0 ? (
+                              filteredCustomers.map(customer => (
+                                <div
+                                  key={customer.id}
+                                  onClick={() => handleCustomerSelect(customer)}
+                                  className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                                >
+                                  <p className="font-medium text-gray-900">{customer.name}</p>
+                                  <p className="text-sm text-gray-600">{customer.phone} • {customer.email}</p>
+                                </div>
+                              ))
+                            ) : (
+                              <div className="px-4 py-3 text-gray-500 text-sm">
+                                No customers found
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                      
+                      <button
+                        type="button"
+                        onClick={() => setShowCustomerModal(true)}
+                        className="px-4 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors flex items-center gap-2 whitespace-nowrap"
+                      >
+                        <Plus className="w-4 h-4" />
+                        Add New
+                      </button>
+                    </div>
                     {errors.customer && (
                       <p className="text-red-500 text-sm mt-1">{errors.customer}</p>
                     )}
@@ -663,6 +732,135 @@ const Orders = () => {
                       Add Another Item
                     </button>
                   </div>
+                </div>
+
+                {/* Worker Assignment */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <Users className="w-5 h-5 text-orange-500" />
+                    Worker Assignment
+                  </h3>
+
+                  {/* Assignment Mode Selection */}
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      Assignment Mode
+                    </label>
+                    <div className="flex gap-4">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="assignmentMode"
+                          value="individual"
+                          checked={assignmentMode === 'individual'}
+                          onChange={(e) => setAssignmentMode(e.target.value)}
+                          className="w-4 h-4 text-orange-500 focus:ring-orange-500"
+                        />
+                        <span className="text-sm text-gray-700">Assign items individually</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="assignmentMode"
+                          value="whole"
+                          checked={assignmentMode === 'whole'}
+                          onChange={(e) => setAssignmentMode(e.target.value)}
+                          className="w-4 h-4 text-orange-500 focus:ring-orange-500"
+                        />
+                        <span className="text-sm text-gray-700">Assign whole order to one worker</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Individual Assignment */}
+                  {assignmentMode === 'individual' && (
+                    <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                      <p className="text-sm text-blue-800 mb-3">
+                        💡 You can assign each item to a different worker below.
+                      </p>
+                      <div className="space-y-2">
+                        {orderItems.map((item, index) => {
+                          const assignedWorker = workers.find(w => w.id === item.assignedWorker);
+                          return (
+                            <div key={item.id} className="flex items-center justify-between bg-white rounded-lg p-3">
+                              <div>
+                                <p className="font-medium text-gray-900">
+                                  Item {index + 1}: {item.name || 'Unnamed Item'}
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <select
+                                  value={item.assignedWorker || ''}
+                                  onChange={(e) => {
+                                    const workerId = e.target.value;
+                                    const worker = workers.find(w => w.id === workerId);
+                                    handleItemChange(item.id, 'assignedWorker', workerId || null);
+                                    handleItemChange(item.id, 'workerName', worker ? worker.name : null);
+                                  }}
+                                  className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm"
+                                >
+                                  <option value="">-- Select Worker --</option>
+                                  {workers.filter(w => w.status === 'active').map(worker => (
+                                    <option key={worker.id} value={worker.id}>
+                                      {worker.name} - {worker.specialization}
+                                    </option>
+                                  ))}
+                                </select>
+                                {assignedWorker && (
+                                  <span className="text-sm text-green-600 font-medium">
+                                    ✓ {assignedWorker.name}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Whole Order Assignment */}
+                  {assignmentMode === 'whole' && (
+                    <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
+                      <p className="text-sm text-purple-800 mb-3">
+                        💡 Select one worker to handle all items in this order.
+                      </p>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Select Worker for Entire Order
+                        </label>
+                        <select
+                          value={wholeOrderWorker?.id || ''}
+                          onChange={(e) => {
+                            const workerId = e.target.value;
+                            const worker = workers.find(w => w.id === workerId);
+                            setWholeOrderWorker(worker || null);
+                          }}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                        >
+                          <option value="">-- Select a worker --</option>
+                          {workers.filter(w => w.status === 'active').map(worker => (
+                            <option key={worker.id} value={worker.id}>
+                              {worker.name} - {worker.specialization}
+                            </option>
+                          ))}
+                        </select>
+                        {wholeOrderWorker && (
+                          <div className="mt-3 p-3 bg-white rounded-lg border border-gray-200">
+                            <p className="text-sm text-gray-600">
+                              <span className="font-medium">Selected Worker:</span> {wholeOrderWorker.name}
+                            </p>
+                            <p className="text-sm text-gray-600">
+                              <span className="font-medium">Specialization:</span> {wholeOrderWorker.specialization}
+                            </p>
+                            <p className="text-sm text-green-600 mt-2">
+                              ✓ All {orderItems.length} item(s) will be assigned to this worker
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Order Details */}
@@ -932,24 +1130,56 @@ const Orders = () => {
                     Customer Information
                   </h3>
                   
-                  <div>
+                  <div className="relative">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Select Customer <span className="text-red-500">*</span>
                     </label>
-                    <select
-                      value={selectedCustomer?.id || ''}
-                      onChange={handleCustomerSelect}
-                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors ${
-                        errors.customer ? 'border-red-500' : 'border-gray-300'
-                      }`}
-                    >
-                      <option value="">-- Select a customer --</option>
-                      {customerList.map(customer => (
-                        <option key={customer.id} value={customer.id}>
-                          {customer.name} - {customer.phone}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="flex gap-2">
+                      <div className="flex-1 relative">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                        <input
+                          type="text"
+                          value={customerSearchQuery}
+                          onChange={handleCustomerSearchChange}
+                          onFocus={() => setShowCustomerDropdown(true)}
+                          placeholder="Search customer by name, phone, or email..."
+                          className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors ${
+                            errors.customer ? 'border-red-500' : 'border-gray-300'
+                          }`}
+                        />
+                        
+                        {/* Customer Dropdown */}
+                        {showCustomerDropdown && customerSearchQuery && (
+                          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                            {filteredCustomers.length > 0 ? (
+                              filteredCustomers.map(customer => (
+                                <div
+                                  key={customer.id}
+                                  onClick={() => handleCustomerSelect(customer)}
+                                  className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                                >
+                                  <p className="font-medium text-gray-900">{customer.name}</p>
+                                  <p className="text-sm text-gray-600">{customer.phone} • {customer.email}</p>
+                                </div>
+                              ))
+                            ) : (
+                              <div className="px-4 py-3 text-gray-500 text-sm">
+                                No customers found
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                      
+                      <button
+                        type="button"
+                        onClick={() => setShowCustomerModal(true)}
+                        className="px-4 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors flex items-center gap-2 whitespace-nowrap"
+                      >
+                        <Plus className="w-4 h-4" />
+                        Add New
+                      </button>
+                    </div>
                     {errors.customer && (
                       <p className="text-red-500 text-sm mt-1">{errors.customer}</p>
                     )}

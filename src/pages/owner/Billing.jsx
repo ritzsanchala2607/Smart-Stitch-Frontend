@@ -3,11 +3,12 @@ import Topbar from '../../components/common/Topbar';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   FileText, Plus, Download, DollarSign, TrendingUp, 
-  Calendar, X, Trash2, User, Building2
+  Calendar, X, Trash2, User, Building2, Search
 } from 'lucide-react';
 import { useState } from 'react';
 import { customers, owners } from '../../data/dummyData';
 import { calculateInvoiceTotals } from '../../utils/calculations';
+import AddCustomerModal from '../../components/AddCustomerModal';
 
 const Billing = () => {
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
@@ -19,14 +20,42 @@ const Billing = () => {
   const [notes, setNotes] = useState('');
   const [invoices, setInvoices] = useState([]);
   const [showSuccess, setShowSuccess] = useState(false);
+  
+  // Customer search state
+  const [customerSearchQuery, setCustomerSearchQuery] = useState('');
+  const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
+  const [showCustomerModal, setShowCustomerModal] = useState(false);
+  const [customerList, setCustomerList] = useState(customers);
 
   const owner = owners[0];
   const totals = calculateInvoiceTotals(orderItems, taxRate);
 
-  const handleCustomerSelect = (e) => {
-    const customerId = e.target.value;
-    const customer = customers.find(c => c.id === customerId);
-    setSelectedCustomer(customer || null);
+  // Filter customers based on search query
+  const filteredCustomers = customerList.filter(customer =>
+    customer.name.toLowerCase().includes(customerSearchQuery.toLowerCase()) ||
+    customer.phone.includes(customerSearchQuery) ||
+    customer.email.toLowerCase().includes(customerSearchQuery.toLowerCase())
+  );
+
+  // Handle customer selection
+  const handleCustomerSelect = (customer) => {
+    setSelectedCustomer(customer);
+    setCustomerSearchQuery(customer.name);
+    setShowCustomerDropdown(false);
+  };
+
+  const handleCustomerSearchChange = (e) => {
+    setCustomerSearchQuery(e.target.value);
+    setShowCustomerDropdown(true);
+    if (!e.target.value) {
+      setSelectedCustomer(null);
+    }
+  };
+
+  const handleAddNewCustomer = (newCustomer) => {
+    setCustomerList(prev => [...prev, newCustomer]);
+    setSelectedCustomer(newCustomer);
+    setCustomerSearchQuery(newCustomer.name);
   };
 
   const handleAddItem = () => {
@@ -82,6 +111,8 @@ const Billing = () => {
 
     // Reset form
     setSelectedCustomer(null);
+    setCustomerSearchQuery('');
+    setShowCustomerDropdown(false);
     setOrderItems([{ id: Date.now(), description: '', quantity: 1, unitPrice: 0 }]);
     setNotes('');
     setShowInvoiceModal(false);
@@ -400,18 +431,65 @@ const Billing = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Select Customer <span className="text-red-500">*</span>
                   </label>
-                  <select
-                    value={selectedCustomer?.id || ''}
-                    onChange={handleCustomerSelect}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                  >
-                    <option value="">-- Select a customer --</option>
-                    {customers.map(customer => (
-                      <option key={customer.id} value={customer.id}>
-                        {customer.name} - {customer.phone}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="flex gap-2">
+                    <div className="flex-1 relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                      <input
+                        type="text"
+                        value={customerSearchQuery}
+                        onChange={handleCustomerSearchChange}
+                        onFocus={() => setShowCustomerDropdown(true)}
+                        placeholder="Search customer by name, phone, or email..."
+                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors"
+                      />
+                      
+                      {/* Customer Dropdown */}
+                      {showCustomerDropdown && customerSearchQuery && (
+                        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                          {filteredCustomers.length > 0 ? (
+                            filteredCustomers.map(customer => (
+                              <div
+                                key={customer.id}
+                                onClick={() => handleCustomerSelect(customer)}
+                                className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                              >
+                                <p className="font-medium text-gray-900">{customer.name}</p>
+                                <p className="text-sm text-gray-600">{customer.phone} • {customer.email}</p>
+                              </div>
+                            ))
+                          ) : (
+                            <div className="px-4 py-3 text-gray-500 text-sm">
+                              No customers found
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    
+                    <button
+                      type="button"
+                      onClick={() => setShowCustomerModal(true)}
+                      className="px-4 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors flex items-center gap-2 whitespace-nowrap"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Add New
+                    </button>
+                  </div>
+                  
+                  {selectedCustomer && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      className="mt-4 p-4 bg-gray-50 rounded-lg"
+                    >
+                      <p className="text-sm text-gray-600">
+                        <span className="font-medium">Email:</span> {selectedCustomer.email}
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        <span className="font-medium">Phone:</span> {selectedCustomer.phone}
+                      </p>
+                    </motion.div>
+                  )}
                 </div>
 
                 {/* Invoice Items */}
@@ -550,6 +628,13 @@ const Billing = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Add Customer Modal */}
+      <AddCustomerModal
+        isOpen={showCustomerModal}
+        onClose={() => setShowCustomerModal(false)}
+        onSave={handleAddNewCustomer}
+      />
     </div>
   );
 };

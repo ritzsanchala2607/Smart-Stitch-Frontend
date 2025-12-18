@@ -3,7 +3,7 @@ import Topbar from '../../components/common/Topbar';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Plus, X, Upload, CheckCircle, Mail, Phone, Calendar, 
-  Award, TrendingUp, User, Briefcase, DollarSign, Star, Package, ArrowLeft, Search
+  Award, TrendingUp, User, Briefcase, DollarSign, Star, Package, Search
 } from 'lucide-react';
 import { workers as initialWorkers, orders } from '../../data/dummyData';
 import { useState } from 'react';
@@ -11,6 +11,16 @@ import { validateWorkerForm } from '../../utils/validation';
 import WorkerCard from '../../components/common/WorkerCard';
 
 const Workers = () => {
+  // Garment types for dropdown
+  const garmentTypes = [
+    { value: 'shirt', label: 'Shirt' },
+    { value: 'pant', label: 'Pant' },
+    { value: 'kurta', label: 'Kurta' },
+    { value: 'blouse', label: 'Blouse' },
+    { value: 'suit', label: 'Suit' },
+    { value: 'alteration', label: 'Alteration' }
+  ];
+
   const [workers, setWorkers] = useState(initialWorkers);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -26,10 +36,12 @@ const Workers = () => {
     mobile: '',
     skill: '',
     experience: '',
-    salary: '',
+    garmentTypes: [], // Array of {type, rate} objects
     profilePhoto: null
   });
 
+  const [currentGarmentType, setCurrentGarmentType] = useState('');
+  const [currentRate, setCurrentRate] = useState('');
   const [errors, setErrors] = useState({});
   const [photoPreview, setPhotoPreview] = useState(null);
 
@@ -45,6 +57,41 @@ const Workers = () => {
         [field]: ''
       }));
     }
+  };
+
+  const handleAddGarmentType = () => {
+    if (!currentGarmentType) {
+      setErrors(prev => ({ ...prev, garmentType: 'Please select a garment type' }));
+      return;
+    }
+    if (!currentRate || parseFloat(currentRate) <= 0) {
+      setErrors(prev => ({ ...prev, rate: 'Please enter a valid rate' }));
+      return;
+    }
+
+    // Check if garment type already exists
+    const exists = workerForm.garmentTypes.find(g => g.type === currentGarmentType);
+    if (exists) {
+      setErrors(prev => ({ ...prev, garmentType: 'This garment type is already added' }));
+      return;
+    }
+
+    setWorkerForm(prev => ({
+      ...prev,
+      garmentTypes: [...prev.garmentTypes, { type: currentGarmentType, rate: parseFloat(currentRate) }]
+    }));
+
+    // Reset current inputs
+    setCurrentGarmentType('');
+    setCurrentRate('');
+    setErrors({});
+  };
+
+  const handleRemoveGarmentType = (typeToRemove) => {
+    setWorkerForm(prev => ({
+      ...prev,
+      garmentTypes: prev.garmentTypes.filter(g => g.type !== typeToRemove)
+    }));
   };
 
   const handlePhotoUpload = (e) => {
@@ -111,6 +158,11 @@ const Workers = () => {
       return;
     }
 
+    if (workerForm.garmentTypes.length === 0) {
+      setErrors({ garmentType: 'Please add at least one garment type' });
+      return;
+    }
+
     const newWorker = {
       id: `WORK${String(workers.length + 1).padStart(3, '0')}`,
       name: workerForm.name,
@@ -123,7 +175,7 @@ const Workers = () => {
       completedOrders: 0,
       rating: 0,
       performance: 0,
-      salary: parseFloat(workerForm.salary),
+      garmentTypes: workerForm.garmentTypes,
       avatar: photoPreview || `https://i.pravatar.cc/150?img=${workers.length + 10}`
     };
 
@@ -137,9 +189,11 @@ const Workers = () => {
       mobile: '',
       skill: '',
       experience: '',
-      salary: '',
+      garmentTypes: [],
       profilePhoto: null
     });
+    setCurrentGarmentType('');
+    setCurrentRate('');
     setPhotoPreview(null);
     setErrors({});
     setShowAddModal(false);
@@ -153,10 +207,12 @@ const Workers = () => {
         name: worker.name,
         mobile: worker.phone,
         skill: worker.specialization,
-        experience: '0', // Not stored in worker object
-        salary: worker.salary.toString(),
+        experience: '0',
+        garmentTypes: worker.garmentTypes || [],
         profilePhoto: null
       });
+      setCurrentGarmentType('');
+      setCurrentRate('');
       setPhotoPreview(worker.avatar);
       setShowEditModal(true);
     }
@@ -170,13 +226,18 @@ const Workers = () => {
       return;
     }
 
+    if (workerForm.garmentTypes.length === 0) {
+      setErrors({ garmentType: 'Please add at least one garment type' });
+      return;
+    }
+
     const updatedWorker = {
       ...editingWorker,
       name: workerForm.name,
       email: `${workerForm.name.toLowerCase().replace(/\s+/g, '.')}@smartstitch.com`,
       phone: workerForm.mobile,
       specialization: workerForm.skill,
-      salary: parseFloat(workerForm.salary),
+      garmentTypes: workerForm.garmentTypes,
       avatar: photoPreview || editingWorker.avatar
     };
 
@@ -190,9 +251,11 @@ const Workers = () => {
       mobile: '',
       skill: '',
       experience: '',
-      salary: '',
+      garmentTypes: [],
       profilePhoto: null
     });
+    setCurrentGarmentType('');
+    setCurrentRate('');
     setPhotoPreview(null);
     setErrors({});
     setEditingWorker(null);
@@ -414,29 +477,107 @@ const Workers = () => {
                     )}
                   </div>
 
-                  {/* Salary */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Salary <span className="text-red-500">*</span>
+                  {/* Garment Types & Rates Section */}
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      <div className="flex items-center gap-2">
+                        <Package className="w-4 h-4 text-orange-500" />
+                        Garment Types & Rates <span className="text-red-500">*</span>
+                      </div>
                     </label>
-                    <input
-                      type="number"
-                      value={workerForm.salary}
-                      onChange={(e) => handleInputChange('salary', e.target.value)}
-                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent ${
-                        errors.salary ? 'border-red-500' : 'border-gray-300'
-                      }`}
-                      placeholder="0.00"
-                      min="0"
-                      step="0.01"
-                    />
-                    {errors.salary && (
-                      <p className="text-red-600 text-sm mt-1">{errors.salary}</p>
+
+                    {/* Add Garment Type Form */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+                      <div>
+                        <select
+                          value={currentGarmentType}
+                          onChange={(e) => {
+                            setCurrentGarmentType(e.target.value);
+                            setErrors(prev => ({ ...prev, garmentType: '' }));
+                          }}
+                          className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent ${
+                            errors.garmentType ? 'border-red-500' : 'border-gray-300'
+                          }`}
+                        >
+                          <option value="">Select type</option>
+                          {garmentTypes.map((garment) => (
+                            <option key={garment.value} value={garment.value}>
+                              {garment.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">₹</span>
+                        <input
+                          type="number"
+                          value={currentRate}
+                          onChange={(e) => {
+                            setCurrentRate(e.target.value);
+                            setErrors(prev => ({ ...prev, rate: '' }));
+                          }}
+                          className={`w-full pl-7 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent ${
+                            errors.rate ? 'border-red-500' : 'border-gray-300'
+                          }`}
+                          placeholder="Enter rate"
+                          min="0"
+                          step="0.01"
+                        />
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={handleAddGarmentType}
+                        className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors flex items-center justify-center gap-2"
+                      >
+                        <Plus className="w-4 h-4" />
+                        Add
+                      </button>
+                    </div>
+
+                    {errors.garmentType && (
+                      <p className="text-red-600 text-sm mb-2">{errors.garmentType}</p>
                     )}
+                    {errors.rate && (
+                      <p className="text-red-600 text-sm mb-2">{errors.rate}</p>
+                    )}
+
+                    {/* Display Added Garment Types */}
+                    {workerForm.garmentTypes.length > 0 && (
+                      <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <p className="text-sm font-medium text-gray-700 mb-3">Added Garment Types:</p>
+                        <div className="space-y-2">
+                          {workerForm.garmentTypes.map((item) => (
+                            <div key={item.type} className="flex items-center justify-between bg-white rounded-lg p-3 border border-gray-200">
+                              <div className="flex items-center gap-3">
+                                <Package className="w-4 h-4 text-orange-500" />
+                                <span className="font-medium text-gray-900 capitalize">
+                                  {garmentTypes.find(g => g.value === item.type)?.label}
+                                </span>
+                                <span className="text-gray-500">-</span>
+                                <span className="font-bold text-gray-900">₹{item.rate}</span>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveGarmentType(item.type)}
+                                className="text-red-500 hover:text-red-700 transition-colors"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    <p className="text-xs text-gray-500 mt-3">
+                      💡 Add one or more garment types with their rates. Worker can work on multiple types.
+                    </p>
                   </div>
 
                   {/* Profile Photo */}
-                  <div>
+                  <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Profile Photo
                     </label>
@@ -500,7 +641,7 @@ const Workers = () => {
         )}
       </AnimatePresence>
 
-      {/* Edit Worker Modal */}
+      {/* Edit Worker Modal - Similar structure to Add Modal */}
       <AnimatePresence>
         {showEditModal && editingWorker && (
           <motion.div
@@ -516,9 +657,11 @@ const Workers = () => {
                 mobile: '',
                 skill: '',
                 experience: '',
-                salary: '',
+                garmentTypes: [],
                 profilePhoto: null
               });
+              setCurrentGarmentType('');
+              setCurrentRate('');
               setPhotoPreview(null);
               setErrors({});
             }}
@@ -530,7 +673,6 @@ const Workers = () => {
               onClick={(e) => e.stopPropagation()}
               className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
             >
-              {/* Modal Header */}
               <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between rounded-t-2xl">
                 <h2 className="text-2xl font-bold text-gray-900">Edit Worker</h2>
                 <button
@@ -542,9 +684,11 @@ const Workers = () => {
                       mobile: '',
                       skill: '',
                       experience: '',
-                      salary: '',
+                      garmentTypes: [],
                       profilePhoto: null
                     });
+                    setCurrentGarmentType('');
+                    setCurrentRate('');
                     setPhotoPreview(null);
                     setErrors({});
                   }}
@@ -554,10 +698,8 @@ const Workers = () => {
                 </button>
               </div>
 
-              {/* Modal Body */}
               <div className="p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Name */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Name <span className="text-red-500">*</span>
@@ -576,7 +718,6 @@ const Workers = () => {
                     )}
                   </div>
 
-                  {/* Mobile */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Mobile <span className="text-red-500">*</span>
@@ -595,7 +736,6 @@ const Workers = () => {
                     )}
                   </div>
 
-                  {/* Skill */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Skill <span className="text-red-500">*</span>
@@ -618,7 +758,6 @@ const Workers = () => {
                     )}
                   </div>
 
-                  {/* Experience */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Experience (years) <span className="text-red-500">*</span>
@@ -638,29 +777,103 @@ const Workers = () => {
                     )}
                   </div>
 
-                  {/* Salary */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Salary <span className="text-red-500">*</span>
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      <div className="flex items-center gap-2">
+                        <Package className="w-4 h-4 text-orange-500" />
+                        Garment Types & Rates <span className="text-red-500">*</span>
+                      </div>
                     </label>
-                    <input
-                      type="number"
-                      value={workerForm.salary}
-                      onChange={(e) => handleInputChange('salary', e.target.value)}
-                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent ${
-                        errors.salary ? 'border-red-500' : 'border-gray-300'
-                      }`}
-                      placeholder="0.00"
-                      min="0"
-                      step="0.01"
-                    />
-                    {errors.salary && (
-                      <p className="text-red-600 text-sm mt-1">{errors.salary}</p>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+                      <div>
+                        <select
+                          value={currentGarmentType}
+                          onChange={(e) => {
+                            setCurrentGarmentType(e.target.value);
+                            setErrors(prev => ({ ...prev, garmentType: '' }));
+                          }}
+                          className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent ${
+                            errors.garmentType ? 'border-red-500' : 'border-gray-300'
+                          }`}
+                        >
+                          <option value="">Select type</option>
+                          {garmentTypes.map((garment) => (
+                            <option key={garment.value} value={garment.value}>
+                              {garment.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">₹</span>
+                        <input
+                          type="number"
+                          value={currentRate}
+                          onChange={(e) => {
+                            setCurrentRate(e.target.value);
+                            setErrors(prev => ({ ...prev, rate: '' }));
+                          }}
+                          className={`w-full pl-7 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent ${
+                            errors.rate ? 'border-red-500' : 'border-gray-300'
+                          }`}
+                          placeholder="Enter rate"
+                          min="0"
+                          step="0.01"
+                        />
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={handleAddGarmentType}
+                        className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors flex items-center justify-center gap-2"
+                      >
+                        <Plus className="w-4 h-4" />
+                        Add
+                      </button>
+                    </div>
+
+                    {errors.garmentType && (
+                      <p className="text-red-600 text-sm mb-2">{errors.garmentType}</p>
                     )}
+                    {errors.rate && (
+                      <p className="text-red-600 text-sm mb-2">{errors.rate}</p>
+                    )}
+
+                    {workerForm.garmentTypes.length > 0 && (
+                      <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <p className="text-sm font-medium text-gray-700 mb-3">Added Garment Types:</p>
+                        <div className="space-y-2">
+                          {workerForm.garmentTypes.map((item) => (
+                            <div key={item.type} className="flex items-center justify-between bg-white rounded-lg p-3 border border-gray-200">
+                              <div className="flex items-center gap-3">
+                                <Package className="w-4 h-4 text-orange-500" />
+                                <span className="font-medium text-gray-900 capitalize">
+                                  {garmentTypes.find(g => g.value === item.type)?.label}
+                                </span>
+                                <span className="text-gray-500">-</span>
+                                <span className="font-bold text-gray-900">₹{item.rate}</span>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveGarmentType(item.type)}
+                                className="text-red-500 hover:text-red-700 transition-colors"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    <p className="text-xs text-gray-500 mt-3">
+                      💡 Add one or more garment types with their rates. Worker can work on multiple types.
+                    </p>
                   </div>
 
-                  {/* Profile Photo */}
-                  <div>
+                  <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Profile Photo
                     </label>
@@ -699,7 +912,6 @@ const Workers = () => {
                   </div>
                 </div>
 
-                {/* Modal Footer */}
                 <div className="flex gap-4 mt-8 pt-6 border-t border-gray-200">
                   <motion.button
                     whileHover={{ scale: 1.02 }}
@@ -712,9 +924,11 @@ const Workers = () => {
                         mobile: '',
                         skill: '',
                         experience: '',
-                        salary: '',
+                        garmentTypes: [],
                         profilePhoto: null
                       });
+                      setCurrentGarmentType('');
+                      setCurrentRate('');
                       setPhotoPreview(null);
                       setErrors({});
                     }}
@@ -754,7 +968,6 @@ const Workers = () => {
               onClick={(e) => e.stopPropagation()}
               className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
             >
-              {/* Modal Header */}
               <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between rounded-t-2xl z-10">
                 <h2 className="text-2xl font-bold text-gray-900">Worker Details</h2>
                 <button
@@ -765,14 +978,11 @@ const Workers = () => {
                 </button>
               </div>
 
-              {/* Modal Body */}
               <div className="p-6">
-                {/* Personal Information Section */}
                 <div className="mb-6">
                   <h3 className="text-xl font-bold text-gray-900 mb-4">Personal Information</h3>
                   
                   <div className="flex flex-col md:flex-row gap-6">
-                    {/* Avatar */}
                     <div className="flex-shrink-0">
                       {selectedWorker.avatar ? (
                         <img
@@ -787,7 +997,6 @@ const Workers = () => {
                       )}
                     </div>
 
-                    {/* Worker Details Grid */}
                     <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="flex items-start gap-3">
                         <User className="w-5 h-5 text-orange-500 mt-1" />
@@ -835,11 +1044,24 @@ const Workers = () => {
                         </div>
                       </div>
 
-                      <div className="flex items-start gap-3">
-                        <DollarSign className="w-5 h-5 text-orange-500 mt-1" />
-                        <div>
-                          <p className="text-sm text-gray-600">Salary</p>
-                          <p className="text-lg font-semibold text-gray-900">${selectedWorker.salary}</p>
+                      <div className="md:col-span-2 flex items-start gap-3">
+                        <Package className="w-5 h-5 text-orange-500 mt-1" />
+                        <div className="flex-1">
+                          <p className="text-sm text-gray-600 mb-2">Garment Types & Rates</p>
+                          {selectedWorker.garmentTypes && selectedWorker.garmentTypes.length > 0 ? (
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                              {selectedWorker.garmentTypes.map((item) => (
+                                <div key={item.type} className="bg-gray-50 rounded px-2 py-1">
+                                  <p className="text-xs text-gray-500 capitalize">
+                                    {garmentTypes.find(g => g.value === item.type)?.label}
+                                  </p>
+                                  <p className="text-sm font-semibold text-gray-900">₹{item.rate}</p>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-sm text-gray-500">No garment types assigned</p>
+                          )}
                         </div>
                       </div>
 
@@ -871,7 +1093,6 @@ const Workers = () => {
                     </div>
                   </div>
 
-                  {/* Statistics Cards */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6 pt-6 border-t border-gray-200">
                     <div className="bg-blue-50 rounded-lg p-4">
                       <div className="flex items-center gap-3">
@@ -905,138 +1126,6 @@ const Workers = () => {
                   </div>
                 </div>
 
-                {/* Performance Meter Section */}
-                <div className="mb-6 pb-6 border-b border-gray-200">
-                  <h3 className="text-xl font-bold text-gray-900 mb-4">Performance Metrics</h3>
-                  
-                  <div className="space-y-4">
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-gray-700">Overall Performance</span>
-                        <span className="text-sm font-bold text-gray-900">{selectedWorker.performance}%</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-4">
-                        <motion.div
-                          initial={{ width: 0 }}
-                          animate={{ width: `${selectedWorker.performance}%` }}
-                          transition={{ duration: 1 }}
-                          className={`h-4 rounded-full ${
-                            selectedWorker.performance >= 90
-                              ? 'bg-green-500'
-                              : selectedWorker.performance >= 70
-                              ? 'bg-orange-500'
-                              : 'bg-red-500'
-                          }`}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
-                      <div className="bg-gray-50 rounded-lg p-4">
-                        <p className="text-sm text-gray-600 mb-1">Completion Rate</p>
-                        <p className="text-xl font-bold text-gray-900">
-                          {selectedWorker.completedOrders > 0
-                            ? Math.round((selectedWorker.completedOrders / (selectedWorker.completedOrders + selectedWorker.assignedOrders)) * 100)
-                            : 0}%
-                        </p>
-                      </div>
-                      
-                      <div className="bg-gray-50 rounded-lg p-4">
-                        <p className="text-sm text-gray-600 mb-1">Average Rating</p>
-                        <p className="text-xl font-bold text-gray-900">{selectedWorker.rating} / 5.0</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Assigned Orders Section */}
-                <div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-4">Assigned Orders</h3>
-                  
-                  {assignedOrders.length > 0 ? (
-                    <div className="space-y-4">
-                      {assignedOrders.map((order) => (
-                        <div
-                          key={order.id}
-                          className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
-                        >
-                          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-3 mb-2">
-                                <h4 className="text-lg font-semibold text-gray-900">{order.id}</h4>
-                                <span
-                                  className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                    order.status === 'ready'
-                                      ? 'bg-green-100 text-green-800'
-                                      : order.status === 'stitching'
-                                      ? 'bg-blue-100 text-blue-800'
-                                      : order.status === 'cutting'
-                                      ? 'bg-yellow-100 text-yellow-800'
-                                      : 'bg-gray-100 text-gray-800'
-                                  }`}
-                                >
-                                  {order.status}
-                                </span>
-                              </div>
-                              
-                              <p className="text-sm text-gray-600 mb-1">
-                                Customer: <span className="font-medium text-gray-900">{order.customerName}</span>
-                              </p>
-                              
-                              <p className="text-sm text-gray-600">
-                                Delivery Date:{' '}
-                                <span className="font-medium text-gray-900">
-                                  {new Date(order.deliveryDate).toLocaleDateString('en-US', {
-                                    year: 'numeric',
-                                    month: 'short',
-                                    day: 'numeric'
-                                  })}
-                                </span>
-                              </p>
-                            </div>
-
-                            <div className="flex flex-col items-end gap-2">
-                              <p className="text-lg font-bold text-gray-900">${order.totalAmount}</p>
-                              <span
-                                className={`px-3 py-1 rounded-full text-xs font-medium ${
-                                  order.priority === 'high'
-                                    ? 'bg-red-100 text-red-800'
-                                    : order.priority === 'medium'
-                                    ? 'bg-yellow-100 text-yellow-800'
-                                    : 'bg-gray-100 text-gray-800'
-                                }`}
-                              >
-                                {order.priority} priority
-                              </span>
-                            </div>
-                          </div>
-
-                          {/* Order Items */}
-                          <div className="mt-3 pt-3 border-t border-gray-100">
-                            <p className="text-sm text-gray-600 mb-2">Items:</p>
-                            <div className="flex flex-wrap gap-2">
-                              {order.items.map((item) => (
-                                <span
-                                  key={item.id}
-                                  className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs"
-                                >
-                                  {item.type} ({item.quantity})
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-12">
-                      <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                      <p className="text-gray-500">No orders currently assigned to this worker</p>
-                    </div>
-                  )}
-                </div>
-
-                {/* Footer */}
                 <div className="flex gap-4 mt-6 pt-6 border-t border-gray-200">
                   <button
                     onClick={() => setShowViewModal(false)}
