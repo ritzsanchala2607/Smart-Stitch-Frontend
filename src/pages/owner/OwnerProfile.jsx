@@ -196,19 +196,19 @@ const OwnerProfile = () => {
               </motion.div>
             )}
 
-            {/* Profile Information Card */}
+            {/* Personal Information Card */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: 0.1 }}
-              className="bg-white rounded-lg shadow-md p-6 mb-6"
+              className="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-6"
             >
               <div className="flex items-center gap-2 mb-6">
-                <Scissors className="w-5 h-5 text-orange-500" />
-                <h2 className="text-xl font-semibold text-gray-900">Personal Information</h2>
+                <User className="w-5 h-5 text-orange-500" />
+                <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Personal Information</h2>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                 {/* Profile Photo */}
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -221,7 +221,7 @@ const OwnerProfile = () => {
                         <img
                           src={photoPreview}
                           alt="Profile"
-                          className="w-24 h-24 rounded-full object-cover border-4 border-orange-100"
+                          className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover border-4 border-orange-100"
                         />
                         <button
                           onClick={handleRemovePhoto}
@@ -231,13 +231,13 @@ const OwnerProfile = () => {
                         </button>
                       </div>
                     ) : (
-                      <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center border-4 border-orange-100">
-                        <User className="w-12 h-12 text-gray-400" />
+                      <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gray-200 flex items-center justify-center border-4 border-orange-100">
+                        <User className="w-10 h-10 sm:w-12 sm:h-12 text-gray-400" />
                       </div>
                     )}
                     
                     <label className="cursor-pointer">
-                      <div className="flex items-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors">
+                      <div className="flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors">
                         <Upload className="w-4 h-4" />
                         <span className="text-sm font-medium">Upload Photo</span>
                       </div>
@@ -300,7 +300,7 @@ const OwnerProfile = () => {
                 </div>
 
                 {/* Mobile */}
-                <div>
+                <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     <div className="flex items-center gap-2">
                       <Phone className="w-4 h-4 text-orange-500" />
@@ -320,12 +320,27 @@ const OwnerProfile = () => {
                     <p className="text-red-600 text-sm mt-1">{errors.mobile}</p>
                   )}
                 </div>
+              </div>
+            </motion.div>
 
+            {/* Shop Details Card */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.15 }}
+              className="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-6"
+            >
+              <div className="flex items-center gap-2 mb-6">
+                <Building2 className="w-5 h-5 text-orange-500" />
+                <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Shop Details</h2>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                 {/* Shop Name */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     <div className="flex items-center gap-2">
-                      <Building2 className="w-4 h-4 text-orange-500" />
+                      <Scissors className="w-4 h-4 text-orange-500" />
                       Shop Name <span className="text-red-500">*</span>
                     </div>
                   </label>
@@ -343,7 +358,59 @@ const OwnerProfile = () => {
                   )}
                 </div>
 
-                {/* Address */}
+                {/* Shop Phone */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <div className="flex items-center gap-2">
+                      <Phone className="w-4 h-4 text-orange-500" />
+                      Shop Phone Number
+                    </div>
+                  </label>
+                  <input
+                    type="tel"
+                    value={profile.mobile}
+                    disabled
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
+                    placeholder="+1234567890"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Same as personal mobile</p>
+                </div>
+
+                {/* Shop Email */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <div className="flex items-center gap-2">
+                      <Mail className="w-4 h-4 text-orange-500" />
+                      Shop Email
+                    </div>
+                  </label>
+                  <input
+                    type="email"
+                    value={profile.email}
+                    disabled
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
+                    placeholder="shop@email.com"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Same as personal email</p>
+                </div>
+
+                {/* Shop Registration (Optional) */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <div className="flex items-center gap-2">
+                      <Building2 className="w-4 h-4 text-orange-500" />
+                      Registration Number
+                    </div>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Optional"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Business registration number</p>
+                </div>
+
+                {/* Shop Address */}
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     <div className="flex items-center gap-2">
@@ -358,27 +425,27 @@ const OwnerProfile = () => {
                     className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent ${
                       errors.address ? 'border-red-500' : 'border-gray-300'
                     }`}
-                    placeholder="Enter complete shop address"
+                    placeholder="Enter complete shop address with city, state, and postal code"
                   />
                   {errors.address && (
                     <p className="text-red-600 text-sm mt-1">{errors.address}</p>
                   )}
                 </div>
               </div>
-
-              {/* Save Button */}
-              <div className="mt-6 flex justify-end">
-                <motion.button
-                  onClick={handleSaveChanges}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors font-medium flex items-center gap-2"
-                >
-                  <CheckCircle className="w-5 h-5" />
-                  Save Changes
-                </motion.button>
-              </div>
             </motion.div>
+
+            {/* Save Button */}
+            <div className="flex justify-end mb-6">
+              <motion.button
+                onClick={handleSaveChanges}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors font-medium flex items-center gap-2"
+              >
+                <CheckCircle className="w-5 h-5" />
+                Save All Changes
+              </motion.button>
+            </div>
 
             {/* Preferences Card */}
             <motion.div
