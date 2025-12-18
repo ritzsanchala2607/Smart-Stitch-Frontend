@@ -249,7 +249,7 @@ function Login() {
         transition={{ duration: 0.6 }}
       >
         {/* Left Side - Form */}
-        <div className="w-full lg:w-1/2 p-6 sm:p-8 lg:p-12 flex items-center justify-center">
+        <div className="w-full lg:w-1/2 p-4 sm:p-6 lg:p-8 flex items-center justify-center">
           <motion.div
             className="w-full max-w-md"
             variants={containerVariants}
@@ -257,14 +257,14 @@ function Login() {
             animate="visible"
           >
             {/* Logo and Branding */}
-            <motion.div className="mb-6 sm:mb-10" variants={itemVariants}>
-              <div className="flex items-center gap-3 mb-6 sm:mb-8">
+            <motion.div className="mb-4 sm:mb-6" variants={itemVariants}>
+              <div className="flex items-center gap-3 mb-4 sm:mb-5">
                 <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center">
                   <span className="text-white font-bold text-lg">SS</span>
                 </div>
                 <span className="text-lg sm:text-xl font-bold text-gray-900">Smart Stitch</span>
               </div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Welcome back</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">Welcome back</h1>
               <p className="text-gray-500 text-sm">Please enter your details</p>
             </motion.div>
 
@@ -281,10 +281,10 @@ function Login() {
               </motion.div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-3.5">
               {/* Email Input */}
               <motion.div variants={itemVariants}>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
                   Email address
                 </label>
                 <input
@@ -293,7 +293,7 @@ function Login() {
                   value={formData.email}
                   onChange={handleInputChange}
                   placeholder="Enter your email"
-                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all ${
+                  className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all ${
                     errors.email ? 'border-red-500' : 'border-gray-300'
                   }`}
                 />
@@ -304,7 +304,7 @@ function Login() {
 
               {/* Password Input */}
               <motion.div variants={itemVariants}>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
                   Password
                 </label>
                 <div className="relative">
@@ -315,7 +315,7 @@ function Login() {
                     onChange={handleInputChange}
                     onPaste={handlePasswordPaste}
                     placeholder="Enter your password"
-                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all ${
+                    className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all ${
                       errors.password ? 'border-red-500' : 'border-gray-300'
                     }`}
                   />
@@ -338,7 +338,7 @@ function Login() {
 
               {/* Role Selection */}
               <motion.div variants={itemVariants}>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
                   Login As
                 </label>
                 <select
@@ -380,7 +380,7 @@ function Login() {
                 disabled={isLoading}
                 whileHover={{ scale: 1.01 }}
                 whileTap={{ scale: 0.99 }}
-                className="w-full py-3 px-4 bg-orange-500 text-white font-semibold rounded-lg hover:bg-orange-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full py-2.5 px-4 bg-orange-500 text-white font-semibold rounded-lg hover:bg-orange-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 variants={itemVariants}
               >
                 {isLoading ? 'Signing in...' : 'Sign in'}
@@ -388,7 +388,7 @@ function Login() {
             </form>
 
             {/* Google Sign-In Button */}
-            <motion.div className="mt-4" variants={itemVariants}>
+            <motion.div className="mt-3" variants={itemVariants}>
               <GoogleAuthButton
                 onClick={handleGoogleSignIn}
                 isLoading={isGoogleLoading}
@@ -397,7 +397,7 @@ function Login() {
             </motion.div>
 
             {/* Sign Up Link */}
-            <motion.p className="text-center text-gray-600 text-sm mt-6" variants={itemVariants}>
+            <motion.p className="text-center text-gray-600 text-sm mt-4" variants={itemVariants}>
               Don't have an account?{' '}
               <Link to="/signup" className="text-orange-600 hover:text-orange-700 font-semibold">
                 Sign up
