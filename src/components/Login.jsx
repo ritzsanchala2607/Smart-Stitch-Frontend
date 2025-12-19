@@ -32,7 +32,7 @@ function Login() {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    role: 'Owner',
+    role: 'OWNER',
   });
 
   const [showPassword, setShowPassword] = useState(false);
@@ -347,9 +347,9 @@ function Login() {
                   onChange={handleInputChange}
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all bg-white"
                 >
-                  <option value="Owner">Shop Owner</option>
-                  <option value="Worker">Worker</option>
-                  <option value="Customer">Customer</option>
+                  <option value="OWNER">Shop Owner</option>
+                  <option value="WORKER">Worker</option>
+                  <option value="CUSTOMER">Customer</option>
                 </select>
               </motion.div>
 

@@ -32,7 +32,7 @@ function Signup() {
     email: '',
     password: '',
     confirmPassword: '',
-    role: 'Owner',
+    role: 'OWNER',
     agreeToTerms: false,
   });
 
@@ -446,9 +446,9 @@ const handleGoogleSignUp = async () => {
                   onChange={handleInputChange}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all bg-white"
                 >
-                  <option value="Owner">Shop Owner</option>
-                  <option value="Worker">Worker</option>
-                  <option value="Customer">Customer</option>
+                  <option value="OWNER">Shop Owner</option>
+                  <option value="WORKER">Worker</option>
+                  <option value="CUSTOMER">Customer</option>
                 </select>
               </motion.div>
 
