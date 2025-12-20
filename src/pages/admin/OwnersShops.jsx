@@ -16,7 +16,7 @@ import {
   Key,
   RefreshCw,
   X,
-  Package,
+  Package, 
   TrendingUp
 } from 'lucide-react';
 

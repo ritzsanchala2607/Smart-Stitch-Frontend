@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   User, 
@@ -12,29 +12,93 @@ import {
   Moon,
   Sun,
   Settings,
-  Scissors
+  Scissors,
+  Loader
 } from 'lucide-react';
 import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
-import { owners } from '../../data/dummyData';
 
 const OwnerProfile = () => {
-  // Initialize with first owner from dummy data
-  const initialOwner = owners[0];
-  
   const [profile, setProfile] = useState({
-    name: initialOwner.name,
-    email: initialOwner.email,
-    mobile: initialOwner.phone,
-    shopName: initialOwner.shopName,
-    address: initialOwner.address,
-    photo: initialOwner.avatar || null
+    name: '',
+    email: '',
+    mobile: '',
+    shopName: '',
+    shopEmail: '',
+    shopPhone: '',
+    address: '',
+    photo: null
   });
 
+  const [loading, setLoading] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
-  const [photoPreview, setPhotoPreview] = useState(initialOwner.avatar || null);
+  const [photoPreview, setPhotoPreview] = useState(null);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [errors, setErrors] = useState({});
+
+  // Fetch profile data from API
+  useEffect(() => {
+    const fetchProfile = async () => {
+      // Get userId from localStorage
+      const userDataString = localStorage.getItem('user');
+      
+      if (!userDataString) {
+        setErrors({ fetch: 'User not authenticated' });
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const userData = JSON.parse(userDataString);
+        const userId = userData.userId;
+        
+        if (!userId) {
+          setErrors({ fetch: 'User ID not found' });
+          setLoading(false);
+          return;
+        }
+
+        const response = await fetch(`http://localhost:8080/api/owners/profile/${userId}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch profile');
+        }
+
+        const data = await response.json();
+        console.log('API Response:', data); // Debug log
+        
+        // Map API response to profile state (flat structure)
+        setProfile({
+          name: data.name || '',
+          email: data.email || '',
+          mobile: data.contactNumber || '',
+          shopName: data.shopName || '',
+          shopEmail: data.shopEmail || '',
+          shopPhone: data.shopContactNumber || '',
+          address: data.shopAddress || '',
+          photo: null
+        });
+
+        // Set photo preview if available
+        if (data.profilePicture) {
+          setPhotoPreview(data.profilePicture);
+        }
+
+      } catch (error) {
+        console.error('Error fetching profile:', error);
+        setErrors({ fetch: 'Failed to load profile data' });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, []);
 
   const handleInputChange = (field, value) => {
     setProfile(prev => ({
@@ -162,12 +226,36 @@ const OwnerProfile = () => {
         <Topbar />
         
         <main className="flex-1 overflow-y-auto p-6 dark:bg-gray-900">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-            className="max-w-4xl mx-auto"
-          >
+          {loading ? (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center">
+                <Loader className="w-12 h-12 text-orange-500 animate-spin mx-auto mb-4" />
+                <p className="text-gray-600 dark:text-gray-400">Loading profile...</p>
+              </div>
+            </div>
+          ) : errors.fetch ? (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center max-w-md">
+                <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <X className="w-8 h-8 text-red-600 dark:text-red-400" />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Error Loading Profile</h2>
+                <p className="text-gray-600 dark:text-gray-400 mb-4">{errors.fetch}</p>
+                <button
+                  onClick={() => window.location.reload()}
+                  className="px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
+                >
+                  Retry
+                </button>
+              </div>
+            </div>
+          ) : (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+              className="max-w-4xl mx-auto"
+            >
             {/* Header */}
             <div className="mb-6">
               <div className="flex items-center gap-3 mb-2">
@@ -368,12 +456,12 @@ const OwnerProfile = () => {
                   </label>
                   <input
                     type="tel"
-                    value={profile.mobile}
+                    value={profile.shopPhone}
                     disabled
                     className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-400"
                     placeholder="+1234567890"
                   />
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Same as personal mobile</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Shop contact number</p>
                 </div>
 
                 {/* Shop Email */}
@@ -386,12 +474,12 @@ const OwnerProfile = () => {
                   </label>
                   <input
                     type="email"
-                    value={profile.email}
+                    value={profile.shopEmail}
                     disabled
                     className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-400"
                     placeholder="shop@email.com"
                   />
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Same as personal email</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Shop email address</p>
                 </div>
 
                 {/* Shop Registration (Optional) */}
@@ -492,6 +580,7 @@ const OwnerProfile = () => {
               </p>
             </motion.div>
           </motion.div>
+          )}
         </main>
       </div>
     </div>
