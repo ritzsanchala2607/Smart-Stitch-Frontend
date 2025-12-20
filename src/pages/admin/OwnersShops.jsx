@@ -8,13 +8,11 @@ import {
   Plus,
   Search,
   Eye,
-  Edit2,
   XCircle,
   CheckCircle,
   Mail,
   Phone,
   MapPin,
-  Building,
   Key,
   RefreshCw,
   X,
@@ -25,9 +23,12 @@ import {
 const OwnersShops = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
   const [selectedShop, setSelectedShop] = useState(null);
+  const [createdData, setCreatedData] = useState(null);
+  const [errorMessage, setErrorMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
 
   // Mock shops data
   const [shops, setShops] = useState([
@@ -85,11 +86,9 @@ const OwnersShops = () => {
     phone: '',
     password: '',
     shopName: '',
-    shopAddress: '',
-    city: '',
-    state: '',
-    gstNumber: '',
-    shopType: 'Tailoring'
+    shopEmail: '',
+    shopPhone: '',
+    shopAddress: ''
   });
 
   // Generate random password
@@ -108,39 +107,105 @@ const OwnersShops = () => {
   };
 
   // Handle create owner account
-  const handleCreateOwner = () => {
-    const newShop = {
-      id: shops.length + 1,
-      shopName: ownerForm.shopName,
-      ownerName: ownerForm.ownerName,
-      email: ownerForm.email,
-      phone: ownerForm.phone,
-      city: ownerForm.city,
-      address: ownerForm.shopAddress,
-      gstNumber: ownerForm.gstNumber,
-      shopType: ownerForm.shopType,
-      totalOrders: 0,
-      totalWorkers: 0,
-      status: 'Active',
-      registrationDate: new Date().toISOString().split('T')[0]
-    };
+  const handleCreateOwner = async () => {
+    try {
+      const payload = {
+        user: {
+          name: ownerForm.ownerName,
+          email: ownerForm.email,
+          password: ownerForm.password,
+          contactNumber: ownerForm.phone,
+          roleId: 1
+        },
+        shop: {
+          name: ownerForm.shopName,
+          email: ownerForm.shopEmail,
+          contactNumber: ownerForm.shopPhone,
+          address: ownerForm.shopAddress
+        }
+      };
 
-    setShops([...shops, newShop]);
-    setSuccessMessage('Owner account and shop created successfully!');
-    setTimeout(() => setSuccessMessage(''), 3000);
-    setShowAddModal(false);
-    setOwnerForm({
-      ownerName: '',
-      email: '',
-      phone: '',
-      password: '',
-      shopName: '',
-      shopAddress: '',
-      city: '',
-      state: '',
-      gstNumber: '',
-      shopType: 'Tailoring'
-    });
+      const response = await fetch('http://localhost:8080/api/owners/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload)
+      });
+
+      // Try to parse response as JSON, fallback to text if it fails
+      let data;
+      const contentType = response.headers.get('content-type');
+      
+      if (contentType && contentType.includes('application/json')) {
+        data = await response.json();
+      } else {
+        const textData = await response.text();
+        // If response is successful but not JSON, treat it as success
+        if (response.ok) {
+          data = { message: textData || 'Owner and shop created successfully' };
+        } else {
+          throw new Error(textData || 'Failed to create owner');
+        }
+      }
+
+      if (!response.ok) {
+        throw new Error(data.message || data || 'Failed to create owner');
+      }
+
+      // Store created data for success modal
+      setCreatedData({
+        owner: {
+          name: ownerForm.ownerName,
+          email: ownerForm.email,
+          phone: ownerForm.phone,
+          password: ownerForm.password
+        },
+        shop: {
+          name: ownerForm.shopName,
+          email: ownerForm.shopEmail,
+          phone: ownerForm.shopPhone,
+          address: ownerForm.shopAddress
+        }
+      });
+
+      // Add to local state for display
+      const newShop = {
+        id: shops.length + 1,
+        shopName: ownerForm.shopName,
+        ownerName: ownerForm.ownerName,
+        email: ownerForm.email,
+        phone: ownerForm.phone,
+        city: 'N/A',
+        address: ownerForm.shopAddress,
+        gstNumber: 'N/A',
+        shopType: 'N/A',
+        totalOrders: 0,
+        totalWorkers: 0,
+        status: 'Active',
+        registrationDate: new Date().toISOString().split('T')[0]
+      };
+
+      setShops([...shops, newShop]);
+      setShowAddModal(false);
+      setShowSuccessModal(true);
+      
+      // Reset form
+      setOwnerForm({
+        ownerName: '',
+        email: '',
+        phone: '',
+        password: '',
+        shopName: '',
+        shopEmail: '',
+        shopPhone: '',
+        shopAddress: ''
+      });
+    } catch (error) {
+      setErrorMessage(error.message || 'An unexpected error occurred');
+      setShowAddModal(false);
+      setShowErrorModal(true);
+    }
   };
 
   // Handle view shop details
@@ -195,21 +260,6 @@ const OwnersShops = () => {
                 Add New Owner
               </button>
             </div>
-
-            {/* Success Message */}
-            <AnimatePresence>
-              {successMessage && (
-                <motion.div
-                  initial={{ opacity: 0, y: -20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  className="flex items-center gap-2 p-4 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700 rounded-lg"
-                >
-                  <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
-                  <span className="text-green-700 dark:text-green-300 font-medium">{successMessage}</span>
-                </motion.div>
-              )}
-            </AnimatePresence>
 
             {/* Search Bar */}
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
@@ -458,17 +508,34 @@ const OwnersShops = () => {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Shop Type <span className="text-red-500">*</span>
+                        Shop Email <span className="text-red-500">*</span>
                       </label>
-                      <select
-                        value={ownerForm.shopType}
-                        onChange={(e) => handleInputChange('shopType', e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                      >
-                        <option value="Tailoring">Tailoring</option>
-                        <option value="Showroom">Showroom</option>
-                        <option value="Both">Both</option>
-                      </select>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                        <input
+                          type="email"
+                          value={ownerForm.shopEmail}
+                          onChange={(e) => handleInputChange('shopEmail', e.target.value)}
+                          className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                          placeholder="shop@example.com"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Shop Contact Number <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                        <input
+                          type="tel"
+                          value={ownerForm.shopPhone}
+                          onChange={(e) => handleInputChange('shopPhone', e.target.value)}
+                          className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                          placeholder="9123456789"
+                        />
+                      </div>
                     </div>
 
                     <div className="md:col-span-2">
@@ -483,48 +550,6 @@ const OwnersShops = () => {
                           rows={3}
                           className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                           placeholder="Enter complete shop address"
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        City <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={ownerForm.city}
-                        onChange={(e) => handleInputChange('city', e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                        placeholder="Enter city"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        State <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={ownerForm.state}
-                        onChange={(e) => handleInputChange('state', e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                        placeholder="Enter state"
-                      />
-                    </div>
-
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        GST Number <span className="text-gray-500">(Optional)</span>
-                      </label>
-                      <div className="relative">
-                        <Building className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                        <input
-                          type="text"
-                          value={ownerForm.gstNumber}
-                          onChange={(e) => handleInputChange('gstNumber', e.target.value)}
-                          className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                          placeholder="27AABCU9603R1ZM"
                         />
                       </div>
                     </div>
@@ -724,6 +749,163 @@ const OwnersShops = () => {
                     )}
                   </button>
                 </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Success Modal */}
+      <AnimatePresence>
+        {showSuccessModal && createdData && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            onClick={() => setShowSuccessModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+            >
+              {/* Success Header */}
+              <div className="bg-gradient-to-r from-green-500 to-green-600 px-6 py-4 rounded-t-2xl">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                    <CheckCircle className="w-8 h-8 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold text-white">Successfully Created!</h2>
+                    <p className="text-green-50">Owner account and shop have been created</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Success Body */}
+              <div className="p-6 space-y-6">
+                {/* Owner Details */}
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
+                    <Users className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                    Owner Details
+                  </h3>
+                  <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">Name:</span>
+                      <span className="font-semibold text-gray-900 dark:text-gray-100">{createdData.owner.name}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">Email:</span>
+                      <span className="font-semibold text-gray-900 dark:text-gray-100">{createdData.owner.email}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">Phone:</span>
+                      <span className="font-semibold text-gray-900 dark:text-gray-100">{createdData.owner.phone}</span>
+                    </div>
+                    <div className="flex justify-between items-center pt-2 border-t border-blue-200 dark:border-blue-700">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">Temporary Password:</span>
+                      <span className="font-mono font-semibold text-blue-600 dark:text-blue-400">{createdData.owner.password}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Shop Details */}
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
+                    <Store className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                    Shop Details
+                  </h3>
+                  <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-4 space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">Shop Name:</span>
+                      <span className="font-semibold text-gray-900 dark:text-gray-100">{createdData.shop.name}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">Shop Email:</span>
+                      <span className="font-semibold text-gray-900 dark:text-gray-100">{createdData.shop.email}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">Shop Phone:</span>
+                      <span className="font-semibold text-gray-900 dark:text-gray-100">{createdData.shop.phone}</span>
+                    </div>
+                    <div className="pt-2 border-t border-orange-200 dark:border-orange-700">
+                      <span className="text-sm text-gray-600 dark:text-gray-400 block mb-1">Address:</span>
+                      <span className="font-semibold text-gray-900 dark:text-gray-100">{createdData.shop.address}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Note */}
+                <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg p-4">
+                  <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                    <strong>Note:</strong> Please share the login credentials with the owner. They should change their password after first login.
+                  </p>
+                </div>
+
+                {/* Close Button */}
+                <button
+                  onClick={() => setShowSuccessModal(false)}
+                  className="w-full px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors font-medium"
+                >
+                  Close
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Error Modal */}
+      <AnimatePresence>
+        {showErrorModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            onClick={() => setShowErrorModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full"
+            >
+              {/* Error Header */}
+              <div className="bg-gradient-to-r from-red-500 to-red-600 px-6 py-4 rounded-t-2xl">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                    <XCircle className="w-8 h-8 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold text-white">Error</h2>
+                    <p className="text-red-50">Failed to create owner and shop</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Error Body */}
+              <div className="p-6 space-y-4">
+                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-lg p-4">
+                  <p className="text-red-800 dark:text-red-200 font-medium">{errorMessage}</p>
+                </div>
+
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Please check the information and try again. If the problem persists, contact support.
+                </p>
+
+                {/* Close Button */}
+                <button
+                  onClick={() => setShowErrorModal(false)}
+                  className="w-full px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors font-medium"
+                >
+                  Close
+                </button>
               </div>
             </motion.div>
           </motion.div>
