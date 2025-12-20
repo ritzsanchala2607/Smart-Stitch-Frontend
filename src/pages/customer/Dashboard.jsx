@@ -246,7 +246,7 @@ const Dashboard = () => {
 
   return (
     <Layout role="customer">
-      <div className="p-4 sm:p-6">
+      <div className="p-4 sm:p-6 bg-gray-50 dark:bg-gray-900">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -255,28 +255,28 @@ const Dashboard = () => {
             {/* Header with Loyalty Points */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 sm:p-3 bg-blue-100 rounded-lg">
-                  <LayoutDashboard className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
+                <div className="p-2 sm:p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                  <LayoutDashboard className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 dark:text-blue-400" />
                 </div>
                 <div>
-                  <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">Welcome back, {customerData.name}!</h1>
-                  <p className="text-sm sm:text-base text-gray-600">Here's your tailoring journey</p>
+                  <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-gray-100">Welcome back, {customerData.name}!</h1>
+                  <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">Here's your tailoring journey</p>
                 </div>
               </div>
               
               {/* Loyalty Points Card */}
               <motion.div
                 whileHover={{ scale: 1.05 }}
-                className="bg-gradient-to-br from-yellow-400 to-orange-500 rounded-lg shadow-lg p-3 sm:p-4 text-white cursor-pointer w-full sm:w-auto"
+                className="bg-gradient-to-br from-yellow-400 to-orange-500 dark:from-yellow-600 dark:to-orange-700 rounded-lg shadow-lg p-3 sm:p-4 text-white cursor-pointer w-full sm:w-auto"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                  <div className="w-12 h-12 bg-white/20 dark:bg-white/10 rounded-full flex items-center justify-center">
                     <Award className="w-6 h-6" />
                   </div>
                   <div>
                     <p className="text-sm opacity-90">Loyalty Points</p>
                     <p className="text-2xl font-bold">{customerData.loyaltyPoints}</p>
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${getTierColor(customerData.tier)} bg-white/30`}>
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${getTierColor(customerData.tier)} bg-white/30 dark:bg-white/20`}>
                       {customerData.tier} Member
                     </span>
                   </div>
@@ -331,13 +331,13 @@ const Dashboard = () => {
                 <motion.div
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  className="bg-white rounded-lg shadow-md p-4 sm:p-6"
+                  className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 sm:p-6"
                 >
                   <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xl font-bold text-gray-900">Active Orders Progress</h2>
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Active Orders Progress</h2>
                     <button
                       onClick={() => navigate('/customer/orders')}
-                      className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                      className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium"
                     >
                       View All
                     </button>
@@ -345,25 +345,25 @@ const Dashboard = () => {
 
                   <div className="space-y-6">
                     {activeOrders.map((order) => (
-                      <div key={order.id} className="border rounded-lg p-4">
+                      <div key={order.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
                         <div className="flex items-center justify-between mb-4">
                           <div>
-                            <p className="font-semibold text-gray-900">{order.id}</p>
-                            <p className="text-sm text-gray-600">{order.item}</p>
+                            <p className="font-semibold text-gray-900 dark:text-gray-100">{order.id}</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">{order.item}</p>
                           </div>
                           <div className="text-right">
-                            <p className="text-sm text-gray-600">Delivery</p>
-                            <p className="font-semibold text-gray-900">{order.deliveryDate}</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">Delivery</p>
+                            <p className="font-semibold text-gray-900 dark:text-gray-100">{order.deliveryDate}</p>
                           </div>
                         </div>
 
                         {/* Progress Bar */}
                         <div className="mb-4">
-                          <div className="flex justify-between text-xs text-gray-600 mb-2">
+                          <div className="flex justify-between text-xs text-gray-600 dark:text-gray-400 mb-2">
                             <span>Progress</span>
                             <span>{order.progress}%</span>
                           </div>
-                          <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                          <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                             <motion.div
                               initial={{ width: 0 }}
                               animate={{ width: `${order.progress}%` }}
@@ -383,10 +383,10 @@ const Dashboard = () => {
                                 transition={{ delay: idx * 0.1 }}
                                 className={`w-8 h-8 rounded-full flex items-center justify-center mb-2 ${
                                   stage.completed
-                                    ? 'bg-green-500'
+                                    ? 'bg-green-500 dark:bg-green-600'
                                     : idx === order.stages.findIndex(s => !s.completed)
-                                    ? 'bg-blue-500 animate-pulse'
-                                    : 'bg-gray-300'
+                                    ? 'bg-blue-500 dark:bg-blue-600 animate-pulse'
+                                    : 'bg-gray-300 dark:bg-gray-600'
                                 }`}
                               >
                                 {stage.completed ? (
@@ -395,7 +395,7 @@ const Dashboard = () => {
                                   <Clock className="w-4 h-4 text-white" />
                                 )}
                               </motion.div>
-                              <p className="text-xs text-gray-600 text-center">{stage.name}</p>
+                              <p className="text-xs text-gray-600 dark:text-gray-400 text-center">{stage.name}</p>
                             </div>
                           ))}
                         </div>
@@ -409,12 +409,12 @@ const Dashboard = () => {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.1 }}
-                  className="bg-white rounded-lg shadow-md p-6"
+                  className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"
                 >
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-2">
-                      <Sparkles className="w-5 h-5 text-purple-600" />
-                      <h2 className="text-xl font-bold text-gray-900">Style Inspirations</h2>
+                      <Sparkles className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                      <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Style Inspirations</h2>
                     </div>
                   </div>
 
@@ -461,16 +461,16 @@ const Dashboard = () => {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.2 }}
-                  className="bg-white rounded-lg shadow-md p-6"
+                  className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"
                 >
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-2">
-                      <Palette className="w-5 h-5 text-blue-600" />
-                      <h2 className="text-xl font-bold text-gray-900">Saved Fabrics</h2>
+                      <Palette className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                      <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Saved Fabrics</h2>
                     </div>
                     <button
                       onClick={() => navigate('/customer/catalogue')}
-                      className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                      className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium"
                     >
                       Browse More
                     </button>
@@ -481,7 +481,7 @@ const Dashboard = () => {
                       <motion.div
                         key={fabric.id}
                         whileHover={{ scale: 1.05 }}
-                        className="relative rounded-lg overflow-hidden border-2 border-gray-200 hover:border-blue-500 transition-colors"
+                        className="relative rounded-lg overflow-hidden border-2 border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-400 transition-colors"
                       >
                         <div className="aspect-square">
                           <img
@@ -492,11 +492,11 @@ const Dashboard = () => {
                         </div>
                         <button
                           onClick={() => toggleFabricSave(fabric.id)}
-                          className="absolute top-2 right-2 p-2 bg-white rounded-full shadow-lg hover:bg-gray-100 transition-colors"
+                          className="absolute top-2 right-2 p-2 bg-white dark:bg-gray-800 rounded-full shadow-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                         >
                           <Bookmark
                             className={`w-4 h-4 ${
-                              fabric.saved ? 'fill-blue-600 text-blue-600' : 'text-gray-600'
+                              fabric.saved ? 'fill-blue-600 text-blue-600 dark:fill-blue-400 dark:text-blue-400' : 'text-gray-600 dark:text-gray-400'
                             }`}
                           />
                         </button>
@@ -514,44 +514,44 @@ const Dashboard = () => {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.3 }}
-                  className="bg-white rounded-lg shadow-md overflow-hidden"
+                  className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden"
                 >
-                  <div className="p-6 border-b border-gray-200">
-                    <h2 className="text-xl font-bold text-gray-900">Recent Orders</h2>
+                  <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Recent Orders</h2>
                   </div>
                   <div className="overflow-x-auto">
                     <table className="w-full">
-                      <thead className="bg-gray-50 border-b border-gray-200">
+                      <thead className="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
                         <tr>
-                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600">Order ID</th>
-                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600">Garment Type</th>
-                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600">Status</th>
-                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600">Amount Paid</th>
-                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600">Delivery Date</th>
-                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600">Action</th>
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400">Order ID</th>
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400">Garment Type</th>
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400">Status</th>
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400">Amount Paid</th>
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400">Delivery Date</th>
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400">Action</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-gray-200">
+                      <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                         {recentOrders.map((order) => (
-                          <tr key={order.id} className="hover:bg-gray-50">
-                            <td className="px-6 py-4 text-sm font-medium text-gray-900">{order.id}</td>
-                            <td className="px-6 py-4 text-sm text-gray-600">{order.garment}</td>
+                          <tr key={order.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                            <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-100">{order.id}</td>
+                            <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{order.garment}</td>
                             <td className="px-6 py-4">
                               <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                                order.status === 'delivered' ? 'bg-green-100 text-green-700' :
-                                order.status === 'ready' ? 'bg-blue-100 text-blue-700' :
-                                order.status === 'stitching' ? 'bg-orange-100 text-orange-700' :
-                                'bg-gray-100 text-gray-700'
+                                order.status === 'delivered' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' :
+                                order.status === 'ready' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' :
+                                order.status === 'stitching' ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400' :
+                                'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
                               }`}>
                                 {order.status}
                               </span>
                             </td>
-                            <td className="px-6 py-4 text-sm text-gray-900">₹{order.amount.toLocaleString()}</td>
-                            <td className="px-6 py-4 text-sm text-gray-600">{order.delivery}</td>
+                            <td className="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">₹{order.amount.toLocaleString()}</td>
+                            <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{order.delivery}</td>
                             <td className="px-6 py-4">
                               <button
                                 onClick={() => navigate('/customer/orders')}
-                                className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                                className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 text-sm font-medium"
                               >
                                 View Details
                               </button>
@@ -568,12 +568,12 @@ const Dashboard = () => {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.4 }}
-                  className="bg-white rounded-lg shadow-md p-6"
+                  className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"
                 >
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-2">
-                      <Star className="w-5 h-5 text-yellow-600" />
-                      <h2 className="text-xl font-bold text-gray-900">Recommended for You</h2>
+                      <Star className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
+                      <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Recommended for You</h2>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
@@ -581,7 +581,7 @@ const Dashboard = () => {
                       <motion.div
                         key={item.id}
                         whileHover={{ y: -5 }}
-                        className="relative rounded-lg overflow-hidden border border-gray-200 hover:border-blue-500 transition-colors cursor-pointer"
+                        className="relative rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-400 transition-colors cursor-pointer"
                         onClick={() => navigate('/customer/catalogue')}
                       >
                         <div className="aspect-square">
@@ -592,9 +592,9 @@ const Dashboard = () => {
                             Popular
                           </span>
                         )}
-                        <div className="p-3">
-                          <p className="font-semibold text-gray-900 text-sm">{item.name}</p>
-                          <p className="text-blue-600 font-bold text-sm">₹{item.price.toLocaleString()}</p>
+                        <div className="p-3 bg-white dark:bg-gray-800">
+                          <p className="font-semibold text-gray-900 dark:text-gray-100 text-sm">{item.name}</p>
+                          <p className="text-blue-600 dark:text-blue-400 font-bold text-sm">₹{item.price.toLocaleString()}</p>
                         </div>
                       </motion.div>
                     ))}
@@ -609,22 +609,22 @@ const Dashboard = () => {
                   className="grid grid-cols-1 lg:grid-cols-2 gap-6"
                 >
                   {/* Order Trend Chart */}
-                  <div className="bg-white rounded-lg shadow-md p-6">
-                    <h3 className="font-bold text-gray-900 mb-4">Order Trend (Last 6 Months)</h3>
+                  <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                    <h3 className="font-bold text-gray-900 dark:text-gray-100 mb-4">Order Trend (Last 6 Months)</h3>
                     <div className="flex items-end justify-between h-48 gap-2">
                       {orderTrendData.map((data, idx) => {
                         const maxOrders = Math.max(...orderTrendData.map(d => d.orders));
                         const height = (data.orders / maxOrders) * 100;
                         return (
                           <div key={idx} className="flex-1 flex flex-col items-center gap-2">
-                            <span className="text-xs font-semibold text-gray-700">{data.orders}</span>
+                            <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">{data.orders}</span>
                             <motion.div
                               initial={{ height: 0 }}
                               animate={{ height: `${height}%` }}
                               transition={{ delay: idx * 0.1 }}
-                              className="w-full bg-blue-500 rounded-t hover:bg-blue-600 transition-colors"
+                              className="w-full bg-blue-500 dark:bg-blue-600 rounded-t hover:bg-blue-600 dark:hover:bg-blue-500 transition-colors"
                             />
-                            <span className="text-xs text-gray-600">{data.month}</span>
+                            <span className="text-xs text-gray-600 dark:text-gray-400">{data.month}</span>
                           </div>
                         );
                       })}
@@ -632,8 +632,8 @@ const Dashboard = () => {
                   </div>
 
                   {/* Spending Chart */}
-                  <div className="bg-white rounded-lg shadow-md p-6">
-                    <h3 className="font-bold text-gray-900 mb-4">Spending Trend</h3>
+                  <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                    <h3 className="font-bold text-gray-900 dark:text-gray-100 mb-4">Spending Trend</h3>
                     <div className="h-48 flex items-end">
                       <svg className="w-full h-full">
                         {spendingData.map((data, idx) => {
@@ -670,7 +670,7 @@ const Dashboard = () => {
                     </div>
                     <div className="flex justify-between mt-2">
                       {spendingData.map((data, idx) => (
-                        <span key={idx} className="text-xs text-gray-600">{data.month}</span>
+                        <span key={idx} className="text-xs text-gray-600 dark:text-gray-400">{data.month}</span>
                       ))}
                     </div>
                   </div>
@@ -681,9 +681,9 @@ const Dashboard = () => {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.6 }}
-                  className="bg-white rounded-lg shadow-md p-6"
+                  className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"
                 >
-                  <h3 className="font-bold text-gray-900 mb-4">Order Category Distribution</h3>
+                  <h3 className="font-bold text-gray-900 dark:text-gray-100 mb-4">Order Category Distribution</h3>
                   <div className="flex items-center gap-8">
                     <div className="w-48 h-48">
                       <svg viewBox="0 0 100 100" className="transform -rotate-90">
@@ -719,9 +719,9 @@ const Dashboard = () => {
                         <div key={idx} className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <div className="w-4 h-4 rounded" style={{ backgroundColor: cat.color }} />
-                            <span className="text-sm text-gray-700">{cat.category}</span>
+                            <span className="text-sm text-gray-700 dark:text-gray-300">{cat.category}</span>
                           </div>
-                          <span className="text-sm font-semibold text-gray-900">{cat.count}</span>
+                          <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">{cat.count}</span>
                         </div>
                       ))}
                     </div>
@@ -756,22 +756,22 @@ const Dashboard = () => {
                 <motion.div
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  className="bg-white rounded-lg shadow-md p-6"
+                  className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"
                 >
                   <div className="flex items-center gap-2 mb-4">
-                    <Calendar className="w-5 h-5 text-blue-600" />
-                    <h2 className="text-lg font-bold text-gray-900">Upcoming Deliveries</h2>
+                    <Calendar className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                    <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">Upcoming Deliveries</h2>
                   </div>
                   <div className="space-y-3">
                     {activeOrders.slice(0, 2).map((order) => (
-                      <div key={order.id} className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-                        <p className="font-semibold text-gray-900 text-sm">{order.item}</p>
-                        <p className="text-xs text-gray-600">Order ID: {order.id}</p>
+                      <div key={order.id} className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                        <p className="font-semibold text-gray-900 dark:text-gray-100 text-sm">{order.item}</p>
+                        <p className="text-xs text-gray-600 dark:text-gray-400">Order ID: {order.id}</p>
                         <div className="flex items-center justify-between mt-2">
-                          <span className="text-xs text-gray-600">Expected:</span>
-                          <span className="text-sm font-semibold text-blue-600">{order.deliveryDate}</span>
+                          <span className="text-xs text-gray-600 dark:text-gray-400">Expected:</span>
+                          <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">{order.deliveryDate}</span>
                         </div>
-                        <span className="inline-block mt-2 px-2 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full capitalize">
+                        <span className="inline-block mt-2 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-xs font-semibold rounded-full capitalize">
                           {order.status}
                         </span>
                       </div>
@@ -784,12 +784,12 @@ const Dashboard = () => {
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.05 }}
-                  className="bg-white rounded-lg shadow-md p-6"
+                  className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"
                 >
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
-                      <Bell className="w-5 h-5 text-orange-600" />
-                      <h2 className="text-lg font-bold text-gray-900">Notifications</h2>
+                      <Bell className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                      <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">Notifications</h2>
                     </div>
                     <span className="px-2 py-1 bg-red-500 text-white text-xs font-bold rounded-full">
                       {notifications.filter(n => !n.read).length}
@@ -800,11 +800,11 @@ const Dashboard = () => {
                       <div
                         key={notif.id}
                         className={`p-3 rounded-lg border ${
-                          notif.read ? 'bg-gray-50 border-gray-200' : 'bg-blue-50 border-blue-200'
+                          notif.read ? 'bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600' : 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'
                         }`}
                       >
-                        <p className="text-sm text-gray-900">{notif.message}</p>
-                        <p className="text-xs text-gray-500 mt-1">{notif.time}</p>
+                        <p className="text-sm text-gray-900 dark:text-gray-100">{notif.message}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{notif.time}</p>
                       </div>
                     ))}
                   </div>
@@ -815,17 +815,17 @@ const Dashboard = () => {
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.1 }}
-                  className="bg-white rounded-lg shadow-md p-6"
+                  className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"
                 >
                   <div className="flex items-center gap-2 mb-4">
-                    <Ruler className="w-5 h-5 text-green-600" />
-                    <h2 className="text-lg font-bold text-gray-900">Your Measurements</h2>
+                    <Ruler className="w-5 h-5 text-green-600 dark:text-green-400" />
+                    <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">Your Measurements</h2>
                   </div>
                   <div className="grid grid-cols-2 gap-3 mb-4">
                     {Object.entries(measurementsPreview).map(([key, value]) => (
-                      <div key={key} className="p-2 bg-gray-50 rounded">
-                        <p className="text-xs text-gray-600 capitalize">{key}</p>
-                        <p className="text-lg font-bold text-gray-900">{value}"</p>
+                      <div key={key} className="p-2 bg-gray-50 dark:bg-gray-700 rounded">
+                        <p className="text-xs text-gray-600 dark:text-gray-400 capitalize">{key}</p>
+                        <p className="text-lg font-bold text-gray-900 dark:text-gray-100">{value}"</p>
                       </div>
                     ))}
                   </div>
@@ -918,37 +918,37 @@ const Dashboard = () => {
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.25 }}
-                  className="bg-white rounded-lg shadow-md p-6"
+                  className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"
                 >
-                  <h2 className="text-lg font-bold text-gray-900 mb-4">Need Help?</h2>
+                  <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4">Need Help?</h2>
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       onClick={() => navigate('/customer/support')}
-                      className="flex flex-col items-center gap-2 p-3 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+                      className="flex flex-col items-center gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
                     >
-                      <MessageSquare className="w-5 h-5 text-blue-600" />
-                      <span className="text-xs font-medium text-gray-900">Chat</span>
+                      <MessageSquare className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                      <span className="text-xs font-medium text-gray-900 dark:text-gray-100">Chat</span>
                     </button>
                     <button
                       onClick={() => navigate('/customer/support')}
-                      className="flex flex-col items-center gap-2 p-3 bg-green-50 hover:bg-green-100 rounded-lg transition-colors"
+                      className="flex flex-col items-center gap-2 p-3 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 rounded-lg transition-colors"
                     >
-                      <HelpCircle className="w-5 h-5 text-green-600" />
-                      <span className="text-xs font-medium text-gray-900">Support</span>
+                      <HelpCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+                      <span className="text-xs font-medium text-gray-900 dark:text-gray-100">Support</span>
                     </button>
                     <button
                       onClick={() => navigate('/customer/support')}
-                      className="flex flex-col items-center gap-2 p-3 bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors"
+                      className="flex flex-col items-center gap-2 p-3 bg-orange-50 dark:bg-orange-900/20 hover:bg-orange-100 dark:hover:bg-orange-900/30 rounded-lg transition-colors"
                     >
-                      <AlertCircle className="w-5 h-5 text-orange-600" />
-                      <span className="text-xs font-medium text-gray-900">Ticket</span>
+                      <AlertCircle className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                      <span className="text-xs font-medium text-gray-900 dark:text-gray-100">Ticket</span>
                     </button>
                     <button
                       onClick={() => navigate('/customer/support')}
-                      className="flex flex-col items-center gap-2 p-3 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors"
+                      className="flex flex-col items-center gap-2 p-3 bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/30 rounded-lg transition-colors"
                     >
-                      <Phone className="w-5 h-5 text-purple-600" />
-                      <span className="text-xs font-medium text-gray-900">Contact</span>
+                      <Phone className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                      <span className="text-xs font-medium text-gray-900 dark:text-gray-100">Contact</span>
                     </button>
                   </div>
                 </motion.div>
@@ -958,37 +958,37 @@ const Dashboard = () => {
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.3 }}
-                  className="bg-white rounded-lg shadow-md p-6"
+                  className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"
                 >
-                  <h2 className="text-lg font-bold text-gray-900 mb-4">Quick Actions</h2>
+                  <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4">Quick Actions</h2>
                   <div className="space-y-2">
                     <button
                       onClick={() => navigate('/customer/catalogue')}
-                      className="w-full flex items-center gap-3 p-3 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+                      className="w-full flex items-center gap-3 p-3 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
                     >
-                      <Plus className="w-5 h-5 text-blue-600" />
-                      <span className="font-medium text-gray-900">Place New Order</span>
+                      <Plus className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                      <span className="font-medium text-gray-900 dark:text-gray-100">Place New Order</span>
                     </button>
                     <button
                       onClick={() => navigate('/customer/measurements')}
-                      className="w-full flex items-center gap-3 p-3 bg-green-50 hover:bg-green-100 rounded-lg transition-colors"
+                      className="w-full flex items-center gap-3 p-3 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 rounded-lg transition-colors"
                     >
-                      <Ruler className="w-5 h-5 text-green-600" />
-                      <span className="font-medium text-gray-900">Add Measurements</span>
+                      <Ruler className="w-5 h-5 text-green-600 dark:text-green-400" />
+                      <span className="font-medium text-gray-900 dark:text-gray-100">Add Measurements</span>
                     </button>
                     <button
                       onClick={() => navigate('/customer/orders')}
-                      className="w-full flex items-center gap-3 p-3 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors"
+                      className="w-full flex items-center gap-3 p-3 bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/30 rounded-lg transition-colors"
                     >
-                      <FileText className="w-5 h-5 text-purple-600" />
-                      <span className="font-medium text-gray-900">View Invoices</span>
+                      <FileText className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                      <span className="font-medium text-gray-900 dark:text-gray-100">View Invoices</span>
                     </button>
                     <button
                       onClick={() => navigate('/customer/catalogue')}
-                      className="w-full flex items-center gap-3 p-3 bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors"
+                      className="w-full flex items-center gap-3 p-3 bg-orange-50 dark:bg-orange-900/20 hover:bg-orange-100 dark:hover:bg-orange-900/30 rounded-lg transition-colors"
                     >
-                      <Scissors className="w-5 h-5 text-orange-600" />
-                      <span className="font-medium text-gray-900">Browse Catalogue</span>
+                      <Scissors className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                      <span className="font-medium text-gray-900 dark:text-gray-100">Browse Catalogue</span>
                     </button>
                   </div>
                 </motion.div>
@@ -998,27 +998,27 @@ const Dashboard = () => {
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.2 }}
-                  className="bg-white rounded-lg shadow-md p-6"
+                  className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"
                 >
-                  <h2 className="text-lg font-bold text-gray-900 mb-4">Recent Activity</h2>
+                  <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4">Recent Activity</h2>
                   <div className="space-y-3">
                     <ActivityItem
                       icon={Package}
                       text="Order ORD001 moved to stitching"
                       time="2 hours ago"
-                      color="text-blue-600"
+                      color="text-blue-600 dark:text-blue-400"
                     />
                     <ActivityItem
                       icon={Star}
                       text="Earned 50 loyalty points"
                       time="1 day ago"
-                      color="text-yellow-600"
+                      color="text-yellow-600 dark:text-yellow-400"
                     />
                     <ActivityItem
                       icon={CheckCircle}
                       text="Order ORD003 completed"
                       time="3 days ago"
-                      color="text-green-600"
+                      color="text-green-600 dark:text-green-400"
                     />
                   </div>
                 </motion.div>
@@ -1034,7 +1034,7 @@ const Dashboard = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 p-4"
             onClick={() => setSelectedStyle(null)}
           >
             <motion.div
@@ -1042,7 +1042,7 @@ const Dashboard = () => {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-lg shadow-xl max-w-2xl w-full overflow-hidden"
+              className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full overflow-hidden"
             >
               <div className="relative h-96">
                 <img
@@ -1052,21 +1052,21 @@ const Dashboard = () => {
                 />
                 <button
                   onClick={() => setSelectedStyle(null)}
-                  className="absolute top-4 right-4 p-2 bg-white rounded-full shadow-lg hover:bg-gray-100"
+                  className="absolute top-4 right-4 p-2 bg-white dark:bg-gray-800 rounded-full shadow-lg hover:bg-gray-100 dark:hover:bg-gray-700"
                 >
                   ✕
                 </button>
               </div>
               <div className="p-6">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">{selectedStyle.title}</h2>
-                <p className="text-gray-600 mb-4">{selectedStyle.category}</p>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">{selectedStyle.title}</h2>
+                <p className="text-gray-600 dark:text-gray-400 mb-4">{selectedStyle.category}</p>
                 <div className="flex items-center gap-4 mb-6">
                   <div className="flex items-center gap-2">
                     <Heart className="w-5 h-5 text-red-500" />
-                    <span className="font-semibold text-gray-900">{selectedStyle.likes} likes</span>
+                    <span className="font-semibold text-gray-900 dark:text-gray-100">{selectedStyle.likes} likes</span>
                   </div>
                   {selectedStyle.trending && (
-                    <span className="px-3 py-1 bg-orange-100 text-orange-700 text-sm font-semibold rounded-full flex items-center gap-1">
+                    <span className="px-3 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 text-sm font-semibold rounded-full flex items-center gap-1">
                       <TrendingUp className="w-4 h-4" />
                       Trending
                     </span>
@@ -1096,15 +1096,15 @@ const StatCard = ({ title, value, icon: Icon, color, onClick }) => {
     <motion.div
       whileHover={{ scale: 1.05, y: -5 }}
       onClick={onClick}
-      className="bg-white rounded-lg shadow-md p-3 sm:p-4 lg:p-6 cursor-pointer"
+      className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 sm:p-4 lg:p-6 cursor-pointer"
     >
       <div className="flex items-center justify-between mb-2 sm:mb-4">
         <div className={`w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded-lg flex items-center justify-center ${color}`}>
           <Icon className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-white" />
         </div>
       </div>
-      <p className="text-gray-500 text-xs sm:text-sm">{title}</p>
-      <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mt-1 sm:mt-2">{value}</p>
+      <p className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm">{title}</p>
+      <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1 sm:mt-2">{value}</p>
     </motion.div>
   );
 };
@@ -1113,12 +1113,12 @@ const StatCard = ({ title, value, icon: Icon, color, onClick }) => {
 const ActivityItem = ({ icon: Icon, text, time, color }) => {
   return (
     <div className="flex items-start gap-3">
-      <div className={`w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0 ${color}`}>
+      <div className={`w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center flex-shrink-0 ${color}`}>
         <Icon className="w-4 h-4" />
       </div>
       <div className="flex-1">
-        <p className="text-sm text-gray-900">{text}</p>
-        <p className="text-xs text-gray-500">{time}</p>
+        <p className="text-sm text-gray-900 dark:text-gray-100">{text}</p>
+        <p className="text-xs text-gray-500 dark:text-gray-400">{time}</p>
       </div>
     </div>
   );

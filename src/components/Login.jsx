@@ -182,7 +182,7 @@ function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-orange-50 via-orange-100 to-orange-50 relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-orange-50 via-orange-100 to-orange-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 relative overflow-hidden">
       {/* Animated Background Pattern */}
       <div className="absolute inset-0 overflow-hidden">
         {/* Animated Checkmark Pattern */}
@@ -243,7 +243,7 @@ function Login() {
 
       {/* Main Card */}
       <motion.div
-        className="relative z-10 w-full max-w-6xl bg-white rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col lg:flex-row"
+        className="relative z-10 w-full max-w-6xl bg-white dark:bg-gray-800 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col lg:flex-row"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
@@ -262,10 +262,10 @@ function Login() {
                 <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center">
                   <span className="text-white font-bold text-lg">SS</span>
                 </div>
-                <span className="text-lg sm:text-xl font-bold text-gray-900">Smart Stitch</span>
+                <span className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100">Smart Stitch</span>
               </div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">Welcome back</h1>
-              <p className="text-gray-500 text-sm">Please enter your details</p>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-1">Welcome back</h1>
+              <p className="text-gray-500 dark:text-gray-400 text-sm">Please enter your details</p>
             </motion.div>
 
           {/* Form */}
@@ -273,7 +273,7 @@ function Login() {
             {/* Error Message */}
             {errors.submit && (
               <motion.div
-                className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm"
+                className="mb-4 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-lg text-red-700 dark:text-red-400 text-sm"
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
               >
@@ -284,7 +284,7 @@ function Login() {
             <form onSubmit={handleSubmit} className="space-y-3.5">
               {/* Email Input */}
               <motion.div variants={itemVariants}>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
                   Email address
                 </label>
                 <input
@@ -293,18 +293,18 @@ function Login() {
                   value={formData.email}
                   onChange={handleInputChange}
                   placeholder="Enter your email"
-                  className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all ${
-                    errors.email ? 'border-red-500' : 'border-gray-300'
+                  className={`w-full px-4 py-2.5 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all ${
+                    errors.email ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                   }`}
                 />
                 {errors.email && (
-                  <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+                  <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.email}</p>
                 )}
               </motion.div>
 
               {/* Password Input */}
               <motion.div variants={itemVariants}>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
                   Password
                 </label>
                 <div className="relative">
@@ -315,14 +315,14 @@ function Login() {
                     onChange={handleInputChange}
                     onPaste={handlePasswordPaste}
                     placeholder="Enter your password"
-                    className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all ${
-                      errors.password ? 'border-red-500' : 'border-gray-300'
+                    className={`w-full px-4 py-2.5 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all ${
+                      errors.password ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                     }`}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-3.5 text-gray-400 hover:text-gray-600"
+                    className="absolute right-3 top-3.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                   >
                     {showPassword ? (
                       <EyeOff className="w-5 h-5" />
@@ -332,20 +332,20 @@ function Login() {
                   </button>
                 </div>
                 {errors.password && (
-                  <p className="text-red-500 text-xs mt-1">{errors.password}</p>
+                  <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.password}</p>
                 )}
               </motion.div>
 
               {/* Role Selection */}
               <motion.div variants={itemVariants}>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
                   Login As
                 </label>
                 <select
                   name="role"
                   value={formData.role}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all bg-white"
+                  className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
                 >
                   <option value="OWNER">Shop Owner</option>
                   <option value="WORKER">Worker</option>
@@ -361,9 +361,9 @@ function Login() {
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
-                    className="w-4 h-4 border border-gray-300 rounded cursor-pointer accent-orange-600"
+                    className="w-4 h-4 border border-gray-300 dark:border-gray-600 rounded cursor-pointer accent-orange-600"
                   />
-                  <span className="text-gray-600">Remember for 30 days</span>
+                  <span className="text-gray-600 dark:text-gray-400">Remember for 30 days</span>
                 </label>
                 <button
                   type="button"
@@ -397,9 +397,9 @@ function Login() {
             </motion.div>
 
             {/* Sign Up Link */}
-            <motion.p className="text-center text-gray-600 text-sm mt-4" variants={itemVariants}>
+            <motion.p className="text-center text-gray-600 dark:text-gray-400 text-sm mt-4" variants={itemVariants}>
               Don't have an account?{' '}
-              <Link to="/signup" className="text-orange-600 hover:text-orange-700 font-semibold">
+              <Link to="/signup" className="text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 font-semibold">
                 Sign up
               </Link>
             </motion.p>

@@ -295,10 +295,10 @@ const Workers = () => {
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
-                className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3"
+                className="mb-6 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700 rounded-lg p-4 flex items-center gap-3"
               >
-                <CheckCircle className="w-5 h-5 text-green-600" />
-                <span className="text-green-800 font-medium">
+                <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+                <span className="text-green-800 dark:text-green-300 font-medium">
                   Worker added successfully!
                 </span>
               </motion.div>
@@ -306,8 +306,8 @@ const Workers = () => {
 
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">Worker Management</h1>
-                <p className="text-gray-600 mt-2">Manage your tailoring team</p>
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Worker Management</h1>
+                <p className="text-gray-600 dark:text-gray-400 mt-2">Manage your tailoring team</p>
               </div>
               <motion.button
                 whileHover={{ scale: 1.05 }}
@@ -329,21 +329,21 @@ const Workers = () => {
                   placeholder="Search workers by name, email, phone, or specialization..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                 />
               </div>
             </div>
 
             {/* Worker Details Section */}
             <div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
                 Workers List ({filteredWorkers.length})
               </h2>
               
               {filteredWorkers.length === 0 ? (
-                <div className="bg-white rounded-lg shadow-md p-12 text-center">
-                  <User className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-600">
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-12 text-center">
+                  <User className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+                  <p className="text-gray-600 dark:text-gray-400">
                     {searchQuery ? 'No workers found matching your search.' : 'No workers yet. Add your first worker!'}
                   </p>
                 </div>
@@ -380,16 +380,16 @@ const Workers = () => {
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 20 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+              className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
             >
               {/* Modal Header */}
-              <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between rounded-t-2xl">
-                <h2 className="text-2xl font-bold text-gray-900">Add New Worker</h2>
+              <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between rounded-t-2xl">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Add New Worker</h2>
                 <button
                   onClick={() => setShowAddModal(false)}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                 >
-                  <X className="w-6 h-6 text-gray-600" />
+                  <X className="w-6 h-6 text-gray-600 dark:text-gray-400" />
                 </button>
               </div>
 
@@ -398,52 +398,52 @@ const Workers = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Name */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Name <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
                       value={workerForm.name}
                       onChange={(e) => handleInputChange('name', e.target.value)}
-                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent ${
-                        errors.name ? 'border-red-500' : 'border-gray-300'
+                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
+                        errors.name ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                       }`}
                       placeholder="Enter worker name"
                     />
                     {errors.name && (
-                      <p className="text-red-600 text-sm mt-1">{errors.name}</p>
+                      <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.name}</p>
                     )}
                   </div>
 
                   {/* Mobile */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Mobile <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="tel"
                       value={workerForm.mobile}
                       onChange={(e) => handleInputChange('mobile', e.target.value)}
-                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent ${
-                        errors.mobile ? 'border-red-500' : 'border-gray-300'
+                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
+                        errors.mobile ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                       }`}
                       placeholder="+1234567890"
                     />
                     {errors.mobile && (
-                      <p className="text-red-600 text-sm mt-1">{errors.mobile}</p>
+                      <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.mobile}</p>
                     )}
                   </div>
 
                   {/* Skill */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Skill <span className="text-red-500">*</span>
                     </label>
                     <select
                       value={workerForm.skill}
                       onChange={(e) => handleInputChange('skill', e.target.value)}
-                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent ${
-                        errors.skill ? 'border-red-500' : 'border-gray-300'
+                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
+                        errors.skill ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                       }`}
                     >
                       <option value="">Select skill</option>
@@ -453,33 +453,33 @@ const Workers = () => {
                       <option value="Both">Both</option>
                     </select>
                     {errors.skill && (
-                      <p className="text-red-600 text-sm mt-1">{errors.skill}</p>
+                      <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.skill}</p>
                     )}
                   </div>
 
                   {/* Experience */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Experience (years) <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="number"
                       value={workerForm.experience}
                       onChange={(e) => handleInputChange('experience', e.target.value)}
-                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent ${
-                        errors.experience ? 'border-red-500' : 'border-gray-300'
+                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
+                        errors.experience ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                       }`}
                       placeholder="0"
                       min="0"
                     />
                     {errors.experience && (
-                      <p className="text-red-600 text-sm mt-1">{errors.experience}</p>
+                      <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.experience}</p>
                     )}
                   </div>
 
                   {/* Garment Types & Rates Section */}
                   <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                       <div className="flex items-center gap-2">
                         <Package className="w-4 h-4 text-orange-500" />
                         Garment Types & Rates <span className="text-red-500">*</span>
@@ -495,8 +495,8 @@ const Workers = () => {
                             setCurrentGarmentType(e.target.value);
                             setErrors(prev => ({ ...prev, garmentType: '' }));
                           }}
-                          className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent ${
-                            errors.garmentType ? 'border-red-500' : 'border-gray-300'
+                          className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
+                            errors.garmentType ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                           }`}
                         >
                           <option value="">Select type</option>
@@ -509,7 +509,7 @@ const Workers = () => {
                       </div>
 
                       <div className="relative">
-                        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">₹</span>
+                        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 text-sm">₹</span>
                         <input
                           type="number"
                           value={currentRate}
@@ -517,8 +517,8 @@ const Workers = () => {
                             setCurrentRate(e.target.value);
                             setErrors(prev => ({ ...prev, rate: '' }));
                           }}
-                          className={`w-full pl-7 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent ${
-                            errors.rate ? 'border-red-500' : 'border-gray-300'
+                          className={`w-full pl-7 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
+                            errors.rate ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                           }`}
                           placeholder="Enter rate"
                           min="0"
@@ -537,26 +537,26 @@ const Workers = () => {
                     </div>
 
                     {errors.garmentType && (
-                      <p className="text-red-600 text-sm mb-2">{errors.garmentType}</p>
+                      <p className="text-red-600 dark:text-red-400 text-sm mb-2">{errors.garmentType}</p>
                     )}
                     {errors.rate && (
-                      <p className="text-red-600 text-sm mb-2">{errors.rate}</p>
+                      <p className="text-red-600 dark:text-red-400 text-sm mb-2">{errors.rate}</p>
                     )}
 
                     {/* Display Added Garment Types */}
                     {workerForm.garmentTypes.length > 0 && (
-                      <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                        <p className="text-sm font-medium text-gray-700 mb-3">Added Garment Types:</p>
+                      <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
+                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Added Garment Types:</p>
                         <div className="space-y-2">
                           {workerForm.garmentTypes.map((item) => (
-                            <div key={item.type} className="flex items-center justify-between bg-white rounded-lg p-3 border border-gray-200">
+                            <div key={item.type} className="flex items-center justify-between bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-600">
                               <div className="flex items-center gap-3">
                                 <Package className="w-4 h-4 text-orange-500" />
-                                <span className="font-medium text-gray-900 capitalize">
+                                <span className="font-medium text-gray-900 dark:text-gray-100 capitalize">
                                   {garmentTypes.find(g => g.value === item.type)?.label}
                                 </span>
-                                <span className="text-gray-500">-</span>
-                                <span className="font-bold text-gray-900">₹{item.rate}</span>
+                                <span className="text-gray-500 dark:text-gray-400">-</span>
+                                <span className="font-bold text-gray-900 dark:text-gray-100">₹{item.rate}</span>
                               </div>
                               <button
                                 type="button"
@@ -571,22 +571,22 @@ const Workers = () => {
                       </div>
                     )}
 
-                    <p className="text-xs text-gray-500 mt-3">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-3">
                       💡 Add one or more garment types with their rates. Worker can work on multiple types.
                     </p>
                   </div>
 
                   {/* Profile Photo */}
                   <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Profile Photo
                     </label>
                     
                     {!photoPreview ? (
-                      <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-orange-500 transition-colors">
+                      <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:border-orange-500 transition-colors bg-white dark:bg-gray-700">
                         <Upload className="w-8 h-8 text-gray-400 mb-2" />
-                        <span className="text-sm text-gray-600">Click to upload</span>
-                        <span className="text-xs text-gray-500 mt-1">JPG, PNG (max 5MB)</span>
+                        <span className="text-sm text-gray-600 dark:text-gray-300">Click to upload</span>
+                        <span className="text-xs text-gray-500 dark:text-gray-400 mt-1">JPG, PNG (max 5MB)</span>
                         <input
                           type="file"
                           accept="image/*"
@@ -611,18 +611,18 @@ const Workers = () => {
                     )}
                     
                     {errors.profilePhoto && (
-                      <p className="text-red-600 text-sm mt-1">{errors.profilePhoto}</p>
+                      <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.profilePhoto}</p>
                     )}
                   </div>
                 </div>
 
                 {/* Modal Footer */}
-                <div className="flex gap-4 mt-8 pt-6 border-t border-gray-200">
+                <div className="flex gap-4 mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => setShowAddModal(false)}
-                    className="flex-1 py-3 rounded-lg font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors"
+                    className="flex-1 py-3 rounded-lg font-semibold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                   >
                     Cancel
                   </motion.button>
@@ -671,10 +671,10 @@ const Workers = () => {
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 20 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+              className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
             >
-              <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between rounded-t-2xl">
-                <h2 className="text-2xl font-bold text-gray-900">Edit Worker</h2>
+              <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between rounded-t-2xl">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Edit Worker</h2>
                 <button
                   onClick={() => {
                     setShowEditModal(false);
@@ -692,59 +692,59 @@ const Workers = () => {
                     setPhotoPreview(null);
                     setErrors({});
                   }}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                 >
-                  <X className="w-6 h-6 text-gray-600" />
+                  <X className="w-6 h-6 text-gray-600 dark:text-gray-400" />
                 </button>
               </div>
 
               <div className="p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Name <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
                       value={workerForm.name}
                       onChange={(e) => handleInputChange('name', e.target.value)}
-                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent ${
-                        errors.name ? 'border-red-500' : 'border-gray-300'
+                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
+                        errors.name ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                       }`}
                       placeholder="Enter worker name"
                     />
                     {errors.name && (
-                      <p className="text-red-600 text-sm mt-1">{errors.name}</p>
+                      <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.name}</p>
                     )}
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Mobile <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="tel"
                       value={workerForm.mobile}
                       onChange={(e) => handleInputChange('mobile', e.target.value)}
-                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent ${
-                        errors.mobile ? 'border-red-500' : 'border-gray-300'
+                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
+                        errors.mobile ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                       }`}
                       placeholder="+1234567890"
                     />
                     {errors.mobile && (
-                      <p className="text-red-600 text-sm mt-1">{errors.mobile}</p>
+                      <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.mobile}</p>
                     )}
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Skill <span className="text-red-500">*</span>
                     </label>
                     <select
                       value={workerForm.skill}
                       onChange={(e) => handleInputChange('skill', e.target.value)}
-                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent ${
-                        errors.skill ? 'border-red-500' : 'border-gray-300'
+                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
+                        errors.skill ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                       }`}
                     >
                       <option value="">Select skill</option>
@@ -754,31 +754,31 @@ const Workers = () => {
                       <option value="Both">Both</option>
                     </select>
                     {errors.skill && (
-                      <p className="text-red-600 text-sm mt-1">{errors.skill}</p>
+                      <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.skill}</p>
                     )}
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Experience (years) <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="number"
                       value={workerForm.experience}
                       onChange={(e) => handleInputChange('experience', e.target.value)}
-                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent ${
-                        errors.experience ? 'border-red-500' : 'border-gray-300'
+                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
+                        errors.experience ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                       }`}
                       placeholder="0"
                       min="0"
                     />
                     {errors.experience && (
-                      <p className="text-red-600 text-sm mt-1">{errors.experience}</p>
+                      <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.experience}</p>
                     )}
                   </div>
 
                   <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                       <div className="flex items-center gap-2">
                         <Package className="w-4 h-4 text-orange-500" />
                         Garment Types & Rates <span className="text-red-500">*</span>
@@ -793,8 +793,8 @@ const Workers = () => {
                             setCurrentGarmentType(e.target.value);
                             setErrors(prev => ({ ...prev, garmentType: '' }));
                           }}
-                          className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent ${
-                            errors.garmentType ? 'border-red-500' : 'border-gray-300'
+                          className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
+                            errors.garmentType ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                           }`}
                         >
                           <option value="">Select type</option>
@@ -807,7 +807,7 @@ const Workers = () => {
                       </div>
 
                       <div className="relative">
-                        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">₹</span>
+                        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 text-sm">₹</span>
                         <input
                           type="number"
                           value={currentRate}
@@ -815,8 +815,8 @@ const Workers = () => {
                             setCurrentRate(e.target.value);
                             setErrors(prev => ({ ...prev, rate: '' }));
                           }}
-                          className={`w-full pl-7 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent ${
-                            errors.rate ? 'border-red-500' : 'border-gray-300'
+                          className={`w-full pl-7 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
+                            errors.rate ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                           }`}
                           placeholder="Enter rate"
                           min="0"
@@ -835,25 +835,25 @@ const Workers = () => {
                     </div>
 
                     {errors.garmentType && (
-                      <p className="text-red-600 text-sm mb-2">{errors.garmentType}</p>
+                      <p className="text-red-600 dark:text-red-400 text-sm mb-2">{errors.garmentType}</p>
                     )}
                     {errors.rate && (
-                      <p className="text-red-600 text-sm mb-2">{errors.rate}</p>
+                      <p className="text-red-600 dark:text-red-400 text-sm mb-2">{errors.rate}</p>
                     )}
 
                     {workerForm.garmentTypes.length > 0 && (
-                      <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                        <p className="text-sm font-medium text-gray-700 mb-3">Added Garment Types:</p>
+                      <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
+                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Added Garment Types:</p>
                         <div className="space-y-2">
                           {workerForm.garmentTypes.map((item) => (
-                            <div key={item.type} className="flex items-center justify-between bg-white rounded-lg p-3 border border-gray-200">
+                            <div key={item.type} className="flex items-center justify-between bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-600">
                               <div className="flex items-center gap-3">
                                 <Package className="w-4 h-4 text-orange-500" />
-                                <span className="font-medium text-gray-900 capitalize">
+                                <span className="font-medium text-gray-900 dark:text-gray-100 capitalize">
                                   {garmentTypes.find(g => g.value === item.type)?.label}
                                 </span>
-                                <span className="text-gray-500">-</span>
-                                <span className="font-bold text-gray-900">₹{item.rate}</span>
+                                <span className="text-gray-500 dark:text-gray-400">-</span>
+                                <span className="font-bold text-gray-900 dark:text-gray-100">₹{item.rate}</span>
                               </div>
                               <button
                                 type="button"
@@ -868,21 +868,21 @@ const Workers = () => {
                       </div>
                     )}
 
-                    <p className="text-xs text-gray-500 mt-3">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-3">
                       💡 Add one or more garment types with their rates. Worker can work on multiple types.
                     </p>
                   </div>
 
                   <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Profile Photo
                     </label>
                     
                     {!photoPreview ? (
-                      <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-orange-500 transition-colors">
+                      <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:border-orange-500 transition-colors bg-white dark:bg-gray-700">
                         <Upload className="w-8 h-8 text-gray-400 mb-2" />
-                        <span className="text-sm text-gray-600">Click to upload</span>
-                        <span className="text-xs text-gray-500 mt-1">JPG, PNG (max 5MB)</span>
+                        <span className="text-sm text-gray-600 dark:text-gray-300">Click to upload</span>
+                        <span className="text-xs text-gray-500 dark:text-gray-400 mt-1">JPG, PNG (max 5MB)</span>
                         <input
                           type="file"
                           accept="image/*"
@@ -907,12 +907,12 @@ const Workers = () => {
                     )}
                     
                     {errors.profilePhoto && (
-                      <p className="text-red-600 text-sm mt-1">{errors.profilePhoto}</p>
+                      <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.profilePhoto}</p>
                     )}
                   </div>
                 </div>
 
-                <div className="flex gap-4 mt-8 pt-6 border-t border-gray-200">
+                <div className="flex gap-4 mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
@@ -932,7 +932,7 @@ const Workers = () => {
                       setPhotoPreview(null);
                       setErrors({});
                     }}
-                    className="flex-1 py-3 rounded-lg font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors"
+                    className="flex-1 py-3 rounded-lg font-semibold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                   >
                     Cancel
                   </motion.button>
@@ -966,21 +966,21 @@ const Workers = () => {
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 20 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+              className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
             >
-              <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between rounded-t-2xl z-10">
-                <h2 className="text-2xl font-bold text-gray-900">Worker Details</h2>
+              <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between rounded-t-2xl z-10">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Worker Details</h2>
                 <button
                   onClick={() => setShowViewModal(false)}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                 >
-                  <X className="w-6 h-6 text-gray-600" />
+                  <X className="w-6 h-6 text-gray-600 dark:text-gray-400" />
                 </button>
               </div>
 
               <div className="p-6">
                 <div className="mb-6">
-                  <h3 className="text-xl font-bold text-gray-900 mb-4">Personal Information</h3>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">Personal Information</h3>
                   
                   <div className="flex flex-col md:flex-row gap-6">
                     <div className="flex-shrink-0">
@@ -1001,40 +1001,40 @@ const Workers = () => {
                       <div className="flex items-start gap-3">
                         <User className="w-5 h-5 text-orange-500 mt-1" />
                         <div>
-                          <p className="text-sm text-gray-600">Name</p>
-                          <p className="text-lg font-semibold text-gray-900">{selectedWorker.name}</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">Name</p>
+                          <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">{selectedWorker.name}</p>
                         </div>
                       </div>
 
                       <div className="flex items-start gap-3">
                         <Mail className="w-5 h-5 text-orange-500 mt-1" />
                         <div>
-                          <p className="text-sm text-gray-600">Email</p>
-                          <p className="text-lg font-semibold text-gray-900">{selectedWorker.email}</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">Email</p>
+                          <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">{selectedWorker.email}</p>
                         </div>
                       </div>
 
                       <div className="flex items-start gap-3">
                         <Phone className="w-5 h-5 text-orange-500 mt-1" />
                         <div>
-                          <p className="text-sm text-gray-600">Phone</p>
-                          <p className="text-lg font-semibold text-gray-900">{selectedWorker.phone}</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">Phone</p>
+                          <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">{selectedWorker.phone}</p>
                         </div>
                       </div>
 
                       <div className="flex items-start gap-3">
                         <Briefcase className="w-5 h-5 text-orange-500 mt-1" />
                         <div>
-                          <p className="text-sm text-gray-600">Specialization</p>
-                          <p className="text-lg font-semibold text-gray-900">{selectedWorker.specialization}</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">Specialization</p>
+                          <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">{selectedWorker.specialization}</p>
                         </div>
                       </div>
 
                       <div className="flex items-start gap-3">
                         <Calendar className="w-5 h-5 text-orange-500 mt-1" />
                         <div>
-                          <p className="text-sm text-gray-600">Join Date</p>
-                          <p className="text-lg font-semibold text-gray-900">
+                          <p className="text-sm text-gray-600 dark:text-gray-400">Join Date</p>
+                          <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                             {new Date(selectedWorker.joinDate).toLocaleDateString('en-US', {
                               year: 'numeric',
                               month: 'long',
@@ -1047,20 +1047,20 @@ const Workers = () => {
                       <div className="md:col-span-2 flex items-start gap-3">
                         <Package className="w-5 h-5 text-orange-500 mt-1" />
                         <div className="flex-1">
-                          <p className="text-sm text-gray-600 mb-2">Garment Types & Rates</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Garment Types & Rates</p>
                           {selectedWorker.garmentTypes && selectedWorker.garmentTypes.length > 0 ? (
                             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                               {selectedWorker.garmentTypes.map((item) => (
-                                <div key={item.type} className="bg-gray-50 rounded px-2 py-1">
-                                  <p className="text-xs text-gray-500 capitalize">
+                                <div key={item.type} className="bg-gray-50 dark:bg-gray-700 rounded px-2 py-1">
+                                  <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">
                                     {garmentTypes.find(g => g.value === item.type)?.label}
                                   </p>
-                                  <p className="text-sm font-semibold text-gray-900">₹{item.rate}</p>
+                                  <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">₹{item.rate}</p>
                                 </div>
                               ))}
                             </div>
                           ) : (
-                            <p className="text-sm text-gray-500">No garment types assigned</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">No garment types assigned</p>
                           )}
                         </div>
                       </div>
@@ -1068,14 +1068,14 @@ const Workers = () => {
                       <div className="flex items-start gap-3">
                         <Award className="w-5 h-5 text-orange-500 mt-1" />
                         <div>
-                          <p className="text-sm text-gray-600">Status</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">Status</p>
                           <span
                             className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
                               selectedWorker.status === 'active'
-                                ? 'bg-green-100 text-green-800'
+                                ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
                                 : selectedWorker.status === 'on-leave'
-                                ? 'bg-yellow-100 text-yellow-800'
-                                : 'bg-gray-100 text-gray-800'
+                                ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
+                                : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
                             }`}
                           >
                             {selectedWorker.status}
@@ -1086,50 +1086,50 @@ const Workers = () => {
                       <div className="flex items-start gap-3">
                         <Star className="w-5 h-5 text-orange-500 mt-1" />
                         <div>
-                          <p className="text-sm text-gray-600">Rating</p>
-                          <p className="text-lg font-semibold text-gray-900">{selectedWorker.rating} / 5.0</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">Rating</p>
+                          <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">{selectedWorker.rating} / 5.0</p>
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6 pt-6 border-t border-gray-200">
-                    <div className="bg-blue-50 rounded-lg p-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+                    <div className="bg-blue-50 dark:bg-blue-900/30 rounded-lg p-4">
                       <div className="flex items-center gap-3">
-                        <Package className="w-8 h-8 text-blue-500" />
+                        <Package className="w-8 h-8 text-blue-500 dark:text-blue-400" />
                         <div>
-                          <p className="text-sm text-gray-600">Assigned Orders</p>
-                          <p className="text-2xl font-bold text-gray-900">{selectedWorker.assignedOrders}</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">Assigned Orders</p>
+                          <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{selectedWorker.assignedOrders}</p>
                         </div>
                       </div>
                     </div>
 
-                    <div className="bg-green-50 rounded-lg p-4">
+                    <div className="bg-green-50 dark:bg-green-900/30 rounded-lg p-4">
                       <div className="flex items-center gap-3">
-                        <Award className="w-8 h-8 text-green-500" />
+                        <Award className="w-8 h-8 text-green-500 dark:text-green-400" />
                         <div>
-                          <p className="text-sm text-gray-600">Completed Orders</p>
-                          <p className="text-2xl font-bold text-gray-900">{selectedWorker.completedOrders}</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">Completed Orders</p>
+                          <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{selectedWorker.completedOrders}</p>
                         </div>
                       </div>
                     </div>
 
-                    <div className="bg-orange-50 rounded-lg p-4">
+                    <div className="bg-orange-50 dark:bg-orange-900/30 rounded-lg p-4">
                       <div className="flex items-center gap-3">
-                        <TrendingUp className="w-8 h-8 text-orange-500" />
+                        <TrendingUp className="w-8 h-8 text-orange-500 dark:text-orange-400" />
                         <div>
-                          <p className="text-sm text-gray-600">Performance</p>
-                          <p className="text-2xl font-bold text-gray-900">{selectedWorker.performance}%</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">Performance</p>
+                          <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{selectedWorker.performance}%</p>
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="flex gap-4 mt-6 pt-6 border-t border-gray-200">
+                <div className="flex gap-4 mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
                   <button
                     onClick={() => setShowViewModal(false)}
-                    className="flex-1 py-3 rounded-lg font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors"
+                    className="flex-1 py-3 rounded-lg font-semibold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                   >
                     Close
                   </button>

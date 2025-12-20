@@ -220,7 +220,7 @@ const Measurements = () => {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
       <Sidebar role="customer" />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Topbar />
@@ -233,18 +233,18 @@ const Measurements = () => {
             {/* Header */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="p-3 bg-blue-100 rounded-lg">
-                  <Ruler className="w-6 h-6 text-blue-600" />
+                <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                  <Ruler className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                 </div>
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-900">My Measurements</h1>
-                  <p className="text-gray-600">Manage your measurement profiles</p>
+                  <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">My Measurements</h1>
+                  <p className="text-gray-600 dark:text-gray-400">Manage your measurement profiles</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => setShowHistory(!showHistory)}
-                  className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg transition-colors"
                 >
                   <History className="w-4 h-4" />
                   History
@@ -266,10 +266,10 @@ const Measurements = () => {
                   initial={{ opacity: 0, y: -20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
-                  className="flex items-center gap-2 p-4 bg-green-50 border border-green-200 rounded-lg"
+                  className="flex items-center gap-2 p-4 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-lg"
                 >
-                  <CheckCircle className="w-5 h-5 text-green-600" />
-                  <span className="text-green-700 font-medium">{successMessage}</span>
+                  <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+                  <span className="text-green-700 dark:text-green-400 font-medium">{successMessage}</span>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -278,8 +278,8 @@ const Measurements = () => {
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
               {/* Left Sidebar - Profile Selection */}
               <div className="lg:col-span-1">
-                <div className="bg-white rounded-lg shadow-md p-6 sticky top-6">
-                  <h2 className="text-lg font-bold text-gray-900 mb-4">Profiles</h2>
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 sticky top-6">
+                  <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4">Profiles</h2>
                   <div className="space-y-2">
                     {profiles.map((profile) => (
                       <motion.div
@@ -292,14 +292,14 @@ const Measurements = () => {
                         }}
                         className={`p-3 rounded-lg cursor-pointer transition-all ${
                           selectedProfile.id === profile.id
-                            ? 'bg-blue-50 border-2 border-blue-500'
-                            : 'bg-gray-50 border-2 border-transparent hover:border-gray-300'
+                            ? 'bg-blue-50 dark:bg-blue-900/30 border-2 border-blue-500 dark:border-blue-400'
+                            : 'bg-gray-50 dark:bg-gray-700 border-2 border-transparent hover:border-gray-300 dark:hover:border-gray-600'
                         }`}
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                            <User className="w-4 h-4 text-gray-600" />
-                            <span className="font-medium text-gray-900">{profile.name}</span>
+                            <User className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                            <span className="font-medium text-gray-900 dark:text-gray-100">{profile.name}</span>
                           </div>
                           {!profile.isDefault && (
                             <button
@@ -307,16 +307,16 @@ const Measurements = () => {
                                 e.stopPropagation();
                                 handleDeleteProfile(profile.id);
                               }}
-                              className="text-red-500 hover:text-red-700"
+                              className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
                           )}
                         </div>
                         {profile.isDefault && (
-                          <span className="text-xs text-blue-600 font-medium">Default</span>
+                          <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">Default</span>
                         )}
-                        <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
+                        <div className="flex items-center gap-2 mt-2 text-xs text-gray-500 dark:text-gray-400">
                           <Clock className="w-3 h-3" />
                           Updated: {profile.updatedAt}
                         </div>
@@ -329,11 +329,11 @@ const Measurements = () => {
               {/* Right Content - Measurements Form */}
               <div className="lg:col-span-3 space-y-6">
                 {/* Profile Info Card */}
-                <div className="bg-white rounded-lg shadow-md p-6">
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h2 className="text-2xl font-bold text-gray-900">{selectedProfile.name}</h2>
-                      <p className="text-sm text-gray-600">Created: {selectedProfile.createdAt} | Last Updated: {selectedProfile.updatedAt}</p>
+                      <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{selectedProfile.name}</h2>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Created: {selectedProfile.createdAt} | Last Updated: {selectedProfile.updatedAt}</p>
                     </div>
                     <div className="flex items-center gap-2">
                       {!isEditing ? (
@@ -348,7 +348,7 @@ const Measurements = () => {
                         <>
                           <button
                             onClick={handleCancel}
-                            className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition-colors"
+                            className="px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg transition-colors"
                           >
                             Cancel
                           </button>
@@ -371,20 +371,20 @@ const Measurements = () => {
                     key={categoryKey}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-white rounded-lg shadow-md overflow-hidden"
+                    className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden"
                   >
                     <button
                       onClick={() => setExpandedCategory(expandedCategory === categoryKey ? null : categoryKey)}
-                      className="w-full p-6 flex items-center justify-between hover:bg-gray-50 transition-colors"
+                      className="w-full p-6 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                     >
                       <div className="flex items-center gap-3">
                         <span className="text-2xl">{category.icon}</span>
-                        <h3 className="text-xl font-bold text-gray-900">{category.label}</h3>
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">{category.label}</h3>
                       </div>
                       {expandedCategory === categoryKey ? (
-                        <ChevronUp className="w-5 h-5 text-gray-600" />
+                        <ChevronUp className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                       ) : (
-                        <ChevronDown className="w-5 h-5 text-gray-600" />
+                        <ChevronDown className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                       )}
                     </button>
                     
@@ -394,13 +394,13 @@ const Measurements = () => {
                           initial={{ height: 0, opacity: 0 }}
                           animate={{ height: 'auto', opacity: 1 }}
                           exit={{ height: 0, opacity: 0 }}
-                          className="border-t border-gray-200"
+                          className="border-t border-gray-200 dark:border-gray-700"
                         >
                           <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                             {category.fields.map((field) => (
                               <div key={field.key}>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                  {field.label} <span className="text-gray-500">({field.unit})</span>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                  {field.label} <span className="text-gray-500 dark:text-gray-400">({field.unit})</span>
                                 </label>
                                 <input
                                   type="text"
@@ -408,8 +408,8 @@ const Measurements = () => {
                                   onChange={(e) => handleMeasurementChange(categoryKey, field.key, e.target.value)}
                                   placeholder={field.placeholder}
                                   disabled={!isEditing}
-                                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                                    isEditing ? 'bg-white' : 'bg-gray-50'
+                                  className={`w-full px-4 py-2 border dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 ${
+                                    isEditing ? 'bg-white dark:bg-gray-800' : 'bg-gray-50 dark:bg-gray-700'
                                   }`}
                                 />
                               </div>
@@ -425,20 +425,20 @@ const Measurements = () => {
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-white rounded-lg shadow-md overflow-hidden"
+                  className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden"
                 >
                   <button
                     onClick={() => setExpandedCategory(expandedCategory === 'custom' ? null : 'custom')}
-                    className="w-full p-6 flex items-center justify-between hover:bg-gray-50 transition-colors"
+                    className="w-full p-6 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                   >
                     <div className="flex items-center gap-3">
                       <span className="text-2xl">📏</span>
-                      <h3 className="text-xl font-bold text-gray-900">Custom Measurements</h3>
+                      <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">Custom Measurements</h3>
                     </div>
                     {expandedCategory === 'custom' ? (
-                      <ChevronUp className="w-5 h-5 text-gray-600" />
+                      <ChevronUp className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                     ) : (
-                      <ChevronDown className="w-5 h-5 text-gray-600" />
+                      <ChevronDown className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                     )}
                   </button>
                   
@@ -448,7 +448,7 @@ const Measurements = () => {
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: 'auto', opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
-                        className="border-t border-gray-200"
+                        className="border-t border-gray-200 dark:border-gray-700"
                       >
                         <div className="p-6 space-y-4">
                           {editedMeasurements.custom.map((custom, index) => (
@@ -459,8 +459,8 @@ const Measurements = () => {
                                 onChange={(e) => handleCustomChange(index, 'label', e.target.value)}
                                 placeholder="Measurement Name"
                                 disabled={!isEditing}
-                                className={`flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                                  isEditing ? 'bg-white' : 'bg-gray-50'
+                                className={`flex-1 px-4 py-2 border dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 ${
+                                  isEditing ? 'bg-white dark:bg-gray-800' : 'bg-gray-50 dark:bg-gray-700'
                                 }`}
                               />
                               <input
@@ -469,14 +469,14 @@ const Measurements = () => {
                                 onChange={(e) => handleCustomChange(index, 'value', e.target.value)}
                                 placeholder="Value (inches)"
                                 disabled={!isEditing}
-                                className={`w-32 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                                  isEditing ? 'bg-white' : 'bg-gray-50'
+                                className={`w-32 px-4 py-2 border dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 ${
+                                  isEditing ? 'bg-white dark:bg-gray-800' : 'bg-gray-50 dark:bg-gray-700'
                                 }`}
                               />
                               {isEditing && (
                                 <button
                                   onClick={() => removeCustomMeasurement(index)}
-                                  className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                  className="p-2 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
                                 >
                                   <Trash2 className="w-4 h-4" />
                                 </button>
@@ -486,7 +486,7 @@ const Measurements = () => {
                           {isEditing && (
                             <button
                               onClick={addCustomMeasurement}
-                              className="flex items-center gap-2 px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition-colors"
+                              className="flex items-center gap-2 px-4 py-2 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 text-blue-600 dark:text-blue-400 rounded-lg transition-colors"
                             >
                               <Plus className="w-4 h-4" />
                               Add Custom Measurement
@@ -510,7 +510,7 @@ const Measurements = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 p-4"
             onClick={() => setShowAddProfile(false)}
           >
             <motion.div
@@ -518,22 +518,22 @@ const Measurements = () => {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full"
+              className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 max-w-md w-full"
             >
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Add New Profile</h2>
-              <p className="text-gray-600 mb-4">Create a new measurement profile for family members or different occasions.</p>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Add New Profile</h2>
+              <p className="text-gray-600 dark:text-gray-400 mb-4">Create a new measurement profile for family members or different occasions.</p>
               <input
                 type="text"
                 value={newProfileName}
                 onChange={(e) => setNewProfileName(e.target.value)}
                 placeholder="Profile Name (e.g., Dad's Measurements)"
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-4"
+                className="w-full px-4 py-2 border dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 mb-4"
                 autoFocus
               />
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => setShowAddProfile(false)}
-                  className="flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition-colors"
+                  className="flex-1 px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg transition-colors"
                 >
                   Cancel
                 </button>
@@ -557,7 +557,7 @@ const Measurements = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 p-4"
             onClick={() => setShowHistory(false)}
           >
             <motion.div
@@ -565,38 +565,38 @@ const Measurements = () => {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-lg shadow-xl p-6 max-w-3xl w-full max-h-[80vh] overflow-y-auto"
+              className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 max-w-3xl w-full max-h-[80vh] overflow-y-auto"
             >
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-gray-900">Measurement History</h2>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Measurement History</h2>
                 <button
                   onClick={() => setShowHistory(false)}
-                  className="text-gray-500 hover:text-gray-700"
+                  className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
                 >
                   ✕
                 </button>
               </div>
               <div className="space-y-3">
                 {measurementHistory.map((entry) => (
-                  <div key={entry.id} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                  <div key={entry.id} className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="font-semibold text-gray-900">{entry.profile}</span>
-                      <span className="text-sm text-gray-500">{entry.date}</span>
+                      <span className="font-semibold text-gray-900 dark:text-gray-100">{entry.profile}</span>
+                      <span className="text-sm text-gray-500 dark:text-gray-400">{entry.date}</span>
                     </div>
-                    <div className="text-sm text-gray-700">
+                    <div className="text-sm text-gray-700 dark:text-gray-300">
                       <span className="font-medium">{entry.category}</span> - {entry.field}
                       {entry.oldValue !== '-' && (
                         <span className="ml-2">
-                          <span className="text-red-600">{entry.oldValue}"</span>
+                          <span className="text-red-600 dark:text-red-400">{entry.oldValue}"</span>
                           {' → '}
-                          <span className="text-green-600">{entry.newValue}"</span>
+                          <span className="text-green-600 dark:text-green-400">{entry.newValue}"</span>
                         </span>
                       )}
                       {entry.oldValue === '-' && (
-                        <span className="ml-2 text-green-600">{entry.newValue}</span>
+                        <span className="ml-2 text-green-600 dark:text-green-400">{entry.newValue}</span>
                       )}
                     </div>
-                    <div className="text-xs text-gray-500 mt-1">Updated by: {entry.updatedBy}</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Updated by: {entry.updatedBy}</div>
                   </div>
                 ))}
               </div>

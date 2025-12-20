@@ -227,7 +227,7 @@ const handleGoogleSignUp = async () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-orange-50 via-orange-100 to-orange-50 relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-orange-50 via-orange-100 to-orange-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 relative overflow-hidden">
       {/* Animated Background Pattern */}
       <div className="absolute inset-0 overflow-hidden">
         {/* Animated Checkmark Pattern */}
@@ -288,7 +288,7 @@ const handleGoogleSignUp = async () => {
 
       {/* Main Card */}
       <motion.div
-        className="relative z-10 w-full max-w-6xl bg-white rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col lg:flex-row"
+        className="relative z-10 w-full max-w-6xl bg-white dark:bg-gray-800 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col lg:flex-row"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
@@ -307,10 +307,10 @@ const handleGoogleSignUp = async () => {
                 <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center">
                   <span className="text-white font-bold text-lg">SS</span>
                 </div>
-                <span className="text-lg sm:text-xl font-bold text-gray-900">Smart Stitch</span>
+                <span className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100">Smart Stitch</span>
               </div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-0.5">Create an account</h1>
-              <p className="text-gray-500 text-sm">Start your tailoring journey today</p>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-0.5">Create an account</h1>
+              <p className="text-gray-500 dark:text-gray-400 text-sm">Start your tailoring journey today</p>
             </motion.div>
 
           {/* Form */}
@@ -318,7 +318,7 @@ const handleGoogleSignUp = async () => {
             {/* Error Message */}
             {errors.submit && (
               <motion.div
-                className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm"
+                className="mb-4 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-lg text-red-700 dark:text-red-400 text-sm"
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
               >
@@ -329,7 +329,7 @@ const handleGoogleSignUp = async () => {
             <form onSubmit={handleSubmit} className="space-y-2.5">
               {/* Full Name Input */}
               <motion.div variants={itemVariants}>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Full Name
                 </label>
                 <input
@@ -338,18 +338,18 @@ const handleGoogleSignUp = async () => {
                   value={formData.fullName}
                   onChange={handleInputChange}
                   placeholder="Enter your full name"
-                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all ${
-                    errors.fullName ? 'border-red-500' : 'border-gray-300'
+                  className={`w-full px-4 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all ${
+                    errors.fullName ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                   }`}
                 />
                 {errors.fullName && (
-                  <p className="text-red-500 text-xs mt-1">{errors.fullName}</p>
+                  <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.fullName}</p>
                 )}
               </motion.div>
 
               {/* Email Input */}
               <motion.div variants={itemVariants}>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Email address
                 </label>
                 <input
@@ -358,18 +358,18 @@ const handleGoogleSignUp = async () => {
                   value={formData.email}
                   onChange={handleInputChange}
                   placeholder="Enter your email"
-                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all ${
-                    errors.email ? 'border-red-500' : 'border-gray-300'
+                  className={`w-full px-4 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all ${
+                    errors.email ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                   }`}
                 />
                 {errors.email && (
-                  <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+                  <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.email}</p>
                 )}
               </motion.div>
 
               {/* Password Input */}
               <motion.div variants={itemVariants}>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Password
                 </label>
                 <div className="relative">
@@ -380,14 +380,14 @@ const handleGoogleSignUp = async () => {
                     onChange={handleInputChange}
                     onPaste={handlePasswordPaste}
                     placeholder="Create a password"
-                    className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all ${
-                      errors.password ? 'border-red-500' : 'border-gray-300'
+                    className={`w-full px-4 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all ${
+                      errors.password ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                     }`}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-3.5 text-gray-400 hover:text-gray-600"
+                    className="absolute right-3 top-3.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                   >
                     {showPassword ? (
                       <EyeOff className="w-5 h-5" />
@@ -397,13 +397,13 @@ const handleGoogleSignUp = async () => {
                   </button>
                 </div>
                 {errors.password && (
-                  <p className="text-red-500 text-xs mt-1">{errors.password}</p>
+                  <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.password}</p>
                 )}
               </motion.div>
 
               {/* Confirm Password Input */}
               <motion.div variants={itemVariants}>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Confirm Password
                 </label>
                 <div className="relative">
@@ -414,14 +414,14 @@ const handleGoogleSignUp = async () => {
                     onChange={handleInputChange}
                     onPaste={handleConfirmPasswordPaste}
                     placeholder="Confirm your password"
-                    className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all ${
-                      errors.confirmPassword ? 'border-red-500' : 'border-gray-300'
+                    className={`w-full px-4 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all ${
+                      errors.confirmPassword ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                     }`}
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-3.5 text-gray-400 hover:text-gray-600"
+                    className="absolute right-3 top-3.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                   >
                     {showConfirmPassword ? (
                       <EyeOff className="w-5 h-5" />
@@ -431,20 +431,20 @@ const handleGoogleSignUp = async () => {
                   </button>
                 </div>
                 {errors.confirmPassword && (
-                  <p className="text-red-500 text-xs mt-1">{errors.confirmPassword}</p>
+                  <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.confirmPassword}</p>
                 )}
               </motion.div>
 
               {/* Role Selection */}
               <motion.div variants={itemVariants}>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Sign Up As
                 </label>
                 <select
                   name="role"
                   value={formData.role}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all bg-white"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
                 >
                   <option value="OWNER">Shop Owner</option>
                   <option value="WORKER">Worker</option>
@@ -475,9 +475,9 @@ const handleGoogleSignUp = async () => {
             </motion.div>
 
             {/* Sign In Link */}
-            <motion.p className="text-center text-gray-600 text-sm mt-3" variants={itemVariants}>
+            <motion.p className="text-center text-gray-600 dark:text-gray-400 text-sm mt-3" variants={itemVariants}>
               Already have an account?{' '}
-              <Link to="/login" className="text-orange-600 hover:text-orange-700 font-semibold">
+              <Link to="/login" className="text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 font-semibold">
                 Log in
               </Link>
             </motion.p>
@@ -670,11 +670,11 @@ const handleGoogleSignUp = async () => {
       
       {showSuccessModal && (
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-    <div className="bg-white rounded-xl p-6 w-full max-w-sm text-center shadow-xl">
-      <h2 className="text-2xl font-bold text-green-600 mb-2">
+    <div className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-sm text-center shadow-xl">
+      <h2 className="text-2xl font-bold text-green-600 dark:text-green-400 mb-2">
         Signup Successful 🎉
       </h2>
-      <p className="text-gray-600 mb-6">
+      <p className="text-gray-600 dark:text-gray-400 mb-6">
         Your account has been created successfully.
       </p>
       <button

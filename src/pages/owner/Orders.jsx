@@ -568,45 +568,45 @@ const Orders = () => {
               <div className="p-6 space-y-6">
                 {/* Customer Selection */}
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
                     <User className="w-5 h-5 text-orange-500" />
                     Customer Information
                   </h3>
                   
                   <div className="relative">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Select Customer <span className="text-red-500">*</span>
                     </label>
                     <div className="flex gap-2">
                       <div className="flex-1 relative">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
                         <input
                           type="text"
                           value={customerSearchQuery}
                           onChange={handleCustomerSearchChange}
                           onFocus={() => setShowCustomerDropdown(true)}
                           placeholder="Search customer by name, phone, or email..."
-                          className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors ${
-                            errors.customer ? 'border-red-500' : 'border-gray-300'
+                          className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 ${
+                            errors.customer ? 'border-red-500 dark:border-red-700' : 'border-gray-300 dark:border-gray-600'
                           }`}
                         />
                         
                         {/* Customer Dropdown */}
                         {showCustomerDropdown && customerSearchQuery && (
-                          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                          <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-h-60 overflow-y-auto">
                             {filteredCustomers.length > 0 ? (
                               filteredCustomers.map(customer => (
                                 <div
                                   key={customer.id}
                                   onClick={() => handleCustomerSelect(customer)}
-                                  className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                                  className="px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-600 cursor-pointer border-b border-gray-100 dark:border-gray-600 last:border-b-0"
                                 >
-                                  <p className="font-medium text-gray-900">{customer.name}</p>
-                                  <p className="text-sm text-gray-600">{customer.phone} • {customer.email}</p>
+                                  <p className="font-medium text-gray-900 dark:text-gray-100">{customer.name}</p>
+                                  <p className="text-sm text-gray-600 dark:text-gray-400">{customer.phone} • {customer.email}</p>
                                 </div>
                               ))
                             ) : (
-                              <div className="px-4 py-3 text-gray-500 text-sm">
+                              <div className="px-4 py-3 text-gray-500 dark:text-gray-400 text-sm">
                                 No customers found
                               </div>
                             )}
@@ -624,7 +624,7 @@ const Orders = () => {
                       </button>
                     </div>
                     {errors.customer && (
-                      <p className="text-red-500 text-sm mt-1">{errors.customer}</p>
+                      <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.customer}</p>
                     )}
                   </div>
 
@@ -646,20 +646,20 @@ const Orders = () => {
 
                 {/* Order Items */}
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
                     <FileText className="w-5 h-5 text-orange-500" />
                     Order Items
                   </h3>
 
                   <div className="space-y-4">
                     {orderItems.map((item, index) => (
-                      <div key={item.id} className="p-4 border border-gray-200 rounded-lg bg-gray-50">
+                      <div key={item.id} className="p-4 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700">
                         <div className="flex items-center justify-between mb-3">
-                          <h4 className="font-medium text-gray-700">Item {index + 1}</h4>
+                          <h4 className="font-medium text-gray-700 dark:text-gray-300">Item {index + 1}</h4>
                           {orderItems.length > 1 && (
                             <button
                               onClick={() => handleRemoveItem(item.id)}
-                              className="text-red-500 hover:text-red-700 transition-colors"
+                              className="text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors"
                             >
                               <Trash2 className="w-5 h-5" />
                             </button>
@@ -668,7 +668,7 @@ const Orders = () => {
 
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                           <div>
-                            <label className="block text-sm text-gray-600 mb-1">
+                            <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">
                               Item Name <span className="text-red-500">*</span>
                             </label>
                             <input
@@ -676,11 +676,11 @@ const Orders = () => {
                               value={item.name}
                               onChange={(e) => handleItemChange(item.id, 'name', e.target.value)}
                               placeholder="e.g., Formal Shirt"
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
                             />
                           </div>
                           <div>
-                            <label className="block text-sm text-gray-600 mb-1">
+                            <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">
                               Quantity <span className="text-red-500">*</span>
                             </label>
                             <input
@@ -689,11 +689,11 @@ const Orders = () => {
                               onChange={(e) => handleItemChange(item.id, 'quantity', e.target.value)}
                               placeholder="1"
                               min="1"
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
                             />
                           </div>
                           <div>
-                            <label className="block text-sm text-gray-600 mb-1">
+                            <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">
                               Price <span className="text-red-500">*</span>
                             </label>
                             <input
@@ -703,17 +703,17 @@ const Orders = () => {
                               placeholder="800"
                               min="0"
                               step="0.01"
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
                             />
                           </div>
                           <div>
-                            <label className="block text-sm text-gray-600 mb-1">Fabric Type</label>
+                            <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Fabric Type</label>
                             <input
                               type="text"
                               value={item.fabricType}
                               onChange={(e) => handleItemChange(item.id, 'fabricType', e.target.value)}
                               placeholder="e.g., Cotton"
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
                             />
                           </div>
                         </div>
@@ -721,12 +721,12 @@ const Orders = () => {
                     ))}
 
                     {errors.items && (
-                      <p className="text-red-500 text-sm">{errors.items}</p>
+                      <p className="text-red-500 dark:text-red-400 text-sm">{errors.items}</p>
                     )}
 
                     <button
                       onClick={handleAddItem}
-                      className="flex items-center gap-2 px-4 py-2 text-orange-600 border-2 border-orange-600 rounded-lg hover:bg-orange-50 transition-colors font-medium"
+                      className="flex items-center gap-2 px-4 py-2 text-orange-600 dark:text-orange-400 border-2 border-orange-600 dark:border-orange-400 rounded-lg hover:bg-orange-50 dark:hover:bg-orange-900/30 transition-colors font-medium"
                     >
                       <Plus className="w-5 h-5" />
                       Add Another Item
@@ -736,14 +736,14 @@ const Orders = () => {
 
                 {/* Worker Assignment */}
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
                     <Users className="w-5 h-5 text-orange-500" />
                     Worker Assignment
                   </h3>
 
                   {/* Assignment Mode Selection */}
                   <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                       Assignment Mode
                     </label>
                     <div className="flex gap-4">
@@ -756,7 +756,7 @@ const Orders = () => {
                           onChange={(e) => setAssignmentMode(e.target.value)}
                           className="w-4 h-4 text-orange-500 focus:ring-orange-500"
                         />
-                        <span className="text-sm text-gray-700">Assign items individually</span>
+                        <span className="text-sm text-gray-700 dark:text-gray-300">Assign items individually</span>
                       </label>
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input
@@ -767,24 +767,24 @@ const Orders = () => {
                           onChange={(e) => setAssignmentMode(e.target.value)}
                           className="w-4 h-4 text-orange-500 focus:ring-orange-500"
                         />
-                        <span className="text-sm text-gray-700">Assign whole order to one worker</span>
+                        <span className="text-sm text-gray-700 dark:text-gray-300">Assign whole order to one worker</span>
                       </label>
                     </div>
                   </div>
 
                   {/* Individual Assignment */}
                   {assignmentMode === 'individual' && (
-                    <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                      <p className="text-sm text-blue-800 mb-3">
+                    <div className="p-4 bg-blue-50 dark:bg-blue-900/30 rounded-lg border border-blue-200 dark:border-blue-800">
+                      <p className="text-sm text-blue-800 dark:text-blue-400 mb-3">
                         💡 You can assign each item to a different worker below.
                       </p>
                       <div className="space-y-2">
                         {orderItems.map((item, index) => {
                           const assignedWorker = workers.find(w => w.id === item.assignedWorker);
                           return (
-                            <div key={item.id} className="flex items-center justify-between bg-white rounded-lg p-3">
+                            <div key={item.id} className="flex items-center justify-between bg-white dark:bg-gray-700 rounded-lg p-3">
                               <div>
-                                <p className="font-medium text-gray-900">
+                                <p className="font-medium text-gray-900 dark:text-gray-100">
                                   Item {index + 1}: {item.name || 'Unnamed Item'}
                                 </p>
                               </div>
@@ -797,7 +797,7 @@ const Orders = () => {
                                     handleItemChange(item.id, 'assignedWorker', workerId || null);
                                     handleItemChange(item.id, 'workerName', worker ? worker.name : null);
                                   }}
-                                  className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm"
+                                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                                 >
                                   <option value="">-- Select Worker --</option>
                                   {workers.filter(w => w.status === 'active').map(worker => (
@@ -807,7 +807,7 @@ const Orders = () => {
                                   ))}
                                 </select>
                                 {assignedWorker && (
-                                  <span className="text-sm text-green-600 font-medium">
+                                  <span className="text-sm text-green-600 dark:text-green-400 font-medium">
                                     ✓ {assignedWorker.name}
                                   </span>
                                 )}
@@ -821,12 +821,12 @@ const Orders = () => {
 
                   {/* Whole Order Assignment */}
                   {assignmentMode === 'whole' && (
-                    <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
-                      <p className="text-sm text-purple-800 mb-3">
+                    <div className="p-4 bg-purple-50 dark:bg-purple-900/30 rounded-lg border border-purple-200 dark:border-purple-800">
+                      <p className="text-sm text-purple-800 dark:text-purple-400 mb-3">
                         💡 Select one worker to handle all items in this order.
                       </p>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                           Select Worker for Entire Order
                         </label>
                         <select
@@ -836,7 +836,7 @@ const Orders = () => {
                             const worker = workers.find(w => w.id === workerId);
                             setWholeOrderWorker(worker || null);
                           }}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                          className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                         >
                           <option value="">-- Select a worker --</option>
                           {workers.filter(w => w.status === 'active').map(worker => (
@@ -846,14 +846,14 @@ const Orders = () => {
                           ))}
                         </select>
                         {wholeOrderWorker && (
-                          <div className="mt-3 p-3 bg-white rounded-lg border border-gray-200">
-                            <p className="text-sm text-gray-600">
+                          <div className="mt-3 p-3 bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
                               <span className="font-medium">Selected Worker:</span> {wholeOrderWorker.name}
                             </p>
-                            <p className="text-sm text-gray-600">
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
                               <span className="font-medium">Specialization:</span> {wholeOrderWorker.specialization}
                             </p>
-                            <p className="text-sm text-green-600 mt-2">
+                            <p className="text-sm text-green-600 dark:text-green-400 mt-2">
                               ✓ All {orderItems.length} item(s) will be assigned to this worker
                             </p>
                           </div>
@@ -865,14 +865,14 @@ const Orders = () => {
 
                 {/* Order Details */}
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
                     <Calendar className="w-5 h-5 text-orange-500" />
                     Order Details
                   </h3>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Delivery Date <span className="text-red-500">*</span>
                       </label>
                       <input
@@ -885,21 +885,21 @@ const Orders = () => {
                           }
                         }}
                         min={new Date().toISOString().split('T')[0]}
-                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors ${
-                          errors.deliveryDate ? 'border-red-500' : 'border-gray-300'
+                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
+                          errors.deliveryDate ? 'border-red-500 dark:border-red-700' : 'border-gray-300 dark:border-gray-600'
                         }`}
                       />
                       {errors.deliveryDate && (
-                        <p className="text-red-500 text-sm mt-1">{errors.deliveryDate}</p>
+                        <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.deliveryDate}</p>
                       )}
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Advance Payment
                       </label>
                       <div className="relative">
-                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
                         <input
                           type="number"
                           value={advancePayment}
@@ -912,19 +912,19 @@ const Orders = () => {
                           placeholder="0.00"
                           min="0"
                           step="0.01"
-                          className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors ${
-                            errors.advancePayment ? 'border-red-500' : 'border-gray-300'
+                          className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 ${
+                            errors.advancePayment ? 'border-red-500 dark:border-red-700' : 'border-gray-300 dark:border-gray-600'
                           }`}
                         />
                       </div>
                       {errors.advancePayment && (
-                        <p className="text-red-500 text-sm mt-1">{errors.advancePayment}</p>
+                        <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.advancePayment}</p>
                       )}
                     </div>
                   </div>
 
                   <div className="mt-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Additional Notes
                     </label>
                     <textarea
@@ -932,16 +932,16 @@ const Orders = () => {
                       onChange={(e) => setNotes(e.target.value)}
                       placeholder="Enter any special instructions or notes for this order..."
                       rows="3"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
                     />
                   </div>
                 </div>
 
                 {/* Modal Footer */}
-                <div className="flex gap-4 pt-6 border-t border-gray-200">
+                <div className="flex gap-4 pt-6 border-t border-gray-200 dark:border-gray-700">
                   <button
                     onClick={() => setShowNewOrderModal(false)}
-                    className="flex-1 py-3 rounded-lg font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors"
+                    className="flex-1 py-3 rounded-lg font-semibold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                   >
                     Cancel
                   </button>
@@ -973,16 +973,16 @@ const Orders = () => {
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 20 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+              className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
             >
               {/* Modal Header */}
-              <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between rounded-t-2xl z-10">
-                <h2 className="text-2xl font-bold text-gray-900">Order Details</h2>
+              <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between rounded-t-2xl z-10">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Order Details</h2>
                 <button
                   onClick={() => setShowViewModal(false)}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                 >
-                  <X className="w-6 h-6 text-gray-600" />
+                  <X className="w-6 h-6 text-gray-600 dark:text-gray-400" />
                 </button>
               </div>
 
@@ -990,48 +990,48 @@ const Orders = () => {
               <div className="p-6">
                 {/* Order Info */}
                 <div className="grid grid-cols-2 gap-4 mb-6">
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-600">Order ID</p>
-                    <p className="text-lg font-bold text-gray-900">{selectedOrderForView.id}</p>
+                  <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Order ID</p>
+                    <p className="text-lg font-bold text-gray-900 dark:text-gray-100">{selectedOrderForView.id}</p>
                   </div>
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-600">Status</p>
+                  <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Status</p>
                     <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-semibold mt-1 ${getStatusColor(selectedOrderForView.status)}`}>
                       {getStatusIcon(selectedOrderForView.status)}
                       {selectedOrderForView.status}
                     </span>
                   </div>
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-600">Customer</p>
-                    <p className="text-lg font-semibold text-gray-900">{selectedOrderForView.customerName}</p>
+                  <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Customer</p>
+                    <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">{selectedOrderForView.customerName}</p>
                   </div>
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-600">Order Date</p>
-                    <p className="text-lg font-semibold text-gray-900">{selectedOrderForView.orderDate}</p>
+                  <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Order Date</p>
+                    <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">{selectedOrderForView.orderDate}</p>
                   </div>
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-600">Delivery Date</p>
-                    <p className="text-lg font-semibold text-gray-900">{selectedOrderForView.deliveryDate}</p>
+                  <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Delivery Date</p>
+                    <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">{selectedOrderForView.deliveryDate}</p>
                   </div>
-                  <div className="p-4 bg-green-50 rounded-lg">
-                    <p className="text-sm text-gray-600">Total Amount</p>
-                    <p className="text-2xl font-bold text-green-600">${selectedOrderForView.totalAmount}</p>
+                  <div className="p-4 bg-green-50 dark:bg-green-900/30 rounded-lg">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Total Amount</p>
+                    <p className="text-2xl font-bold text-green-600 dark:text-green-400">${selectedOrderForView.totalAmount}</p>
                   </div>
                 </div>
 
                 {/* Order Items */}
                 <div className="mb-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Order Items</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Order Items</h3>
                   <div className="space-y-3">
                     {selectedOrderForView.items.map((item, index) => (
-                      <div key={index} className="p-4 bg-gray-50 rounded-lg flex justify-between items-center">
+                      <div key={index} className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg flex justify-between items-center">
                         <div>
-                          <p className="font-semibold text-gray-900">{item.type}</p>
-                          <p className="text-sm text-gray-600">Fabric: {item.fabric}</p>
+                          <p className="font-semibold text-gray-900 dark:text-gray-100">{item.type}</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">Fabric: {item.fabric}</p>
                         </div>
                         <div className="text-right">
-                          <p className="text-gray-900">Qty: {item.quantity} × ${item.price}</p>
-                          <p className="font-semibold text-gray-900">${item.quantity * item.price}</p>
+                          <p className="text-gray-900 dark:text-gray-100">Qty: {item.quantity} × ${item.price}</p>
+                          <p className="font-semibold text-gray-900 dark:text-gray-100">${item.quantity * item.price}</p>
                         </div>
                       </div>
                     ))}
@@ -1039,30 +1039,30 @@ const Orders = () => {
                 </div>
 
                 {/* Payment Info */}
-                <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Payment Information</h3>
+                <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">Payment Information</h3>
                   <div className="space-y-2">
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Paid Amount:</span>
-                      <span className="font-semibold text-gray-900">${selectedOrderForView.paidAmount}</span>
+                      <span className="text-gray-600 dark:text-gray-400">Paid Amount:</span>
+                      <span className="font-semibold text-gray-900 dark:text-gray-100">${selectedOrderForView.paidAmount}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Balance:</span>
-                      <span className="font-semibold text-orange-600">${selectedOrderForView.balanceAmount}</span>
+                      <span className="text-gray-600 dark:text-gray-400">Balance:</span>
+                      <span className="font-semibold text-orange-600 dark:text-orange-400">${selectedOrderForView.balanceAmount}</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Notes */}
                 {selectedOrderForView.notes && (
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Notes</h3>
-                    <p className="text-gray-700">{selectedOrderForView.notes}</p>
+                  <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Notes</h3>
+                    <p className="text-gray-700 dark:text-gray-300">{selectedOrderForView.notes}</p>
                   </div>
                 )}
 
                 {/* Footer */}
-                <div className="flex gap-4 mt-6 pt-6 border-t border-gray-200">
+                <div className="flex gap-4 mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
                   <button
                     onClick={() => {
                       setShowViewModal(false);
@@ -1074,7 +1074,7 @@ const Orders = () => {
                   </button>
                   <button
                     onClick={() => setShowViewModal(false)}
-                    className="flex-1 py-3 rounded-lg font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors"
+                    className="flex-1 py-3 rounded-lg font-semibold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                   >
                     Close
                   </button>
@@ -1104,20 +1104,20 @@ const Orders = () => {
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 20 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-2xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto"
+              className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto"
             >
               {/* Modal Header */}
-              <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between rounded-t-2xl z-10">
-                <h2 className="text-2xl font-bold text-gray-900">Edit Order</h2>
+              <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between rounded-t-2xl z-10">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Edit Order</h2>
                 <button
                   onClick={() => {
                     setShowEditModal(false);
                     setEditingOrder(null);
                     resetForm();
                   }}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                 >
-                  <X className="w-6 h-6 text-gray-600" />
+                  <X className="w-6 h-6 text-gray-600 dark:text-gray-400" />
                 </button>
               </div>
 
@@ -1125,45 +1125,45 @@ const Orders = () => {
               <div className="p-6 space-y-6">
                 {/* Customer Selection */}
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
                     <User className="w-5 h-5 text-orange-500" />
                     Customer Information
                   </h3>
                   
                   <div className="relative">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Select Customer <span className="text-red-500">*</span>
                     </label>
                     <div className="flex gap-2">
                       <div className="flex-1 relative">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
                         <input
                           type="text"
                           value={customerSearchQuery}
                           onChange={handleCustomerSearchChange}
                           onFocus={() => setShowCustomerDropdown(true)}
                           placeholder="Search customer by name, phone, or email..."
-                          className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors ${
-                            errors.customer ? 'border-red-500' : 'border-gray-300'
+                          className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 ${
+                            errors.customer ? 'border-red-500 dark:border-red-700' : 'border-gray-300 dark:border-gray-600'
                           }`}
                         />
                         
                         {/* Customer Dropdown */}
                         {showCustomerDropdown && customerSearchQuery && (
-                          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                          <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-h-60 overflow-y-auto">
                             {filteredCustomers.length > 0 ? (
                               filteredCustomers.map(customer => (
                                 <div
                                   key={customer.id}
                                   onClick={() => handleCustomerSelect(customer)}
-                                  className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                                  className="px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-600 cursor-pointer border-b border-gray-100 dark:border-gray-600 last:border-b-0"
                                 >
-                                  <p className="font-medium text-gray-900">{customer.name}</p>
-                                  <p className="text-sm text-gray-600">{customer.phone} • {customer.email}</p>
+                                  <p className="font-medium text-gray-900 dark:text-gray-100">{customer.name}</p>
+                                  <p className="text-sm text-gray-600 dark:text-gray-400">{customer.phone} • {customer.email}</p>
                                 </div>
                               ))
                             ) : (
-                              <div className="px-4 py-3 text-gray-500 text-sm">
+                              <div className="px-4 py-3 text-gray-500 dark:text-gray-400 text-sm">
                                 No customers found
                               </div>
                             )}
@@ -1181,27 +1181,27 @@ const Orders = () => {
                       </button>
                     </div>
                     {errors.customer && (
-                      <p className="text-red-500 text-sm mt-1">{errors.customer}</p>
+                      <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.customer}</p>
                     )}
                   </div>
                 </div>
 
                 {/* Order Items */}
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
                     <FileText className="w-5 h-5 text-orange-500" />
                     Order Items
                   </h3>
 
                   <div className="space-y-4">
                     {orderItems.map((item, index) => (
-                      <div key={item.id} className="p-4 border border-gray-200 rounded-lg bg-gray-50">
+                      <div key={item.id} className="p-4 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700">
                         <div className="flex items-center justify-between mb-3">
-                          <h4 className="font-medium text-gray-700">Item {index + 1}</h4>
+                          <h4 className="font-medium text-gray-700 dark:text-gray-300">Item {index + 1}</h4>
                           {orderItems.length > 1 && (
                             <button
                               onClick={() => handleRemoveItem(item.id)}
-                              className="text-red-500 hover:text-red-700 transition-colors"
+                              className="text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors"
                             >
                               <Trash2 className="w-5 h-5" />
                             </button>
@@ -1210,7 +1210,7 @@ const Orders = () => {
 
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                           <div>
-                            <label className="block text-sm text-gray-600 mb-1">
+                            <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">
                               Item Name <span className="text-red-500">*</span>
                             </label>
                             <input
@@ -1218,11 +1218,11 @@ const Orders = () => {
                               value={item.name}
                               onChange={(e) => handleItemChange(item.id, 'name', e.target.value)}
                               placeholder="e.g., Formal Shirt"
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
                             />
                           </div>
                           <div>
-                            <label className="block text-sm text-gray-600 mb-1">
+                            <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">
                               Quantity <span className="text-red-500">*</span>
                             </label>
                             <input
@@ -1231,11 +1231,11 @@ const Orders = () => {
                               onChange={(e) => handleItemChange(item.id, 'quantity', e.target.value)}
                               placeholder="1"
                               min="1"
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
                             />
                           </div>
                           <div>
-                            <label className="block text-sm text-gray-600 mb-1">
+                            <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">
                               Price <span className="text-red-500">*</span>
                             </label>
                             <input
@@ -1245,17 +1245,17 @@ const Orders = () => {
                               placeholder="800"
                               min="0"
                               step="0.01"
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
                             />
                           </div>
                           <div>
-                            <label className="block text-sm text-gray-600 mb-1">Fabric Type</label>
+                            <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Fabric Type</label>
                             <input
                               type="text"
                               value={item.fabricType}
                               onChange={(e) => handleItemChange(item.id, 'fabricType', e.target.value)}
                               placeholder="e.g., Cotton"
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
                             />
                           </div>
                         </div>
@@ -1263,12 +1263,12 @@ const Orders = () => {
                     ))}
 
                     {errors.items && (
-                      <p className="text-red-500 text-sm">{errors.items}</p>
+                      <p className="text-red-500 dark:text-red-400 text-sm">{errors.items}</p>
                     )}
 
                     <button
                       onClick={handleAddItem}
-                      className="flex items-center gap-2 px-4 py-2 text-orange-600 border-2 border-orange-600 rounded-lg hover:bg-orange-50 transition-colors font-medium"
+                      className="flex items-center gap-2 px-4 py-2 text-orange-600 dark:text-orange-400 border-2 border-orange-600 dark:border-orange-400 rounded-lg hover:bg-orange-50 dark:hover:bg-orange-900/30 transition-colors font-medium"
                     >
                       <Plus className="w-5 h-5" />
                       Add Another Item
@@ -1278,14 +1278,14 @@ const Orders = () => {
 
                 {/* Order Details */}
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
                     <Calendar className="w-5 h-5 text-orange-500" />
                     Order Details
                   </h3>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Delivery Date <span className="text-red-500">*</span>
                       </label>
                       <input
@@ -1298,21 +1298,21 @@ const Orders = () => {
                           }
                         }}
                         min={new Date().toISOString().split('T')[0]}
-                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors ${
-                          errors.deliveryDate ? 'border-red-500' : 'border-gray-300'
+                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
+                          errors.deliveryDate ? 'border-red-500 dark:border-red-700' : 'border-gray-300 dark:border-gray-600'
                         }`}
                       />
                       {errors.deliveryDate && (
-                        <p className="text-red-500 text-sm mt-1">{errors.deliveryDate}</p>
+                        <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.deliveryDate}</p>
                       )}
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Advance Payment
                       </label>
                       <div className="relative">
-                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
                         <input
                           type="number"
                           value={advancePayment}
@@ -1325,19 +1325,19 @@ const Orders = () => {
                           placeholder="0.00"
                           min="0"
                           step="0.01"
-                          className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors ${
-                            errors.advancePayment ? 'border-red-500' : 'border-gray-300'
+                          className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 ${
+                            errors.advancePayment ? 'border-red-500 dark:border-red-700' : 'border-gray-300 dark:border-gray-600'
                           }`}
                         />
                       </div>
                       {errors.advancePayment && (
-                        <p className="text-red-500 text-sm mt-1">{errors.advancePayment}</p>
+                        <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.advancePayment}</p>
                       )}
                     </div>
                   </div>
 
                   <div className="mt-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Additional Notes
                     </label>
                     <textarea
@@ -1345,20 +1345,20 @@ const Orders = () => {
                       onChange={(e) => setNotes(e.target.value)}
                       placeholder="Enter any special instructions or notes for this order..."
                       rows="3"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
                     />
                   </div>
                 </div>
 
                 {/* Modal Footer */}
-                <div className="flex gap-4 pt-6 border-t border-gray-200">
+                <div className="flex gap-4 pt-6 border-t border-gray-200 dark:border-gray-700">
                   <button
                     onClick={() => {
                       setShowEditModal(false);
                       setEditingOrder(null);
                       resetForm();
                     }}
-                    className="flex-1 py-3 rounded-lg font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors"
+                    className="flex-1 py-3 rounded-lg font-semibold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                   >
                     Cancel
                   </button>

@@ -289,10 +289,10 @@ const Customers = () => {
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
-                className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3"
+                className="mb-6 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700 rounded-lg p-4 flex items-center gap-3"
               >
-                <CheckCircle className="w-5 h-5 text-green-600" />
-                <span className="text-green-800 font-medium">
+                <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+                <span className="text-green-800 dark:text-green-300 font-medium">
                   Customer added successfully!
                 </span>
               </motion.div>
@@ -301,8 +301,8 @@ const Customers = () => {
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">Customer Management</h1>
-                <p className="text-gray-600 mt-2">Manage your customers and their profiles</p>
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Customer Management</h1>
+                <p className="text-gray-600 dark:text-gray-400 mt-2">Manage your customers and their profiles</p>
               </div>
               <motion.button
                 whileHover={{ scale: 1.05 }}
@@ -324,21 +324,21 @@ const Customers = () => {
                   placeholder="Search customers by name, email, or phone..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                 />
               </div>
             </div>
 
             {/* Customers Grid */}
             <div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
                 Customers List ({filteredCustomers.length})
               </h2>
               
               {filteredCustomers.length === 0 ? (
-                <div className="bg-white rounded-lg shadow-md p-12 text-center">
-                  <UserPlus className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-600">
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-12 text-center">
+                  <UserPlus className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+                  <p className="text-gray-600 dark:text-gray-400">
                     {searchQuery ? 'No customers found matching your search.' : 'No customers yet. Add your first customer!'}
                   </p>
                 </div>
@@ -375,72 +375,72 @@ const Customers = () => {
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 20 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto"
+              className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto"
             >
               {/* Modal Header */}
-              <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between rounded-t-2xl z-10">
-                <h2 className="text-2xl font-bold text-gray-900">Customer Details</h2>
+              <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between rounded-t-2xl z-10">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Customer Details</h2>
                 <button
                   onClick={() => setShowViewModal(false)}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                 >
-                  <X className="w-6 h-6 text-gray-600" />
+                  <X className="w-6 h-6 text-gray-600 dark:text-gray-300" />
                 </button>
               </div>
 
               {/* Modal Body */}
               <div className="p-6">
                 {/* Customer Info */}
-                <div className="flex items-center gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-4 mb-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                   <img
                     src={selectedCustomerForView.avatar}
                     alt={selectedCustomerForView.name}
                     className="w-20 h-20 rounded-full object-cover"
                   />
                   <div>
-                    <h3 className="text-xl font-bold text-gray-900">{selectedCustomerForView.name}</h3>
-                    <p className="text-gray-600">{selectedCustomerForView.email}</p>
-                    <p className="text-gray-600">{selectedCustomerForView.phone}</p>
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">{selectedCustomerForView.name}</h3>
+                    <p className="text-gray-600 dark:text-gray-400">{selectedCustomerForView.email}</p>
+                    <p className="text-gray-600 dark:text-gray-400">{selectedCustomerForView.phone}</p>
                   </div>
                 </div>
 
                 {/* Stats */}
                 <div className="grid grid-cols-2 gap-4 mb-6">
-                  <div className="p-4 bg-blue-50 rounded-lg">
-                    <p className="text-sm text-gray-600">Total Orders</p>
-                    <p className="text-2xl font-bold text-blue-600">{selectedCustomerForView.totalOrders}</p>
+                  <div className="p-4 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Total Orders</p>
+                    <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{selectedCustomerForView.totalOrders}</p>
                   </div>
-                  <div className="p-4 bg-green-50 rounded-lg">
-                    <p className="text-sm text-gray-600">Total Spent</p>
-                    <p className="text-2xl font-bold text-green-600">${selectedCustomerForView.totalSpent}</p>
+                  <div className="p-4 bg-green-50 dark:bg-green-900/30 rounded-lg">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Total Spent</p>
+                    <p className="text-2xl font-bold text-green-600 dark:text-green-400">${selectedCustomerForView.totalSpent}</p>
                   </div>
                 </div>
 
                 {/* Measurements */}
                 {selectedCustomerForView.measurements && (
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Measurements</h3>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Measurements</h3>
                     
                     {/* Shirt Measurements */}
                     {selectedCustomerForView.measurements.shirt && (
-                      <div className="mb-4 p-4 bg-gray-50 rounded-lg">
-                        <h4 className="font-medium text-gray-700 mb-3">Shirt Measurements</h4>
+                      <div className="mb-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                        <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-3">Shirt Measurements</h4>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                           <div>
-                            <p className="text-sm text-gray-600">Chest</p>
-                            <p className="font-semibold text-gray-900">{selectedCustomerForView.measurements.shirt.chest}"</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">Chest</p>
+                            <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.shirt.chest}"</p>
                           </div>
                           <div>
-                            <p className="text-sm text-gray-600">Waist</p>
-                            <p className="font-semibold text-gray-900">{selectedCustomerForView.measurements.shirt.waist}"</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">Waist</p>
+                            <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.shirt.waist}"</p>
                           </div>
                           <div>
-                            <p className="text-sm text-gray-600">Shoulder</p>
-                            <p className="font-semibold text-gray-900">{selectedCustomerForView.measurements.shirt.shoulder}"</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">Shoulder</p>
+                            <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.shirt.shoulder}"</p>
                           </div>
                           <div>
-                            <p className="text-sm text-gray-600">Length</p>
-                            <p className="font-semibold text-gray-900">{selectedCustomerForView.measurements.shirt.length}"</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">Length</p>
+                            <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.shirt.length}"</p>
                           </div>
                         </div>
                       </div>
@@ -448,20 +448,20 @@ const Customers = () => {
 
                     {/* Pant Measurements */}
                     {selectedCustomerForView.measurements.pant && (
-                      <div className="mb-4 p-4 bg-gray-50 rounded-lg">
-                        <h4 className="font-medium text-gray-700 mb-3">Pant Measurements</h4>
+                      <div className="mb-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                        <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-3">Pant Measurements</h4>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                           <div>
-                            <p className="text-sm text-gray-600">Waist</p>
-                            <p className="font-semibold text-gray-900">{selectedCustomerForView.measurements.pant.waist}"</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">Waist</p>
+                            <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.pant.waist}"</p>
                           </div>
                           <div>
-                            <p className="text-sm text-gray-600">Length</p>
-                            <p className="font-semibold text-gray-900">{selectedCustomerForView.measurements.pant.length}"</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">Length</p>
+                            <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.pant.length}"</p>
                           </div>
                           <div>
-                            <p className="text-sm text-gray-600">Hip</p>
-                            <p className="font-semibold text-gray-900">{selectedCustomerForView.measurements.pant.hip}"</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">Hip</p>
+                            <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.pant.hip}"</p>
                           </div>
                         </div>
                       </div>
@@ -469,32 +469,32 @@ const Customers = () => {
 
                     {/* Custom Measurements */}
                     {selectedCustomerForView.measurements.custom && (
-                      <div className="p-4 bg-gray-50 rounded-lg">
-                        <h4 className="font-medium text-gray-700 mb-2">Custom Measurements</h4>
-                        <p className="text-gray-900">{selectedCustomerForView.measurements.custom}</p>
+                      <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                        <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-2">Custom Measurements</h4>
+                        <p className="text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.custom}</p>
                       </div>
                     )}
 
                     {!selectedCustomerForView.measurements.shirt && 
                      !selectedCustomerForView.measurements.pant && 
                      !selectedCustomerForView.measurements.custom && (
-                      <p className="text-gray-500 text-center py-4">No measurements recorded</p>
+                      <p className="text-gray-500 dark:text-gray-400 text-center py-4">No measurements recorded</p>
                     )}
                   </div>
                 )}
 
                 {/* Additional Info */}
-                <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-600">
+                <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
                     <span className="font-medium">Customer ID:</span> {selectedCustomerForView.id}
                   </p>
-                  <p className="text-sm text-gray-600 mt-1">
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                     <span className="font-medium">Join Date:</span> {selectedCustomerForView.joinDate}
                   </p>
                 </div>
 
                 {/* Footer */}
-                <div className="flex gap-4 mt-6 pt-6 border-t border-gray-200">
+                <div className="flex gap-4 mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
                   <button
                     onClick={() => {
                       setShowViewModal(false);
@@ -506,7 +506,7 @@ const Customers = () => {
                   </button>
                   <button
                     onClick={() => setShowViewModal(false)}
-                    className="flex-1 py-3 rounded-lg font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors"
+                    className="flex-1 py-3 rounded-lg font-semibold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                   >
                     Close
                   </button>
@@ -537,11 +537,11 @@ const Customers = () => {
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 20 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+              className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
             >
               {/* Modal Header */}
-              <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between rounded-t-2xl z-10">
-                <h2 className="text-2xl font-bold text-gray-900">Edit Customer</h2>
+              <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between rounded-t-2xl z-10">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Edit Customer</h2>
                 <button
                   onClick={() => {
                     setShowEditModal(false);
@@ -549,85 +549,85 @@ const Customers = () => {
                     setPhotoPreview(null);
                     setErrors({});
                   }}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                 >
-                  <X className="w-6 h-6 text-gray-600" />
+                  <X className="w-6 h-6 text-gray-600 dark:text-gray-300" />
                 </button>
               </div>
 
               {/* Modal Body - Same as Add Customer Modal */}
               <div className="p-6">
                 {/* Basic Information */}
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Basic Information</h3>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Basic Information</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                   {/* Name */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Name <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
                       value={customerForm.name}
                       onChange={(e) => handleInputChange('name', e.target.value)}
-                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent ${
-                        errors.name ? 'border-red-500' : 'border-gray-300'
+                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600 ${
+                        errors.name ? 'border-red-500 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'
                       }`}
                       placeholder="Enter customer name"
                     />
                     {errors.name && (
-                      <p className="text-red-600 text-sm mt-1">{errors.name}</p>
+                      <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.name}</p>
                     )}
                   </div>
 
                   {/* Mobile */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Mobile <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="tel"
                       value={customerForm.mobile}
                       onChange={(e) => handleInputChange('mobile', e.target.value)}
-                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent ${
-                        errors.mobile ? 'border-red-500' : 'border-gray-300'
+                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600 ${
+                        errors.mobile ? 'border-red-500 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'
                       }`}
                       placeholder="+1234567890"
                     />
                     {errors.mobile && (
-                      <p className="text-red-600 text-sm mt-1">{errors.mobile}</p>
+                      <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.mobile}</p>
                     )}
                   </div>
 
                   {/* Email */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Email <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="email"
                       value={customerForm.email}
                       onChange={(e) => handleInputChange('email', e.target.value)}
-                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent ${
-                        errors.email ? 'border-red-500' : 'border-gray-300'
+                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600 ${
+                        errors.email ? 'border-red-500 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'
                       }`}
                       placeholder="customer@email.com"
                     />
                     {errors.email && (
-                      <p className="text-red-600 text-sm mt-1">{errors.email}</p>
+                      <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.email}</p>
                     )}
                   </div>
 
                   {/* Customer Photo */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Customer Photo
                     </label>
                     
                     {!photoPreview ? (
-                      <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-orange-500 transition-colors">
-                        <Upload className="w-8 h-8 text-gray-400 mb-2" />
-                        <span className="text-sm text-gray-600">Click to upload</span>
-                        <span className="text-xs text-gray-500 mt-1">JPG, PNG (max 5MB)</span>
+                      <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:border-orange-500 transition-colors dark:bg-gray-700">
+                        <Upload className="w-8 h-8 text-gray-400 dark:text-gray-500 mb-2" />
+                        <span className="text-sm text-gray-600 dark:text-gray-300">Click to upload</span>
+                        <span className="text-xs text-gray-500 dark:text-gray-400 mt-1">JPG, PNG (max 5MB)</span>
                         <input
                           type="file"
                           accept="image/*"
@@ -652,61 +652,61 @@ const Customers = () => {
                     )}
                     
                     {errors.photo && (
-                      <p className="text-red-600 text-sm mt-1">{errors.photo}</p>
+                      <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.photo}</p>
                     )}
                   </div>
                 </div>
 
                 {/* Measurements Section */}
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 mt-6">Measurements (Optional)</h3>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 mt-6">Measurements (Optional)</h3>
                 
                 {/* Shirt Measurements */}
                 <div className="mb-6">
-                  <h4 className="text-md font-medium text-gray-700 mb-3">Shirt Measurements</h4>
+                  <h4 className="text-md font-medium text-gray-700 dark:text-gray-300 mb-3">Shirt Measurements</h4>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div>
-                      <label className="block text-sm text-gray-600 mb-1">Chest</label>
+                      <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Chest</label>
                       <input
                         type="number"
                         value={customerForm.measurements.shirt.chest}
                         onChange={(e) => handleMeasurementChange('shirt', 'chest', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
                         placeholder="0"
                         min="0"
                         step="0.1"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm text-gray-600 mb-1">Waist</label>
+                      <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Waist</label>
                       <input
                         type="number"
                         value={customerForm.measurements.shirt.waist}
                         onChange={(e) => handleMeasurementChange('shirt', 'waist', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
                         placeholder="0"
                         min="0"
                         step="0.1"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm text-gray-600 mb-1">Shoulder</label>
+                      <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Shoulder</label>
                       <input
                         type="number"
                         value={customerForm.measurements.shirt.shoulder}
                         onChange={(e) => handleMeasurementChange('shirt', 'shoulder', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
                         placeholder="0"
                         min="0"
                         step="0.1"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm text-gray-600 mb-1">Length</label>
+                      <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Length</label>
                       <input
                         type="number"
                         value={customerForm.measurements.shirt.length}
                         onChange={(e) => handleMeasurementChange('shirt', 'length', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
                         placeholder="0"
                         min="0"
                         step="0.1"
@@ -717,39 +717,39 @@ const Customers = () => {
 
                 {/* Pant Measurements */}
                 <div className="mb-6">
-                  <h4 className="text-md font-medium text-gray-700 mb-3">Pant Measurements</h4>
+                  <h4 className="text-md font-medium text-gray-700 dark:text-gray-300 mb-3">Pant Measurements</h4>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                     <div>
-                      <label className="block text-sm text-gray-600 mb-1">Waist</label>
+                      <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Waist</label>
                       <input
                         type="number"
                         value={customerForm.measurements.pant.waist}
                         onChange={(e) => handleMeasurementChange('pant', 'waist', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
                         placeholder="0"
                         min="0"
                         step="0.1"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm text-gray-600 mb-1">Length</label>
+                      <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Length</label>
                       <input
                         type="number"
                         value={customerForm.measurements.pant.length}
                         onChange={(e) => handleMeasurementChange('pant', 'length', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
                         placeholder="0"
                         min="0"
                         step="0.1"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm text-gray-600 mb-1">Hip</label>
+                      <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Hip</label>
                       <input
                         type="number"
                         value={customerForm.measurements.pant.hip}
                         onChange={(e) => handleMeasurementChange('pant', 'hip', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
                         placeholder="0"
                         min="0"
                         step="0.1"
@@ -760,18 +760,18 @@ const Customers = () => {
 
                 {/* Custom Measurements */}
                 <div>
-                  <h4 className="text-md font-medium text-gray-700 mb-3">Custom Measurements</h4>
+                  <h4 className="text-md font-medium text-gray-700 dark:text-gray-300 mb-3">Custom Measurements</h4>
                   <textarea
                     value={customerForm.measurements.custom}
                     onChange={(e) => handleMeasurementChange('custom', null, e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
                     placeholder="Enter any custom measurements or notes..."
                     rows="3"
                   />
                 </div>
 
                 {/* Modal Footer */}
-                <div className="flex gap-4 mt-8 pt-6 border-t border-gray-200">
+                <div className="flex gap-4 mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
                   <button
                     onClick={() => {
                       setShowEditModal(false);
@@ -779,7 +779,7 @@ const Customers = () => {
                       setPhotoPreview(null);
                       setErrors({});
                     }}
-                    className="flex-1 py-3 rounded-lg font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors"
+                    className="flex-1 py-3 rounded-lg font-semibold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                   >
                     Cancel
                   </button>
@@ -811,92 +811,92 @@ const Customers = () => {
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 20 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+              className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
             >
               {/* Modal Header */}
-              <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between rounded-t-2xl z-10">
-                <h2 className="text-2xl font-bold text-gray-900">Add New Customer</h2>
+              <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between rounded-t-2xl z-10">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Add New Customer</h2>
                 <button
                   onClick={() => setShowAddModal(false)}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                 >
-                  <X className="w-6 h-6 text-gray-600" />
+                  <X className="w-6 h-6 text-gray-600 dark:text-gray-300" />
                 </button>
               </div>
 
               {/* Modal Body */}
               <div className="p-6">
                 {/* Basic Information */}
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Basic Information</h3>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Basic Information</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                   {/* Name */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Name <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
                       value={customerForm.name}
                       onChange={(e) => handleInputChange('name', e.target.value)}
-                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent ${
-                        errors.name ? 'border-red-500' : 'border-gray-300'
+                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600 ${
+                        errors.name ? 'border-red-500 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'
                       }`}
                       placeholder="Enter customer name"
                     />
                     {errors.name && (
-                      <p className="text-red-600 text-sm mt-1">{errors.name}</p>
+                      <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.name}</p>
                     )}
                   </div>
 
                   {/* Mobile */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Mobile <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="tel"
                       value={customerForm.mobile}
                       onChange={(e) => handleInputChange('mobile', e.target.value)}
-                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent ${
-                        errors.mobile ? 'border-red-500' : 'border-gray-300'
+                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600 ${
+                        errors.mobile ? 'border-red-500 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'
                       }`}
                       placeholder="+1234567890"
                     />
                     {errors.mobile && (
-                      <p className="text-red-600 text-sm mt-1">{errors.mobile}</p>
+                      <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.mobile}</p>
                     )}
                   </div>
 
                   {/* Email */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Email <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="email"
                       value={customerForm.email}
                       onChange={(e) => handleInputChange('email', e.target.value)}
-                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent ${
-                        errors.email ? 'border-red-500' : 'border-gray-300'
+                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600 ${
+                        errors.email ? 'border-red-500 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'
                       }`}
                       placeholder="customer@email.com"
                     />
                     {errors.email && (
-                      <p className="text-red-600 text-sm mt-1">{errors.email}</p>
+                      <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.email}</p>
                     )}
                   </div>
 
                   {/* Customer Photo */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Customer Photo
                     </label>
                     
                     {!photoPreview ? (
-                      <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-orange-500 transition-colors">
-                        <Upload className="w-8 h-8 text-gray-400 mb-2" />
-                        <span className="text-sm text-gray-600">Click to upload</span>
-                        <span className="text-xs text-gray-500 mt-1">JPG, PNG (max 5MB)</span>
+                      <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:border-orange-500 transition-colors dark:bg-gray-700">
+                        <Upload className="w-8 h-8 text-gray-400 dark:text-gray-500 mb-2" />
+                        <span className="text-sm text-gray-600 dark:text-gray-300">Click to upload</span>
+                        <span className="text-xs text-gray-500 dark:text-gray-400 mt-1">JPG, PNG (max 5MB)</span>
                         <input
                           type="file"
                           accept="image/*"
@@ -921,61 +921,61 @@ const Customers = () => {
                     )}
                     
                     {errors.photo && (
-                      <p className="text-red-600 text-sm mt-1">{errors.photo}</p>
+                      <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.photo}</p>
                     )}
                   </div>
                 </div>
 
                 {/* Measurements Section */}
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 mt-6">Measurements (Optional)</h3>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 mt-6">Measurements (Optional)</h3>
                 
                 {/* Shirt Measurements */}
                 <div className="mb-6">
-                  <h4 className="text-md font-medium text-gray-700 mb-3">Shirt Measurements</h4>
+                  <h4 className="text-md font-medium text-gray-700 dark:text-gray-300 mb-3">Shirt Measurements</h4>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div>
-                      <label className="block text-sm text-gray-600 mb-1">Chest</label>
+                      <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Chest</label>
                       <input
                         type="number"
                         value={customerForm.measurements.shirt.chest}
                         onChange={(e) => handleMeasurementChange('shirt', 'chest', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
                         placeholder="0"
                         min="0"
                         step="0.1"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm text-gray-600 mb-1">Waist</label>
+                      <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Waist</label>
                       <input
                         type="number"
                         value={customerForm.measurements.shirt.waist}
                         onChange={(e) => handleMeasurementChange('shirt', 'waist', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
                         placeholder="0"
                         min="0"
                         step="0.1"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm text-gray-600 mb-1">Shoulder</label>
+                      <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Shoulder</label>
                       <input
                         type="number"
                         value={customerForm.measurements.shirt.shoulder}
                         onChange={(e) => handleMeasurementChange('shirt', 'shoulder', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
                         placeholder="0"
                         min="0"
                         step="0.1"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm text-gray-600 mb-1">Length</label>
+                      <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Length</label>
                       <input
                         type="number"
                         value={customerForm.measurements.shirt.length}
                         onChange={(e) => handleMeasurementChange('shirt', 'length', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
                         placeholder="0"
                         min="0"
                         step="0.1"
@@ -986,39 +986,39 @@ const Customers = () => {
 
                 {/* Pant Measurements */}
                 <div className="mb-6">
-                  <h4 className="text-md font-medium text-gray-700 mb-3">Pant Measurements</h4>
+                  <h4 className="text-md font-medium text-gray-700 dark:text-gray-300 mb-3">Pant Measurements</h4>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                     <div>
-                      <label className="block text-sm text-gray-600 mb-1">Waist</label>
+                      <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Waist</label>
                       <input
                         type="number"
                         value={customerForm.measurements.pant.waist}
                         onChange={(e) => handleMeasurementChange('pant', 'waist', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
                         placeholder="0"
                         min="0"
                         step="0.1"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm text-gray-600 mb-1">Length</label>
+                      <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Length</label>
                       <input
                         type="number"
                         value={customerForm.measurements.pant.length}
                         onChange={(e) => handleMeasurementChange('pant', 'length', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
                         placeholder="0"
                         min="0"
                         step="0.1"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm text-gray-600 mb-1">Hip</label>
+                      <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Hip</label>
                       <input
                         type="number"
                         value={customerForm.measurements.pant.hip}
                         onChange={(e) => handleMeasurementChange('pant', 'hip', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
                         placeholder="0"
                         min="0"
                         step="0.1"
@@ -1029,23 +1029,23 @@ const Customers = () => {
 
                 {/* Custom Measurements */}
                 <div>
-                  <h4 className="text-md font-medium text-gray-700 mb-3">Custom Measurements</h4>
+                  <h4 className="text-md font-medium text-gray-700 dark:text-gray-300 mb-3">Custom Measurements</h4>
                   <textarea
                     value={customerForm.measurements.custom}
                     onChange={(e) => handleMeasurementChange('custom', null, e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
                     placeholder="Enter any custom measurements or notes..."
                     rows="3"
                   />
                 </div>
 
                 {/* Modal Footer */}
-                <div className="flex gap-4 mt-8 pt-6 border-t border-gray-200">
+                <div className="flex gap-4 mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => setShowAddModal(false)}
-                    className="flex-1 py-3 rounded-lg font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors"
+                    className="flex-1 py-3 rounded-lg font-semibold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                   >
                     Cancel
                   </motion.button>

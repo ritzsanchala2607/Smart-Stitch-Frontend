@@ -171,12 +171,12 @@ const OwnerProfile = () => {
             {/* Header */}
             <div className="mb-6">
               <div className="flex items-center gap-3 mb-2">
-                <div className="p-3 bg-orange-100 rounded-lg">
-                  <Settings className="w-6 h-6 text-orange-600" />
+                <div className="p-3 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
+                  <Settings className="w-6 h-6 text-orange-600 dark:text-orange-400" />
                 </div>
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-900">Profile & Settings</h1>
-                  <p className="text-gray-600">Manage your personal information and preferences</p>
+                  <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Profile & Settings</h1>
+                  <p className="text-gray-600 dark:text-gray-400">Manage your personal information and preferences</p>
                 </div>
               </div>
             </div>
@@ -187,10 +187,10 @@ const OwnerProfile = () => {
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
-                className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3"
+                className="mb-6 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700 rounded-lg p-4 flex items-center gap-3"
               >
-                <CheckCircle className="w-5 h-5 text-green-600" />
-                <span className="text-green-800 font-medium">
+                <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+                <span className="text-green-800 dark:text-green-300 font-medium">
                   Profile updated successfully!
                 </span>
               </motion.div>
@@ -201,17 +201,17 @@ const OwnerProfile = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: 0.1 }}
-              className="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-6"
+              className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 sm:p-6 mb-6"
             >
               <div className="flex items-center gap-2 mb-6">
                 <User className="w-5 h-5 text-orange-500" />
-                <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Personal Information</h2>
+                <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100">Personal Information</h2>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                 {/* Profile Photo */}
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Profile Photo
                   </label>
                   
@@ -221,7 +221,7 @@ const OwnerProfile = () => {
                         <img
                           src={photoPreview}
                           alt="Profile"
-                          className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover border-4 border-orange-100"
+                          className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover border-4 border-orange-100 dark:border-orange-900/30"
                         />
                         <button
                           onClick={handleRemovePhoto}
@@ -231,8 +231,8 @@ const OwnerProfile = () => {
                         </button>
                       </div>
                     ) : (
-                      <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gray-200 flex items-center justify-center border-4 border-orange-100">
-                        <User className="w-10 h-10 sm:w-12 sm:h-12 text-gray-400" />
+                      <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center border-4 border-orange-100 dark:border-orange-900/30">
+                        <User className="w-10 h-10 sm:w-12 sm:h-12 text-gray-400 dark:text-gray-500" />
                       </div>
                     )}
                     
@@ -251,13 +251,13 @@ const OwnerProfile = () => {
                   </div>
                   
                   {errors.photo && (
-                    <p className="text-red-600 text-sm mt-1">{errors.photo}</p>
+                    <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.photo}</p>
                   )}
                 </div>
 
                 {/* Name */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     <div className="flex items-center gap-2">
                       <User className="w-4 h-4 text-orange-500" />
                       Full Name <span className="text-red-500">*</span>
@@ -267,19 +267,19 @@ const OwnerProfile = () => {
                     type="text"
                     value={profile.name}
                     onChange={(e) => handleInputChange('name', e.target.value)}
-                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent ${
-                      errors.name ? 'border-red-500' : 'border-gray-300'
+                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 ${
+                      errors.name ? 'border-red-500 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'
                     }`}
                     placeholder="Enter your name"
                   />
                   {errors.name && (
-                    <p className="text-red-600 text-sm mt-1">{errors.name}</p>
+                    <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.name}</p>
                   )}
                 </div>
 
                 {/* Email */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     <div className="flex items-center gap-2">
                       <Mail className="w-4 h-4 text-orange-500" />
                       Email Address <span className="text-red-500">*</span>
@@ -289,19 +289,19 @@ const OwnerProfile = () => {
                     type="email"
                     value={profile.email}
                     onChange={(e) => handleInputChange('email', e.target.value)}
-                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent ${
-                      errors.email ? 'border-red-500' : 'border-gray-300'
+                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 ${
+                      errors.email ? 'border-red-500 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'
                     }`}
                     placeholder="your@email.com"
                   />
                   {errors.email && (
-                    <p className="text-red-600 text-sm mt-1">{errors.email}</p>
+                    <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.email}</p>
                   )}
                 </div>
 
                 {/* Mobile */}
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     <div className="flex items-center gap-2">
                       <Phone className="w-4 h-4 text-orange-500" />
                       Mobile Number <span className="text-red-500">*</span>
@@ -311,13 +311,13 @@ const OwnerProfile = () => {
                     type="tel"
                     value={profile.mobile}
                     onChange={(e) => handleInputChange('mobile', e.target.value)}
-                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent ${
-                      errors.mobile ? 'border-red-500' : 'border-gray-300'
+                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 ${
+                      errors.mobile ? 'border-red-500 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'
                     }`}
                     placeholder="+1234567890"
                   />
                   {errors.mobile && (
-                    <p className="text-red-600 text-sm mt-1">{errors.mobile}</p>
+                    <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.mobile}</p>
                   )}
                 </div>
               </div>
@@ -328,17 +328,17 @@ const OwnerProfile = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: 0.15 }}
-              className="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-6"
+              className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 sm:p-6 mb-6"
             >
               <div className="flex items-center gap-2 mb-6">
                 <Building2 className="w-5 h-5 text-orange-500" />
-                <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Shop Details</h2>
+                <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100">Shop Details</h2>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                 {/* Shop Name */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     <div className="flex items-center gap-2">
                       <Scissors className="w-4 h-4 text-orange-500" />
                       Shop Name <span className="text-red-500">*</span>
@@ -348,19 +348,19 @@ const OwnerProfile = () => {
                     type="text"
                     value={profile.shopName}
                     onChange={(e) => handleInputChange('shopName', e.target.value)}
-                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent ${
-                      errors.shopName ? 'border-red-500' : 'border-gray-300'
+                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 ${
+                      errors.shopName ? 'border-red-500 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'
                     }`}
                     placeholder="Enter shop name"
                   />
                   {errors.shopName && (
-                    <p className="text-red-600 text-sm mt-1">{errors.shopName}</p>
+                    <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.shopName}</p>
                   )}
                 </div>
 
                 {/* Shop Phone */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     <div className="flex items-center gap-2">
                       <Phone className="w-4 h-4 text-orange-500" />
                       Shop Phone Number
@@ -370,15 +370,15 @@ const OwnerProfile = () => {
                     type="tel"
                     value={profile.mobile}
                     disabled
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-400"
                     placeholder="+1234567890"
                   />
-                  <p className="text-xs text-gray-500 mt-1">Same as personal mobile</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Same as personal mobile</p>
                 </div>
 
                 {/* Shop Email */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     <div className="flex items-center gap-2">
                       <Mail className="w-4 h-4 text-orange-500" />
                       Shop Email
@@ -388,15 +388,15 @@ const OwnerProfile = () => {
                     type="email"
                     value={profile.email}
                     disabled
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-400"
                     placeholder="shop@email.com"
                   />
-                  <p className="text-xs text-gray-500 mt-1">Same as personal email</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Same as personal email</p>
                 </div>
 
                 {/* Shop Registration (Optional) */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     <div className="flex items-center gap-2">
                       <Building2 className="w-4 h-4 text-orange-500" />
                       Registration Number
@@ -405,14 +405,14 @@ const OwnerProfile = () => {
                   <input
                     type="text"
                     placeholder="Optional"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
                   />
-                  <p className="text-xs text-gray-500 mt-1">Business registration number</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Business registration number</p>
                 </div>
 
                 {/* Shop Address */}
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     <div className="flex items-center gap-2">
                       <MapPin className="w-4 h-4 text-orange-500" />
                       Shop Address <span className="text-red-500">*</span>
@@ -422,13 +422,13 @@ const OwnerProfile = () => {
                     value={profile.address}
                     onChange={(e) => handleInputChange('address', e.target.value)}
                     rows="3"
-                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent ${
-                      errors.address ? 'border-red-500' : 'border-gray-300'
+                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 ${
+                      errors.address ? 'border-red-500 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'
                     }`}
                     placeholder="Enter complete shop address with city, state, and postal code"
                   />
                   {errors.address && (
-                    <p className="text-red-600 text-sm mt-1">{errors.address}</p>
+                    <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.address}</p>
                   )}
                 </div>
               </div>
@@ -452,12 +452,12 @@ const OwnerProfile = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: 0.2 }}
-              className="bg-white rounded-lg shadow-md p-6"
+              className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"
             >
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">Preferences</h2>
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-6">Preferences</h2>
 
               {/* Dark Mode Toggle */}
-              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+              <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                 <div className="flex items-center gap-3">
                   {darkMode ? (
                     <Moon className="w-5 h-5 text-orange-500" />
@@ -465,8 +465,8 @@ const OwnerProfile = () => {
                     <Sun className="w-5 h-5 text-orange-500" />
                   )}
                   <div>
-                    <p className="font-medium text-gray-900">Dark Mode</p>
-                    <p className="text-sm text-gray-600">
+                    <p className="font-medium text-gray-900 dark:text-gray-100">Dark Mode</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
                       {darkMode ? 'Dark theme enabled' : 'Light theme enabled'}
                     </p>
                   </div>
@@ -487,7 +487,7 @@ const OwnerProfile = () => {
                 </motion.button>
               </div>
 
-              <p className="text-sm text-gray-500 mt-4">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-4">
                 More preferences will be available in future updates
               </p>
             </motion.div>

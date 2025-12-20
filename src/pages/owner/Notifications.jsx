@@ -88,12 +88,12 @@ const Notifications = () => {
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
-                <div className="p-3 bg-orange-100 rounded-lg">
-                  <Bell className="w-6 h-6 text-orange-600" />
+                <div className="p-3 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
+                  <Bell className="w-6 h-6 text-orange-600 dark:text-orange-400" />
                 </div>
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-900">Notifications</h1>
-                  <p className="text-gray-600 mt-1">
+                  <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Notifications</h1>
+                  <p className="text-gray-600 dark:text-gray-400 mt-1">
                     {unreadCount > 0 ? `You have ${unreadCount} unread notification${unreadCount > 1 ? 's' : ''}` : 'All caught up!'}
                   </p>
                 </div>
@@ -111,14 +111,14 @@ const Notifications = () => {
             </div>
 
             {/* Notifications List */}
-            <div className="bg-white rounded-lg shadow-md overflow-hidden">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
               {notifications.length === 0 ? (
                 <div className="p-12 text-center">
-                  <Bell className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500 text-lg">No notifications yet</p>
+                  <Bell className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+                  <p className="text-gray-500 dark:text-gray-400 text-lg">No notifications yet</p>
                 </div>
               ) : (
-                <div className="divide-y divide-gray-200">
+                <div className="divide-y divide-gray-200 dark:divide-gray-700">
                   {notifications.map((notif) => {
                     const Icon = notif.icon;
                     return (
@@ -126,21 +126,31 @@ const Notifications = () => {
                         key={notif.id}
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
-                        className={`p-6 hover:bg-gray-50 transition-colors ${
-                          notif.unread ? 'bg-blue-50' : ''
+                        className={`p-6 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
+                          notif.unread ? 'bg-blue-50 dark:bg-blue-900/30' : ''
                         }`}
                       >
                         <div className="flex items-start gap-4">
-                          <div className={`p-3 rounded-lg ${notif.bgColor}`}>
-                            <Icon className={`w-6 h-6 ${notif.color}`} />
+                          <div className={`p-3 rounded-lg ${notif.bgColor} ${
+                            notif.bgColor === 'bg-green-100' ? 'dark:bg-green-900/30' :
+                            notif.bgColor === 'bg-blue-100' ? 'dark:bg-blue-900/30' :
+                            notif.bgColor === 'bg-orange-100' ? 'dark:bg-orange-900/30' :
+                            notif.bgColor === 'bg-purple-100' ? 'dark:bg-purple-900/30' : ''
+                          }`}>
+                            <Icon className={`w-6 h-6 ${notif.color} ${
+                              notif.color === 'text-green-600' ? 'dark:text-green-400' :
+                              notif.color === 'text-blue-600' ? 'dark:text-blue-400' :
+                              notif.color === 'text-orange-600' ? 'dark:text-orange-400' :
+                              notif.color === 'text-purple-600' ? 'dark:text-purple-400' : ''
+                            }`} />
                           </div>
                           <div className="flex-1">
                             <div className="flex items-start justify-between">
                               <div>
-                                <p className={`text-gray-900 ${notif.unread ? 'font-semibold' : ''}`}>
+                                <p className={`text-gray-900 dark:text-gray-100 ${notif.unread ? 'font-semibold' : ''}`}>
                                   {notif.message}
                                 </p>
-                                <p className="text-sm text-gray-500 mt-1">{notif.time}</p>
+                                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{notif.time}</p>
                               </div>
                               <div className="flex items-center gap-2">
                                 {notif.unread && (
@@ -148,7 +158,7 @@ const Notifications = () => {
                                     whileHover={{ scale: 1.1 }}
                                     whileTap={{ scale: 0.9 }}
                                     onClick={() => markAsRead(notif.id)}
-                                    className="text-orange-600 hover:text-orange-700 text-sm font-medium"
+                                    className="text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 text-sm font-medium"
                                   >
                                     Mark as Read
                                   </motion.button>
@@ -157,9 +167,9 @@ const Notifications = () => {
                                   whileHover={{ scale: 1.1 }}
                                   whileTap={{ scale: 0.9 }}
                                   onClick={() => deleteNotification(notif.id)}
-                                  className="p-2 hover:bg-red-50 rounded-lg transition-colors"
+                                  className="p-2 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
                                 >
-                                  <Trash2 className="w-4 h-4 text-red-600" />
+                                  <Trash2 className="w-4 h-4 text-red-600 dark:text-red-400" />
                                 </motion.button>
                               </div>
                             </div>

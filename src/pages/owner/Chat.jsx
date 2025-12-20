@@ -244,10 +244,10 @@ const Chat = () => {
         
         <main className="flex-1 overflow-hidden flex">
           {/* Left Sidebar - Worker List */}
-          <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
+          <div className="w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col">
         {/* Header */}
-        <div className="p-4 border-b border-gray-200">
-          <h2 className="text-xl font-bold text-gray-800 mb-3">Internal Chat</h2>
+        <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+          <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-3">Internal Chat</h2>
           
           {/* Search Bar */}
           <div className="relative">
@@ -257,7 +257,7 @@ const Chat = () => {
               placeholder="Search workers..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
             />
           </div>
 
@@ -268,7 +268,7 @@ const Chat = () => {
               className={`flex-1 px-3 py-1.5 text-sm rounded-lg transition-colors ${
                 chatFilter === 'all'
                   ? 'bg-blue-500 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
               }`}
             >
               All
@@ -278,7 +278,7 @@ const Chat = () => {
               className={`flex-1 px-3 py-1.5 text-sm rounded-lg transition-colors ${
                 chatFilter === 'unread'
                   ? 'bg-blue-500 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
               }`}
             >
               Unread
@@ -288,7 +288,7 @@ const Chat = () => {
               className={`flex-1 px-3 py-1.5 text-sm rounded-lg transition-colors ${
                 chatFilter === 'starred'
                   ? 'bg-blue-500 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
               }`}
             >
               Starred
@@ -299,7 +299,7 @@ const Chat = () => {
         {/* Worker List */}
         <div className="flex-1 overflow-y-auto">
           {filteredWorkers.length === 0 ? (
-            <div className="p-8 text-center text-gray-500">
+            <div className="p-8 text-center text-gray-500 dark:text-gray-400">
               <p>No workers found</p>
             </div>
           ) : (
@@ -312,8 +312,8 @@ const Chat = () => {
                 <div
                   key={worker.id}
                   onClick={() => handleWorkerSelect(worker)}
-                  className={`p-4 border-b border-gray-100 cursor-pointer transition-colors hover:bg-gray-50 ${
-                    selectedWorker?.id === worker.id ? 'bg-blue-50' : ''
+                  className={`p-4 border-b border-gray-100 dark:border-gray-700 cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-700 ${
+                    selectedWorker?.id === worker.id ? 'bg-blue-50 dark:bg-blue-900/30' : ''
                   }`}
                 >
                   <div className="flex items-start gap-3">
@@ -334,14 +334,14 @@ const Chat = () => {
                     {/* Worker Info */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-1">
-                        <h3 className="font-semibold text-gray-800 truncate">{worker.name}</h3>
+                        <h3 className="font-semibold text-gray-800 dark:text-gray-100 truncate">{worker.name}</h3>
                         {lastMessage && (
-                          <span className="text-xs text-gray-500">{lastMessage.timestamp}</span>
+                          <span className="text-xs text-gray-500 dark:text-gray-400">{lastMessage.timestamp}</span>
                         )}
                       </div>
-                      <p className="text-xs text-gray-500 mb-1">{worker.specialization}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">{worker.specialization}</p>
                       {lastMessage && (
-                        <p className="text-sm text-gray-600 truncate">
+                        <p className="text-sm text-gray-600 dark:text-gray-300 truncate">
                           {lastMessage.sender === 'owner' ? 'You: ' : ''}
                           {lastMessage.text}
                         </p>
@@ -372,9 +372,9 @@ const Chat = () => {
 
       {/* Right Side - Chat Window */}
       {selectedWorker ? (
-        <div className="flex-1 flex flex-col bg-white">
+        <div className="flex-1 flex flex-col bg-white dark:bg-gray-800">
           {/* Chat Header */}
-          <div className="p-4 border-b border-gray-200 bg-white">
+          <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="relative">
@@ -390,8 +390,8 @@ const Chat = () => {
                   />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-800">{selectedWorker.name}</h3>
-                  <p className="text-sm text-gray-500">{selectedChat.lastSeen}</p>
+                  <h3 className="font-semibold text-gray-800 dark:text-gray-100">{selectedWorker.name}</h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">{selectedChat.lastSeen}</p>
                 </div>
               </div>
 
@@ -399,7 +399,7 @@ const Chat = () => {
               <div className="flex items-center gap-2">
                 <button
                   onClick={toggleStar}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                   title={selectedChat.isStarred ? 'Unstar' : 'Star'}
                 >
                   <Star
@@ -411,17 +411,17 @@ const Chat = () => {
                 <div className="relative">
                   <button
                     onClick={() => setShowSettings(!showSettings)}
-                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                   >
-                    <MoreVertical className="w-5 h-5 text-gray-600" />
+                    <MoreVertical className="w-5 h-5 text-gray-600 dark:text-gray-300" />
                   </button>
 
                   {/* Settings Dropdown */}
                   {showSettings && (
-                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10">
+                    <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-10">
                       <button
                         onClick={toggleMute}
-                        className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                        className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
                       >
                         {selectedChat.isMuted ? (
                           <>
@@ -437,14 +437,14 @@ const Chat = () => {
                       </button>
                       <button
                         onClick={archiveChat}
-                        className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                        className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
                       >
                         <Archive className="w-4 h-4" />
                         Archive Chat
                       </button>
                       <button
                         onClick={deleteChat}
-                        className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                        className="w-full px-4 py-2 text-left text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 flex items-center gap-2"
                       >
                         <Trash2 className="w-4 h-4" />
                         Delete History
@@ -457,9 +457,9 @@ const Chat = () => {
           </div>
 
           {/* Messages Area */}
-          <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
+          <div className="flex-1 overflow-y-auto p-4 bg-gray-50 dark:bg-gray-900">
             {selectedChat.messages.length === 0 ? (
-              <div className="h-full flex items-center justify-center text-gray-500">
+              <div className="h-full flex items-center justify-center text-gray-500 dark:text-gray-400">
                 <p>No messages yet. Start the conversation!</p>
               </div>
             ) : (
@@ -473,7 +473,7 @@ const Chat = () => {
                       className={`max-w-xs lg:max-w-md xl:max-w-lg ${
                         message.sender === 'owner'
                           ? 'bg-blue-500 text-white'
-                          : 'bg-white text-gray-800 border border-gray-200'
+                          : 'bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 border border-gray-200 dark:border-gray-700'
                       } rounded-lg p-3 shadow-sm`}
                     >
                       {message.image && (
@@ -487,7 +487,7 @@ const Chat = () => {
                       <div className="flex items-center justify-between mt-1 gap-2">
                         <span
                           className={`text-xs ${
-                            message.sender === 'owner' ? 'text-blue-100' : 'text-gray-500'
+                            message.sender === 'owner' ? 'text-blue-100' : 'text-gray-500 dark:text-gray-400'
                           }`}
                         >
                           {message.timestamp}
@@ -509,7 +509,7 @@ const Chat = () => {
           </div>
 
           {/* Message Input */}
-          <div className="p-4 bg-white border-t border-gray-200">
+          <div className="p-4 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
             {/* Selected Image Preview */}
             {selectedImage && (
               <div className="mb-3 relative inline-block">
@@ -532,7 +532,7 @@ const Chat = () => {
               <div className="relative" ref={emojiPickerRef}>
                 <button
                   onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                  className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                   title="Add emoji"
                 >
                   <Smile className="w-5 h-5" />
@@ -540,13 +540,13 @@ const Chat = () => {
 
                 {/* Emoji Picker Dropdown */}
                 {showEmojiPicker && (
-                  <div className="absolute bottom-full mb-2 left-0 bg-white rounded-lg shadow-xl border border-gray-200 p-3 z-50 min-w-[200px]">
+                  <div className="absolute bottom-full mb-2 left-0 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 p-3 z-50 min-w-[200px]">
                     <div className="grid grid-cols-5 gap-2">
                       {commonEmojis.map((emoji, index) => (
                         <button
                           key={index}
                           onClick={() => handleEmojiClick(emoji)}
-                          className="text-2xl hover:bg-gray-100 rounded p-1 transition-colors"
+                          className="text-2xl hover:bg-gray-100 dark:hover:bg-gray-700 rounded p-1 transition-colors"
                         >
                           {emoji}
                         </button>
@@ -559,7 +559,7 @@ const Chat = () => {
               {/* Attach Button */}
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                 title="Attach image"
               >
                 <Paperclip className="w-5 h-5" />
@@ -579,7 +579,7 @@ const Chat = () => {
                 onChange={(e) => setMessageInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
                 placeholder="Type a message..."
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
               />
 
               {/* Send Button */}
@@ -600,10 +600,10 @@ const Chat = () => {
         </div>
       ) : (
         // No Worker Selected State
-        <div className="flex-1 flex items-center justify-center bg-gray-50">
-          <div className="text-center text-gray-500">
-            <div className="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
-              <ImageIcon className="w-10 h-10 text-gray-400" />
+        <div className="flex-1 flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+          <div className="text-center text-gray-500 dark:text-gray-400">
+            <div className="w-20 h-20 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
+              <ImageIcon className="w-10 h-10 text-gray-400 dark:text-gray-500" />
             </div>
             <h3 className="text-xl font-semibold mb-2">Select a worker to start chatting</h3>
             <p className="text-sm">Choose a worker from the list to view and send messages</p>

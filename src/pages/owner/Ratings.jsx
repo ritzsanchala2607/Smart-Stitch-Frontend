@@ -218,18 +218,18 @@ const Ratings = () => {
           >
             {/* Header */}
             <div className="mb-6">
-              <h1 className="text-3xl font-bold text-gray-900">Ratings & Feedback</h1>
-              <p className="text-gray-600 mt-2">Manage customer reviews and ratings</p>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Ratings & Feedback</h1>
+              <p className="text-gray-600 dark:text-gray-400 mt-2">Manage customer reviews and ratings</p>
             </div>
 
             {/* Tabs */}
-            <div className="flex gap-2 mb-6 border-b border-gray-200">
+            <div className="flex gap-2 mb-6 border-b border-gray-200 dark:border-gray-700">
               <button
                 onClick={() => setActiveTab('overview')}
                 className={`px-6 py-3 font-medium transition-colors border-b-2 ${
                   activeTab === 'overview'
-                    ? 'border-orange-500 text-orange-600'
-                    : 'border-transparent text-gray-600 hover:text-gray-900'
+                    ? 'border-orange-500 text-orange-600 dark:text-orange-400'
+                    : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
                 }`}
               >
                 Overview
@@ -238,8 +238,8 @@ const Ratings = () => {
                 onClick={() => setActiveTab('feedback')}
                 className={`px-6 py-3 font-medium transition-colors border-b-2 ${
                   activeTab === 'feedback'
-                    ? 'border-orange-500 text-orange-600'
-                    : 'border-transparent text-gray-600 hover:text-gray-900'
+                    ? 'border-orange-500 text-orange-600 dark:text-orange-400'
+                    : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
                 }`}
               >
                 All Feedback
@@ -248,8 +248,8 @@ const Ratings = () => {
                 onClick={() => setActiveTab('workers')}
                 className={`px-6 py-3 font-medium transition-colors border-b-2 ${
                   activeTab === 'workers'
-                    ? 'border-orange-500 text-orange-600'
-                    : 'border-transparent text-gray-600 hover:text-gray-900'
+                    ? 'border-orange-500 text-orange-600 dark:text-orange-400'
+                    : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
                 }`}
               >
                 Worker Ratings
@@ -258,8 +258,8 @@ const Ratings = () => {
                 onClick={() => setActiveTab('complaints')}
                 className={`px-6 py-3 font-medium transition-colors border-b-2 ${
                   activeTab === 'complaints'
-                    ? 'border-orange-500 text-orange-600'
-                    : 'border-transparent text-gray-600 hover:text-gray-900'
+                    ? 'border-orange-500 text-orange-600 dark:text-orange-400'
+                    : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
                 }`}
               >
                 Complaints
@@ -300,8 +300,8 @@ const Ratings = () => {
                 </div>
 
                 {/* Rating Distribution */}
-                <div className="bg-white rounded-lg shadow-md p-6">
-                  <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
                     <PieChart className="w-5 h-5 text-orange-500" />
                     Rating Distribution
                   </h2>
@@ -312,16 +312,16 @@ const Ratings = () => {
                       return (
                         <div key={rating} className="flex items-center gap-3">
                           <div className="flex items-center gap-1 w-20">
-                            <span className="font-medium">{rating}</span>
+                            <span className="font-medium text-gray-900 dark:text-gray-100">{rating}</span>
                             <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
                           </div>
-                          <div className="flex-1 bg-gray-200 rounded-full h-3 overflow-hidden">
+                          <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
                             <div
                               className="bg-yellow-500 h-full rounded-full transition-all"
                               style={{ width: `${percentage}%` }}
                             />
                           </div>
-                          <span className="text-sm text-gray-600 w-16 text-right">
+                          <span className="text-sm text-gray-600 dark:text-gray-400 w-16 text-right">
                             {count} ({percentage.toFixed(0)}%)
                           </span>
                         </div>
@@ -331,11 +331,11 @@ const Ratings = () => {
                 </div>
 
                 {/* Recent Feedback */}
-                <div className="bg-white rounded-lg shadow-md p-6">
-                  <h2 className="text-xl font-bold text-gray-900 mb-4">Recent Feedback</h2>
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">Recent Feedback</h2>
                   <div className="space-y-4">
                     {feedbackList.slice(0, 5).map(feedback => (
-                      <div key={feedback.id} className="flex items-start gap-4 p-4 bg-gray-50 rounded-lg">
+                      <div key={feedback.id} className="flex items-start gap-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                         <img
                           src={feedback.customerAvatar}
                           alt={feedback.customerName}
@@ -344,8 +344,8 @@ const Ratings = () => {
                         <div className="flex-1">
                           <div className="flex items-center justify-between mb-2">
                             <div>
-                              <h3 className="font-semibold text-gray-900">{feedback.customerName}</h3>
-                              <p className="text-sm text-gray-500">Order: {feedback.orderId}</p>
+                              <h3 className="font-semibold text-gray-900 dark:text-gray-100">{feedback.customerName}</h3>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">Order: {feedback.orderId}</p>
                             </div>
                             <div className="flex items-center gap-1">
                               {[...Array(5)].map((_, i) => (
@@ -354,19 +354,19 @@ const Ratings = () => {
                                   className={`w-4 h-4 ${
                                     i < feedback.shopRating
                                       ? 'text-yellow-500 fill-yellow-500'
-                                      : 'text-gray-300'
+                                      : 'text-gray-300 dark:text-gray-600'
                                   }`}
                                 />
                               ))}
                             </div>
                           </div>
-                          <p className="text-gray-700 text-sm">{feedback.comment}</p>
+                          <p className="text-gray-700 dark:text-gray-300 text-sm">{feedback.comment}</p>
                           <div className="flex items-center gap-2 mt-2">
-                            <span className="text-xs text-gray-500">{feedback.date}</span>
+                            <span className="text-xs text-gray-500 dark:text-gray-400">{feedback.date}</span>
                             <span className={`text-xs px-2 py-1 rounded-full ${
-                              feedback.status === 'important' ? 'bg-red-100 text-red-700' :
-                              feedback.status === 'reviewed' ? 'bg-green-100 text-green-700' :
-                              'bg-gray-100 text-gray-700'
+                              feedback.status === 'important' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400' :
+                              feedback.status === 'reviewed' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' :
+                              'bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-gray-300'
                             }`}>
                               {feedback.status}
                             </span>
@@ -385,21 +385,21 @@ const Ratings = () => {
                 {/* Filters */}
                 <div className="flex flex-col md:flex-row gap-4">
                   <div className="flex-1 relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
                     <input
                       type="text"
                       placeholder="Search by customer, order, or worker..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
                     />
                   </div>
                   <div className="relative">
-                    <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
                     <select
                       value={filterRating}
                       onChange={(e) => setFilterRating(e.target.value)}
-                      className="pl-10 pr-8 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent appearance-none bg-white"
+                      className="pl-10 pr-8 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent appearance-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                     >
                       <option value="all">All Ratings</option>
                       <option value="5">5 Stars</option>
@@ -412,23 +412,23 @@ const Ratings = () => {
                 </div>
 
                 {/* Feedback List */}
-                <div className="bg-white rounded-lg shadow-md overflow-hidden">
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
                   <div className="overflow-x-auto">
                     <table className="w-full">
-                      <thead className="bg-gray-50 border-b border-gray-200">
+                      <thead className="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
                         <tr>
-                          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Customer</th>
-                          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Order</th>
-                          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Worker</th>
-                          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Rating</th>
-                          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Date</th>
-                          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Status</th>
-                          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Actions</th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">Customer</th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">Order</th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">Worker</th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">Rating</th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">Date</th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">Status</th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">Actions</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-gray-200">
+                      <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                         {filteredFeedback.map(feedback => (
-                          <tr key={feedback.id} className="hover:bg-gray-50">
+                          <tr key={feedback.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                             <td className="px-6 py-4">
                               <div className="flex items-center gap-3">
                                 <img
@@ -436,23 +436,23 @@ const Ratings = () => {
                                   alt={feedback.customerName}
                                   className="w-10 h-10 rounded-full"
                                 />
-                                <span className="font-medium text-gray-900">{feedback.customerName}</span>
+                                <span className="font-medium text-gray-900 dark:text-gray-100">{feedback.customerName}</span>
                               </div>
                             </td>
-                            <td className="px-6 py-4 text-gray-900">{feedback.orderId}</td>
-                            <td className="px-6 py-4 text-gray-900">{feedback.workerName}</td>
+                            <td className="px-6 py-4 text-gray-900 dark:text-gray-100">{feedback.orderId}</td>
+                            <td className="px-6 py-4 text-gray-900 dark:text-gray-100">{feedback.workerName}</td>
                             <td className="px-6 py-4">
                               <div className="flex items-center gap-1">
                                 <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                                <span className="font-semibold">{feedback.shopRating}</span>
+                                <span className="font-semibold text-gray-900 dark:text-gray-100">{feedback.shopRating}</span>
                               </div>
                             </td>
-                            <td className="px-6 py-4 text-gray-600">{feedback.date}</td>
+                            <td className="px-6 py-4 text-gray-600 dark:text-gray-400">{feedback.date}</td>
                             <td className="px-6 py-4">
                               <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                                feedback.status === 'important' ? 'bg-red-100 text-red-700' :
-                                feedback.status === 'reviewed' ? 'bg-green-100 text-green-700' :
-                                'bg-gray-100 text-gray-700'
+                                feedback.status === 'important' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400' :
+                                feedback.status === 'reviewed' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' :
+                                'bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-gray-300'
                               }`}>
                                 {feedback.status}
                               </span>
@@ -461,25 +461,25 @@ const Ratings = () => {
                               <div className="flex items-center gap-2">
                                 <button
                                   onClick={() => handleViewDetails(feedback)}
-                                  className="p-2 hover:bg-blue-50 rounded-lg transition-colors"
+                                  className="p-2 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
                                   title="View Details"
                                 >
-                                  <Eye className="w-4 h-4 text-blue-600" />
+                                  <Eye className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                                 </button>
                                 <button
                                   onClick={() => handleMarkReviewed(feedback.id)}
-                                  className="p-2 hover:bg-green-50 rounded-lg transition-colors"
+                                  className="p-2 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-lg transition-colors"
                                   title="Mark as Reviewed"
                                 >
-                                  <CheckCircle className="w-4 h-4 text-green-600" />
+                                  <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
                                 </button>
                                 <button
                                   onClick={() => handleMarkImportant(feedback.id)}
-                                  className="p-2 hover:bg-red-50 rounded-lg transition-colors"
+                                  className="p-2 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
                                   title="Mark as Important"
                                 >
                                   <Tag className={`w-4 h-4 ${
-                                    feedback.status === 'important' ? 'text-red-600 fill-red-600' : 'text-gray-400'
+                                    feedback.status === 'important' ? 'text-red-600 dark:text-red-400 fill-red-600 dark:fill-red-400' : 'text-gray-400 dark:text-gray-500'
                                   }`} />
                                 </button>
                               </div>
@@ -497,14 +497,14 @@ const Ratings = () => {
             {activeTab === 'workers' && (
               <div className="space-y-6">
                 {/* Top 5 Workers */}
-                <div className="bg-white rounded-lg shadow-md p-6">
-                  <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
                     <Award className="w-5 h-5 text-orange-500" />
                     Top 5 Workers by Rating
                   </h2>
                   <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                     {workerRatings.slice(0, 5).map((worker, index) => (
-                      <div key={worker.id} className="text-center p-4 bg-gray-50 rounded-lg">
+                      <div key={worker.id} className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                         <div className="relative inline-block mb-3">
                           <img
                             src={worker.avatar}
@@ -517,37 +517,37 @@ const Ratings = () => {
                             </div>
                           )}
                         </div>
-                        <h3 className="font-semibold text-gray-900 text-sm">{worker.name}</h3>
+                        <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">{worker.name}</h3>
                         <div className="flex items-center justify-center gap-1 mt-2">
                           <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                          <span className="font-bold text-lg">{worker.avgRating}</span>
+                          <span className="font-bold text-lg text-gray-900 dark:text-gray-100">{worker.avgRating}</span>
                         </div>
-                        <p className="text-xs text-gray-500 mt-1">{worker.feedbackCount} reviews</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{worker.feedbackCount} reviews</p>
                       </div>
                     ))}
                   </div>
                 </div>
 
                 {/* All Workers List */}
-                <div className="bg-white rounded-lg shadow-md overflow-hidden">
-                  <div className="p-6 border-b border-gray-200">
-                    <h2 className="text-xl font-bold text-gray-900">Worker Performance</h2>
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+                  <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Worker Performance</h2>
                   </div>
                   <div className="overflow-x-auto">
                     <table className="w-full">
-                      <thead className="bg-gray-50 border-b border-gray-200">
+                      <thead className="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
                         <tr>
-                          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Worker</th>
-                          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Specialization</th>
-                          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Avg Rating</th>
-                          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Reviews</th>
-                          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Performance</th>
-                          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Status</th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">Worker</th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">Specialization</th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">Avg Rating</th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">Reviews</th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">Performance</th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">Status</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-gray-200">
+                      <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                         {workerRatings.map(worker => (
-                          <tr key={worker.id} className="hover:bg-gray-50">
+                          <tr key={worker.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                             <td className="px-6 py-4">
                               <div className="flex items-center gap-3">
                                 <img
@@ -555,20 +555,20 @@ const Ratings = () => {
                                   alt={worker.name}
                                   className="w-10 h-10 rounded-full"
                                 />
-                                <span className="font-medium text-gray-900">{worker.name}</span>
+                                <span className="font-medium text-gray-900 dark:text-gray-100">{worker.name}</span>
                               </div>
                             </td>
-                            <td className="px-6 py-4 text-gray-600">{worker.specialization}</td>
+                            <td className="px-6 py-4 text-gray-600 dark:text-gray-400">{worker.specialization}</td>
                             <td className="px-6 py-4">
                               <div className="flex items-center gap-1">
                                 <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                                <span className="font-semibold">{worker.avgRating}</span>
+                                <span className="font-semibold text-gray-900 dark:text-gray-100">{worker.avgRating}</span>
                               </div>
                             </td>
-                            <td className="px-6 py-4 text-gray-600">{worker.feedbackCount}</td>
+                            <td className="px-6 py-4 text-gray-600 dark:text-gray-400">{worker.feedbackCount}</td>
                             <td className="px-6 py-4">
                               <div className="flex items-center gap-2">
-                                <div className="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
+                                <div className="w-24 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                                   <div
                                     className={`h-full rounded-full ${
                                       worker.performance >= 90 ? 'bg-green-500' :
@@ -579,15 +579,15 @@ const Ratings = () => {
                                     style={{ width: `${worker.performance}%` }}
                                   />
                                 </div>
-                                <span className="text-sm text-gray-600">{worker.performance}%</span>
+                                <span className="text-sm text-gray-600 dark:text-gray-400">{worker.performance}%</span>
                               </div>
                             </td>
                             <td className="px-6 py-4">
                               <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                                worker.avgRating >= 4.5 ? 'bg-green-100 text-green-700' :
-                                worker.avgRating >= 3.5 ? 'bg-blue-100 text-blue-700' :
-                                worker.avgRating >= 2.5 ? 'bg-yellow-100 text-yellow-700' :
-                                'bg-red-100 text-red-700'
+                                worker.avgRating >= 4.5 ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' :
+                                worker.avgRating >= 3.5 ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' :
+                                worker.avgRating >= 2.5 ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400' :
+                                'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
                               }`}>
                                 {worker.avgRating >= 4.5 ? 'Excellent' :
                                  worker.avgRating >= 3.5 ? 'Good' :
@@ -604,17 +604,17 @@ const Ratings = () => {
 
                 {/* Low Performance Warning */}
                 {workerRatings.filter(w => w.avgRating < 3.5).length > 0 && (
-                  <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+                  <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-lg p-6">
                     <div className="flex items-start gap-3">
-                      <AlertCircle className="w-6 h-6 text-red-600 flex-shrink-0 mt-1" />
+                      <AlertCircle className="w-6 h-6 text-red-600 dark:text-red-400 flex-shrink-0 mt-1" />
                       <div>
-                        <h3 className="font-semibold text-red-900 mb-2">Low Performance Alert</h3>
-                        <p className="text-red-700 text-sm mb-3">
+                        <h3 className="font-semibold text-red-900 dark:text-red-300 mb-2">Low Performance Alert</h3>
+                        <p className="text-red-700 dark:text-red-400 text-sm mb-3">
                           The following workers have ratings below 3.5 and may need additional training or support:
                         </p>
                         <ul className="space-y-1">
                           {workerRatings.filter(w => w.avgRating < 3.5).map(worker => (
-                            <li key={worker.id} className="text-red-700 text-sm">
+                            <li key={worker.id} className="text-red-700 dark:text-red-400 text-sm">
                               • {worker.name} - {worker.avgRating} stars ({worker.feedbackCount} reviews)
                             </li>
                           ))}
@@ -631,21 +631,21 @@ const Ratings = () => {
               <div className="space-y-6">
                 {/* Complaints Stats */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="bg-white rounded-lg shadow-md p-6">
+                  <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-gray-500 text-sm">Pending</p>
-                        <p className="text-3xl font-bold text-orange-600">
+                        <p className="text-gray-500 dark:text-gray-400 text-sm">Pending</p>
+                        <p className="text-3xl font-bold text-orange-600 dark:text-orange-400">
                           {complaints.filter(c => c.status === 'pending').length}
                         </p>
                       </div>
                       <AlertCircle className="w-12 h-12 text-orange-500" />
                     </div>
                   </div>
-                  <div className="bg-white rounded-lg shadow-md p-6">
+                  <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-gray-500 text-sm">In Review</p>
+                        <p className="text-gray-500 dark:text-gray-400 text-sm">In Review</p>
                         <p className="text-3xl font-bold text-blue-600">
                           {complaints.filter(c => c.status === 'in-review').length}
                         </p>
@@ -653,10 +653,10 @@ const Ratings = () => {
                       <MessageSquare className="w-12 h-12 text-blue-500" />
                     </div>
                   </div>
-                  <div className="bg-white rounded-lg shadow-md p-6">
+                  <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-gray-500 text-sm">Resolved</p>
+                        <p className="text-gray-500 dark:text-gray-400 text-sm">Resolved</p>
                         <p className="text-3xl font-bold text-green-600">
                           {complaints.filter(c => c.status === 'resolved').length}
                         </p>
@@ -667,62 +667,62 @@ const Ratings = () => {
                 </div>
 
                 {/* Complaints List */}
-                <div className="bg-white rounded-lg shadow-md overflow-hidden">
-                  <div className="p-6 border-b border-gray-200">
-                    <h2 className="text-xl font-bold text-gray-900">All Complaints</h2>
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+                  <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">All Complaints</h2>
                   </div>
-                  <div className="divide-y divide-gray-200">
+                  <div className="divide-y divide-gray-200 dark:divide-gray-700">
                     {complaints.map(complaint => (
-                      <div key={complaint.id} className="p-6 hover:bg-gray-50">
+                      <div key={complaint.id} className="p-6 hover:bg-gray-50 dark:hover:bg-gray-700">
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex items-start gap-3">
                             <div className={`p-2 rounded-lg ${
-                              complaint.priority === 'high' ? 'bg-red-100' :
-                              complaint.priority === 'medium' ? 'bg-yellow-100' :
-                              'bg-blue-100'
+                              complaint.priority === 'high' ? 'bg-red-100 dark:bg-red-900/30' :
+                              complaint.priority === 'medium' ? 'bg-yellow-100 dark:bg-yellow-900/30' :
+                              'bg-blue-100 dark:bg-blue-900/30'
                             }`}>
                               <AlertCircle className={`w-5 h-5 ${
-                                complaint.priority === 'high' ? 'text-red-600' :
-                                complaint.priority === 'medium' ? 'text-yellow-600' :
-                                'text-blue-600'
+                                complaint.priority === 'high' ? 'text-red-600 dark:text-red-400' :
+                                complaint.priority === 'medium' ? 'text-yellow-600 dark:text-yellow-400' :
+                                'text-blue-600 dark:text-blue-400'
                               }`} />
                             </div>
                             <div>
-                              <h3 className="font-semibold text-gray-900">{complaint.subject}</h3>
-                              <p className="text-sm text-gray-600 mt-1">
+                              <h3 className="font-semibold text-gray-900 dark:text-gray-100">{complaint.subject}</h3>
+                              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                                 {complaint.customerName} • Order: {complaint.orderId}
                               </p>
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
                             <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                              complaint.status === 'resolved' ? 'bg-green-100 text-green-700' :
-                              complaint.status === 'in-review' ? 'bg-blue-100 text-blue-700' :
-                              'bg-orange-100 text-orange-700'
+                              complaint.status === 'resolved' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' :
+                              complaint.status === 'in-review' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' :
+                              'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400'
                             }`}>
                               {complaint.status}
                             </span>
                             <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                              complaint.priority === 'high' ? 'bg-red-100 text-red-700' :
-                              complaint.priority === 'medium' ? 'bg-yellow-100 text-yellow-700' :
-                              'bg-blue-100 text-blue-700'
+                              complaint.priority === 'high' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400' :
+                              complaint.priority === 'medium' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400' :
+                              'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
                             }`}>
                               {complaint.priority} priority
                             </span>
                           </div>
                         </div>
                         
-                        <p className="text-gray-700 mb-3 ml-11">{complaint.description}</p>
+                        <p className="text-gray-700 dark:text-gray-300 mb-3 ml-11">{complaint.description}</p>
                         
                         {complaint.response && (
-                          <div className="ml-11 bg-blue-50 border-l-4 border-blue-500 p-3 rounded">
-                            <p className="text-sm font-medium text-blue-900 mb-1">Response:</p>
-                            <p className="text-sm text-blue-800">{complaint.response}</p>
+                          <div className="ml-11 bg-blue-50 dark:bg-blue-900/30 border-l-4 border-blue-500 p-3 rounded">
+                            <p className="text-sm font-medium text-blue-900 dark:text-blue-300 mb-1">Response:</p>
+                            <p className="text-sm text-blue-800 dark:text-blue-400">{complaint.response}</p>
                           </div>
                         )}
                         
                         <div className="flex items-center justify-between mt-4 ml-11">
-                          <span className="text-xs text-gray-500 flex items-center gap-1">
+                          <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
                             <Calendar className="w-3 h-3" />
                             {complaint.date}
                           </span>
@@ -768,10 +768,10 @@ const Ratings = () => {
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+            className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
           >
-            <div className="p-6 border-b border-gray-200">
-              <h2 className="text-2xl font-bold text-gray-900">Review Details</h2>
+            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Review Details</h2>
             </div>
             
             <div className="p-6 space-y-6">
@@ -791,8 +791,8 @@ const Ratings = () => {
 
               {/* Ratings */}
               <div className="grid grid-cols-2 gap-4">
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-sm text-gray-600 mb-2">Shop Rating</p>
+                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Shop Rating</p>
                   <div className="flex items-center gap-1">
                     {[...Array(5)].map((_, i) => (
                       <Star
@@ -800,15 +800,15 @@ const Ratings = () => {
                         className={`w-5 h-5 ${
                           i < selectedReview.shopRating
                             ? 'text-yellow-500 fill-yellow-500'
-                            : 'text-gray-300'
+                            : 'text-gray-300 dark:text-gray-600'
                         }`}
                       />
                     ))}
-                    <span className="ml-2 font-bold text-lg">{selectedReview.shopRating}</span>
+                    <span className="ml-2 font-bold text-lg text-gray-900 dark:text-gray-100">{selectedReview.shopRating}</span>
                   </div>
                 </div>
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-sm text-gray-600 mb-2">Worker Rating</p>
+                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Worker Rating</p>
                   <div className="flex items-center gap-1">
                     {[...Array(5)].map((_, i) => (
                       <Star
@@ -816,18 +816,18 @@ const Ratings = () => {
                         className={`w-5 h-5 ${
                           i < selectedReview.workerRating
                             ? 'text-yellow-500 fill-yellow-500'
-                            : 'text-gray-300'
+                            : 'text-gray-300 dark:text-gray-600'
                         }`}
                       />
                     ))}
-                    <span className="ml-2 font-bold text-lg">{selectedReview.workerRating}</span>
+                    <span className="ml-2 font-bold text-lg text-gray-900 dark:text-gray-100">{selectedReview.workerRating}</span>
                   </div>
                 </div>
               </div>
 
               {/* Detailed Ratings */}
               <div className="space-y-3">
-                <h4 className="font-semibold text-gray-900">Detailed Ratings</h4>
+                <h4 className="font-semibold text-gray-900 dark:text-gray-100">Detailed Ratings</h4>
                 <RatingBar label="Skill" value={selectedReview.skillRating} />
                 <RatingBar label="Delivery Time" value={selectedReview.deliveryRating} />
                 <RatingBar label="Quality" value={selectedReview.qualityRating} />
@@ -835,30 +835,30 @@ const Ratings = () => {
               </div>
 
               {/* Worker Info */}
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <p className="text-sm text-gray-600 mb-1">Assigned Worker</p>
-                <p className="font-semibold text-gray-900">{selectedReview.workerName}</p>
+              <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg">
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Assigned Worker</p>
+                <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedReview.workerName}</p>
               </div>
 
               {/* Comment */}
               <div>
-                <h4 className="font-semibold text-gray-900 mb-2">Customer Comment</h4>
-                <p className="text-gray-700 bg-gray-50 p-4 rounded-lg">{selectedReview.comment}</p>
+                <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">Customer Comment</h4>
+                <p className="text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">{selectedReview.comment}</p>
               </div>
 
               {/* Reply */}
               {selectedReview.reply && (
-                <div className="bg-green-50 border-l-4 border-green-500 p-4 rounded">
-                  <p className="text-sm font-medium text-green-900 mb-1">Your Reply:</p>
-                  <p className="text-green-800">{selectedReview.reply}</p>
+                <div className="bg-green-50 dark:bg-green-900/30 border-l-4 border-green-500 p-4 rounded">
+                  <p className="text-sm font-medium text-green-900 dark:text-green-300 mb-1">Your Reply:</p>
+                  <p className="text-green-800 dark:text-green-400">{selectedReview.reply}</p>
                 </div>
               )}
             </div>
 
-            <div className="p-6 border-t border-gray-200 flex justify-end gap-3">
+            <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
               <button
                 onClick={() => setShowDetailsModal(false)}
-                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-colors"
               >
                 Close
               </button>
@@ -884,15 +884,15 @@ const StatCard = ({ title, value, icon: Icon, color, suffix = '' }) => {
   return (
     <motion.div
       whileHover={{ scale: 1.02, y: -5 }}
-      className="bg-white rounded-lg shadow-md p-6"
+      className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"
     >
       <div className="flex items-center justify-between mb-4">
         <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${color}`}>
           <Icon className="w-6 h-6 text-white" />
         </div>
       </div>
-      <p className="text-gray-500 text-sm">{title}</p>
-      <p className="text-2xl font-bold text-gray-900 mt-2">
+      <p className="text-gray-500 dark:text-gray-400 text-sm">{title}</p>
+      <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-2">
         {value}{suffix}
       </p>
     </motion.div>
@@ -903,14 +903,14 @@ const StatCard = ({ title, value, icon: Icon, color, suffix = '' }) => {
 const RatingBar = ({ label, value }) => {
   return (
     <div className="flex items-center gap-3">
-      <span className="text-sm text-gray-600 w-32">{label}</span>
-      <div className="flex-1 bg-gray-200 rounded-full h-2 overflow-hidden">
+      <span className="text-sm text-gray-600 dark:text-gray-400 w-32">{label}</span>
+      <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
         <div
           className="bg-yellow-500 h-full rounded-full"
           style={{ width: `${(value / 5) * 100}%` }}
         />
       </div>
-      <span className="text-sm font-semibold text-gray-900 w-8">{value}/5</span>
+      <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 w-8">{value}/5</span>
     </div>
   );
 };

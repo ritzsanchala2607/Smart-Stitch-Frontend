@@ -253,7 +253,7 @@ const Catalogue = () => {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
       <Sidebar role="customer" />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Topbar />
@@ -266,16 +266,16 @@ const Catalogue = () => {
             {/* Header */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="p-3 bg-blue-100 rounded-lg">
-                  <Scissors className="w-6 h-6 text-blue-600" />
+                <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                  <Scissors className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                 </div>
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-900">Catalogue</h1>
-                  <p className="text-gray-600">Browse our collection of designs</p>
+                  <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Catalogue</h1>
+                  <p className="text-gray-600 dark:text-gray-400">Browse our collection of designs</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <span className="text-sm text-gray-600">
+                <span className="text-sm text-gray-600 dark:text-gray-400">
                   {filteredItems.length} items found
                 </span>
               </div>
@@ -288,16 +288,16 @@ const Catalogue = () => {
                   initial={{ opacity: 0, y: -20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
-                  className="flex items-center gap-2 p-4 bg-green-50 border border-green-200 rounded-lg"
+                  className="flex items-center gap-2 p-4 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-lg"
                 >
-                  <Check className="w-5 h-5 text-green-600" />
-                  <span className="text-green-700 font-medium">{successMessage}</span>
+                  <Check className="w-5 h-5 text-green-600 dark:text-green-400" />
+                  <span className="text-green-700 dark:text-green-400 font-medium">{successMessage}</span>
                 </motion.div>
               )}
             </AnimatePresence>
 
             {/* Search Bar */}
-            <div className="bg-white rounded-lg shadow-md p-4">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
               <div className="flex flex-col md:flex-row gap-4">
                 <div className="flex-1 relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -306,7 +306,7 @@ const Catalogue = () => {
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     placeholder="Search for designs..."
-                    className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full pl-10 pr-4 py-2 border dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
                   />
                 </div>
                 <button
@@ -320,7 +320,7 @@ const Catalogue = () => {
             </div>
 
             {/* Categories */}
-            <div className="bg-white rounded-lg shadow-md p-4">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
               <div className="flex flex-wrap gap-2">
                 {categories.map((category) => (
                   <button
@@ -329,7 +329,7 @@ const Catalogue = () => {
                     className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                       selectedCategory === category
                         ? 'bg-blue-600 text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                     }`}
                   >
                     {category === 'all' ? 'All Categories' : category}
@@ -345,16 +345,16 @@ const Catalogue = () => {
                   initial={{ height: 0, opacity: 0 }}
                   animate={{ height: 'auto', opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
-                  className="bg-white rounded-lg shadow-md p-6"
+                  className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"
                 >
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     {/* Fabric Filter */}
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Fabric Type</label>
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Fabric Type</label>
                       <select
                         value={selectedFabric}
                         onChange={(e) => setSelectedFabric(e.target.value)}
-                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-4 py-2 border dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:text-gray-100"
                       >
                         {allFabrics.map(fabric => (
                           <option key={fabric} value={fabric}>
@@ -366,11 +366,11 @@ const Catalogue = () => {
 
                     {/* Color Filter */}
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Color</label>
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Color</label>
                       <select
                         value={selectedColor}
                         onChange={(e) => setSelectedColor(e.target.value)}
-                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-4 py-2 border dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:text-gray-100"
                       >
                         {allColors.map(color => (
                           <option key={color} value={color}>
@@ -382,7 +382,7 @@ const Catalogue = () => {
 
                     {/* Price Range */}
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                         Price Range: ₹{priceRange[0]} - ₹{priceRange[1]}
                       </label>
                       <input
@@ -398,27 +398,27 @@ const Catalogue = () => {
 
                     {/* Special Filters */}
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Special</label>
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Special</label>
                       <div className="space-y-2">
                         <label className="flex items-center gap-2 cursor-pointer">
                           <input
                             type="checkbox"
                             checked={showTrending}
                             onChange={(e) => setShowTrending(e.target.checked)}
-                            className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                            className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-600"
                           />
                           <TrendingUp className="w-4 h-4 text-orange-500" />
-                          <span className="text-sm text-gray-700">Trending</span>
+                          <span className="text-sm text-gray-700 dark:text-gray-300">Trending</span>
                         </label>
                         <label className="flex items-center gap-2 cursor-pointer">
                           <input
                             type="checkbox"
                             checked={showNewArrivals}
                             onChange={(e) => setShowNewArrivals(e.target.checked)}
-                            className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                            className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-600"
                           />
                           <Sparkles className="w-4 h-4 text-blue-500" />
-                          <span className="text-sm text-gray-700">New Arrivals</span>
+                          <span className="text-sm text-gray-700 dark:text-gray-300">New Arrivals</span>
                         </label>
                       </div>
                     </div>
@@ -435,7 +435,7 @@ const Catalogue = () => {
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   whileHover={{ y: -5 }}
-                  className="bg-white rounded-lg shadow-md overflow-hidden cursor-pointer"
+                  className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden cursor-pointer"
                 >
                   {/* Item Image */}
                   <div className="relative h-64 overflow-hidden group">
@@ -471,11 +471,11 @@ const Catalogue = () => {
                         e.stopPropagation();
                         toggleWishlist(item.id);
                       }}
-                      className="absolute top-3 right-3 p-2 bg-white rounded-full shadow-lg hover:bg-gray-100 transition-colors"
+                      className="absolute top-3 right-3 p-2 bg-white dark:bg-gray-800 rounded-full shadow-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                     >
                       <Heart
                         className={`w-5 h-5 ${
-                          wishlist.includes(item.id) ? 'fill-red-500 text-red-500' : 'text-gray-600'
+                          wishlist.includes(item.id) ? 'fill-red-500 text-red-500' : 'text-gray-600 dark:text-gray-400'
                         }`}
                       />
                     </button>
@@ -485,29 +485,29 @@ const Catalogue = () => {
                   <div className="p-4">
                     <div className="flex items-start justify-between mb-2">
                       <div>
-                        <h3 className="font-bold text-gray-900 text-lg">{item.name}</h3>
-                        <p className="text-sm text-gray-600">{item.category}</p>
+                        <h3 className="font-bold text-gray-900 dark:text-gray-100 text-lg">{item.name}</h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">{item.category}</p>
                       </div>
                       <div className="flex items-center gap-1">
                         <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                        <span className="text-sm font-semibold text-gray-900">{item.rating}</span>
-                        <span className="text-xs text-gray-500">({item.reviews})</span>
+                        <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">{item.rating}</span>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">({item.reviews})</span>
                       </div>
                     </div>
 
-                    <p className="text-sm text-gray-600 mb-3 line-clamp-2">{item.description}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">{item.description}</p>
 
                     {/* Fabric Preview */}
                     <div className="mb-3">
-                      <p className="text-xs text-gray-500 mb-1">Available Fabrics:</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Available Fabrics:</p>
                       <div className="flex flex-wrap gap-1">
                         {item.fabrics.slice(0, 3).map((fabric, idx) => (
-                          <span key={idx} className="px-2 py-1 bg-gray-100 text-xs text-gray-700 rounded">
+                          <span key={idx} className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-xs text-gray-700 dark:text-gray-300 rounded">
                             {fabric}
                           </span>
                         ))}
                         {item.fabrics.length > 3 && (
-                          <span className="px-2 py-1 bg-gray-100 text-xs text-gray-700 rounded">
+                          <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-xs text-gray-700 dark:text-gray-300 rounded">
                             +{item.fabrics.length - 3}
                           </span>
                         )}
@@ -517,11 +517,11 @@ const Catalogue = () => {
                     {/* Price and Delivery */}
                     <div className="flex items-center justify-between mb-3">
                       <div>
-                        <p className="text-xs text-gray-500">Starting from</p>
-                        <p className="text-2xl font-bold text-blue-600">₹{item.basePrice.toLocaleString()}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">Starting from</p>
+                        <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">₹{item.basePrice.toLocaleString()}</p>
                       </div>
                       <div className="text-right">
-                        <div className="flex items-center gap-1 text-xs text-gray-600">
+                        <div className="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400">
                           <Clock className="w-3 h-3" />
                           {item.deliveryDays} days
                         </div>
@@ -558,10 +558,10 @@ const Catalogue = () => {
 
             {/* Empty State */}
             {filteredItems.length === 0 && (
-              <div className="text-center py-12 bg-white rounded-lg shadow-md">
-                <Scissors className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">No Items Found</h3>
-                <p className="text-gray-600">Try adjusting your filters or search terms</p>
+              <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow-md">
+                <Scissors className="w-16 h-16 mx-auto text-gray-300 dark:text-gray-600 mb-4" />
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">No Items Found</h3>
+                <p className="text-gray-600 dark:text-gray-400">Try adjusting your filters or search terms</p>
               </div>
             )}
           </motion.div>
@@ -583,19 +583,19 @@ const Catalogue = () => {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-lg shadow-xl max-w-4xl w-full my-8"
+              className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-4xl w-full my-8"
             >
               {/* Modal Header */}
-              <div className="p-6 border-b border-gray-200 flex items-center justify-between">
+              <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900">{selectedItem.name}</h2>
-                  <p className="text-sm text-gray-600">{selectedItem.category}</p>
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{selectedItem.name}</h2>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">{selectedItem.category}</p>
                 </div>
                 <button
                   onClick={() => setSelectedItem(null)}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                 >
-                  <X className="w-5 h-5 text-gray-600" />
+                  <X className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                 </button>
               </div>
 
@@ -631,10 +631,10 @@ const Catalogue = () => {
                     <div className="flex items-center gap-4 mb-4">
                       <div className="flex items-center gap-1">
                         <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-                        <span className="font-semibold text-gray-900">{selectedItem.rating}</span>
-                        <span className="text-sm text-gray-600">({selectedItem.reviews} reviews)</span>
+                        <span className="font-semibold text-gray-900 dark:text-gray-100">{selectedItem.rating}</span>
+                        <span className="text-sm text-gray-600 dark:text-gray-400">({selectedItem.reviews} reviews)</span>
                       </div>
-                      <div className="flex items-center gap-1 text-sm text-gray-600">
+                      <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400">
                         <Clock className="w-4 h-4" />
                         Delivery in {selectedItem.deliveryDays} days
                       </div>
@@ -642,8 +642,8 @@ const Catalogue = () => {
 
                     {/* Description */}
                     <div className="mb-4">
-                      <h3 className="font-semibold text-gray-900 mb-2">Description</h3>
-                      <p className="text-gray-700 leading-relaxed">{selectedItem.description}</p>
+                      <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">Description</h3>
+                      <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{selectedItem.description}</p>
                     </div>
                   </div>
 
@@ -651,7 +651,7 @@ const Catalogue = () => {
                   <div className="space-y-6">
                     {/* Size Selection */}
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-3">
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
                         Select Size
                       </label>
                       <div className="grid grid-cols-4 gap-2">
@@ -662,7 +662,7 @@ const Catalogue = () => {
                             className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                               selectedSize === size
                                 ? 'bg-blue-600 text-white'
-                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                             }`}
                           >
                             {size}
@@ -670,7 +670,7 @@ const Catalogue = () => {
                         ))}
                       </div>
                       <button
-                        className="mt-2 flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700"
+                        className="mt-2 flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
                       >
                         <Ruler className="w-4 h-4" />
                         Need custom measurements?
@@ -679,7 +679,7 @@ const Catalogue = () => {
 
                     {/* Fabric Selection */}
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-3">
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
                         Select Fabric
                       </label>
                       <div className="grid grid-cols-2 gap-2">
@@ -690,7 +690,7 @@ const Catalogue = () => {
                             className={`px-4 py-2 rounded-lg font-medium transition-colors text-sm ${
                               selectedFabricDetail === fabric
                                 ? 'bg-blue-600 text-white'
-                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                             }`}
                           >
                             {fabric}
@@ -701,7 +701,7 @@ const Catalogue = () => {
 
                     {/* Color Selection */}
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-3">
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
                         Select Color
                       </label>
                       <div className="grid grid-cols-3 gap-2">
@@ -712,7 +712,7 @@ const Catalogue = () => {
                             className={`px-4 py-2 rounded-lg font-medium transition-colors text-sm ${
                               selectedColorDetail === color
                                 ? 'bg-blue-600 text-white'
-                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                             }`}
                           >
                             {color}
@@ -723,20 +723,20 @@ const Catalogue = () => {
 
                     {/* Quantity */}
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-3">
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
                         Quantity
                       </label>
                       <div className="flex items-center gap-3">
                         <button
                           onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                          className="w-10 h-10 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                          className="w-10 h-10 flex items-center justify-center bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors text-gray-900 dark:text-gray-100"
                         >
                           -
                         </button>
-                        <span className="w-12 text-center font-semibold text-gray-900">{quantity}</span>
+                        <span className="w-12 text-center font-semibold text-gray-900 dark:text-gray-100">{quantity}</span>
                         <button
                           onClick={() => setQuantity(quantity + 1)}
-                          className="w-10 h-10 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                          className="w-10 h-10 flex items-center justify-center bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors text-gray-900 dark:text-gray-100"
                         >
                           +
                         </button>
@@ -744,46 +744,46 @@ const Catalogue = () => {
                     </div>
 
                     {/* Price Breakdown */}
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                    <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
+                      <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
                         <DollarSign className="w-5 h-5" />
                         Price Breakdown
                       </h3>
                       <div className="space-y-2">
                         <div className="flex justify-between text-sm">
-                          <span className="text-gray-600">Base Price:</span>
-                          <span className="font-medium text-gray-900">₹{selectedItem.basePrice.toLocaleString()}</span>
+                          <span className="text-gray-600 dark:text-gray-400">Base Price:</span>
+                          <span className="font-medium text-gray-900 dark:text-gray-100">₹{selectedItem.basePrice.toLocaleString()}</span>
                         </div>
                         {(selectedFabricDetail === 'Silk' || selectedFabricDetail === 'Velvet') && (
                           <div className="flex justify-between text-sm">
-                            <span className="text-gray-600">Premium Fabric:</span>
-                            <span className="font-medium text-gray-900">+₹500</span>
+                            <span className="text-gray-600 dark:text-gray-400">Premium Fabric:</span>
+                            <span className="font-medium text-gray-900 dark:text-gray-100">+₹500</span>
                           </div>
                         )}
                         {(selectedFabricDetail === 'Brocade' || selectedFabricDetail === 'Jacquard') && (
                           <div className="flex justify-between text-sm">
-                            <span className="text-gray-600">Luxury Fabric:</span>
-                            <span className="font-medium text-gray-900">+₹800</span>
+                            <span className="text-gray-600 dark:text-gray-400">Luxury Fabric:</span>
+                            <span className="font-medium text-gray-900 dark:text-gray-100">+₹800</span>
                           </div>
                         )}
                         <div className="flex justify-between text-sm">
-                          <span className="text-gray-600">Quantity:</span>
-                          <span className="font-medium text-gray-900">×{quantity}</span>
+                          <span className="text-gray-600 dark:text-gray-400">Quantity:</span>
+                          <span className="font-medium text-gray-900 dark:text-gray-100">×{quantity}</span>
                         </div>
-                        <div className="pt-2 border-t border-gray-300 flex justify-between">
-                          <span className="font-semibold text-gray-900">Total:</span>
-                          <span className="text-2xl font-bold text-blue-600">₹{calculatePrice().toLocaleString()}</span>
+                        <div className="pt-2 border-t border-gray-300 dark:border-gray-700 flex justify-between">
+                          <span className="font-semibold text-gray-900 dark:text-gray-100">Total:</span>
+                          <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">₹{calculatePrice().toLocaleString()}</span>
                         </div>
                       </div>
                     </div>
 
                     {/* Measurement Info */}
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
                       <div className="flex items-start gap-3">
-                        <Ruler className="w-5 h-5 text-blue-600 mt-0.5" />
+                        <Ruler className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5" />
                         <div>
-                          <p className="font-semibold text-gray-900 mb-1">Measurements Required</p>
-                          <p className="text-sm text-gray-700">
+                          <p className="font-semibold text-gray-900 dark:text-gray-100 mb-1">Measurements Required</p>
+                          <p className="text-sm text-gray-700 dark:text-gray-300">
                             We'll need your measurements to ensure perfect fit. You can provide them during checkout or use saved measurements.
                           </p>
                         </div>

@@ -102,9 +102,9 @@ const WorkerDetails = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: 0.1 }}
-              className="bg-white rounded-lg shadow-md p-6 mb-6"
+              className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6"
             >
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Personal Information</h2>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">Personal Information</h2>
               
               <div className="flex flex-col md:flex-row gap-6">
                 {/* Avatar */}
@@ -127,40 +127,40 @@ const WorkerDetails = () => {
                   <div className="flex items-start gap-3">
                     <User className="w-5 h-5 text-orange-500 mt-1" />
                     <div>
-                      <p className="text-sm text-gray-600">Name</p>
-                      <p className="text-lg font-semibold text-gray-900">{worker.name}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Name</p>
+                      <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">{worker.name}</p>
                     </div>
                   </div>
 
                   <div className="flex items-start gap-3">
                     <Mail className="w-5 h-5 text-orange-500 mt-1" />
                     <div>
-                      <p className="text-sm text-gray-600">Email</p>
-                      <p className="text-lg font-semibold text-gray-900">{worker.email}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Email</p>
+                      <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">{worker.email}</p>
                     </div>
                   </div>
 
                   <div className="flex items-start gap-3">
                     <Phone className="w-5 h-5 text-orange-500 mt-1" />
                     <div>
-                      <p className="text-sm text-gray-600">Phone</p>
-                      <p className="text-lg font-semibold text-gray-900">{worker.phone}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Phone</p>
+                      <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">{worker.phone}</p>
                     </div>
                   </div>
 
                   <div className="flex items-start gap-3">
                     <Briefcase className="w-5 h-5 text-orange-500 mt-1" />
                     <div>
-                      <p className="text-sm text-gray-600">Specialization</p>
-                      <p className="text-lg font-semibold text-gray-900">{worker.specialization}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Specialization</p>
+                      <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">{worker.specialization}</p>
                     </div>
                   </div>
 
                   <div className="flex items-start gap-3">
                     <Calendar className="w-5 h-5 text-orange-500 mt-1" />
                     <div>
-                      <p className="text-sm text-gray-600">Join Date</p>
-                      <p className="text-lg font-semibold text-gray-900">
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Join Date</p>
+                      <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                         {new Date(worker.joinDate).toLocaleDateString('en-US', {
                           year: 'numeric',
                           month: 'long',
@@ -173,22 +173,22 @@ const WorkerDetails = () => {
                   <div className="flex items-start gap-3">
                     <DollarSign className="w-5 h-5 text-orange-500 mt-1" />
                     <div>
-                      <p className="text-sm text-gray-600">Salary</p>
-                      <p className="text-lg font-semibold text-gray-900">${worker.salary}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Salary</p>
+                      <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">${worker.salary}</p>
                     </div>
                   </div>
 
                   <div className="flex items-start gap-3">
                     <Award className="w-5 h-5 text-orange-500 mt-1" />
                     <div>
-                      <p className="text-sm text-gray-600">Status</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Status</p>
                       <span
                         className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
                           worker.status === 'active'
-                            ? 'bg-green-100 text-green-800'
+                            ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400'
                             : worker.status === 'on-leave'
-                            ? 'bg-yellow-100 text-yellow-800'
-                            : 'bg-gray-100 text-gray-800'
+                            ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400'
+                            : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300'
                         }`}
                       >
                         {worker.status}
@@ -199,41 +199,41 @@ const WorkerDetails = () => {
                   <div className="flex items-start gap-3">
                     <Star className="w-5 h-5 text-orange-500 mt-1" />
                     <div>
-                      <p className="text-sm text-gray-600">Rating</p>
-                      <p className="text-lg font-semibold text-gray-900">{worker.rating} / 5.0</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Rating</p>
+                      <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">{worker.rating} / 5.0</p>
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* Statistics Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6 pt-6 border-t border-gray-200">
-                <div className="bg-blue-50 rounded-lg p-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+                <div className="bg-blue-50 dark:bg-blue-900/30 rounded-lg p-4">
                   <div className="flex items-center gap-3">
-                    <Package className="w-8 h-8 text-blue-500" />
+                    <Package className="w-8 h-8 text-blue-500 dark:text-blue-400" />
                     <div>
-                      <p className="text-sm text-gray-600">Assigned Orders</p>
-                      <p className="text-2xl font-bold text-gray-900">{worker.assignedOrders}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Assigned Orders</p>
+                      <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{worker.assignedOrders}</p>
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-green-50 rounded-lg p-4">
+                <div className="bg-green-50 dark:bg-green-900/30 rounded-lg p-4">
                   <div className="flex items-center gap-3">
-                    <Award className="w-8 h-8 text-green-500" />
+                    <Award className="w-8 h-8 text-green-500 dark:text-green-400" />
                     <div>
-                      <p className="text-sm text-gray-600">Completed Orders</p>
-                      <p className="text-2xl font-bold text-gray-900">{worker.completedOrders}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Completed Orders</p>
+                      <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{worker.completedOrders}</p>
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-orange-50 rounded-lg p-4">
+                <div className="bg-orange-50 dark:bg-orange-900/30 rounded-lg p-4">
                   <div className="flex items-center gap-3">
-                    <TrendingUp className="w-8 h-8 text-orange-500" />
+                    <TrendingUp className="w-8 h-8 text-orange-500 dark:text-orange-400" />
                     <div>
-                      <p className="text-sm text-gray-600">Performance</p>
-                      <p className="text-2xl font-bold text-gray-900">{worker.performance}%</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Performance</p>
+                      <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{worker.performance}%</p>
                     </div>
                   </div>
                 </div>
@@ -245,18 +245,18 @@ const WorkerDetails = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: 0.2 }}
-              className="bg-white rounded-lg shadow-md p-6 mb-6"
+              className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6"
               data-testid="performance-meter"
             >
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Performance Metrics</h2>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Performance Metrics</h2>
               
               <div className="space-y-4">
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-gray-700">Overall Performance</span>
-                    <span className="text-sm font-bold text-gray-900">{worker.performance}%</span>
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Overall Performance</span>
+                    <span className="text-sm font-bold text-gray-900 dark:text-gray-100">{worker.performance}%</span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-4">
+                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4">
                     <motion.div
                       initial={{ width: 0 }}
                       animate={{ width: `${worker.performance}%` }}
@@ -273,18 +273,18 @@ const WorkerDetails = () => {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <p className="text-sm text-gray-600 mb-1">Completion Rate</p>
-                    <p className="text-xl font-bold text-gray-900">
+                  <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Completion Rate</p>
+                    <p className="text-xl font-bold text-gray-900 dark:text-gray-100">
                       {worker.completedOrders > 0
                         ? Math.round((worker.completedOrders / (worker.completedOrders + worker.assignedOrders)) * 100)
                         : 0}%
                     </p>
                   </div>
                   
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <p className="text-sm text-gray-600 mb-1">Average Rating</p>
-                    <p className="text-xl font-bold text-gray-900">{worker.rating} / 5.0</p>
+                  <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Average Rating</p>
+                    <p className="text-xl font-bold text-gray-900 dark:text-gray-100">{worker.rating} / 5.0</p>
                   </div>
                 </div>
               </div>
@@ -295,10 +295,10 @@ const WorkerDetails = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: 0.3 }}
-              className="bg-white rounded-lg shadow-md p-6"
+              className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"
               data-testid="assigned-orders-section"
             >
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Assigned Orders</h2>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Assigned Orders</h2>
               
               {assignedOrders.length > 0 ? (
                 <div className="space-y-4">
@@ -307,35 +307,35 @@ const WorkerDetails = () => {
                       key={order.id}
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
-                      className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                      className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow"
                       data-testid="assigned-order-item"
                     >
                       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-2">
-                            <h3 className="text-lg font-semibold text-gray-900">{order.id}</h3>
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{order.id}</h3>
                             <span
                               className={`px-2 py-1 rounded-full text-xs font-medium ${
                                 order.status === 'ready'
-                                  ? 'bg-green-100 text-green-800'
+                                  ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400'
                                   : order.status === 'stitching'
-                                  ? 'bg-blue-100 text-blue-800'
+                                  ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400'
                                   : order.status === 'cutting'
-                                  ? 'bg-yellow-100 text-yellow-800'
-                                  : 'bg-gray-100 text-gray-800'
+                                  ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400'
+                                  : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300'
                               }`}
                             >
                               {order.status}
                             </span>
                           </div>
                           
-                          <p className="text-sm text-gray-600 mb-1">
-                            Customer: <span className="font-medium text-gray-900">{order.customerName}</span>
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                            Customer: <span className="font-medium text-gray-900 dark:text-gray-100">{order.customerName}</span>
                           </p>
                           
-                          <p className="text-sm text-gray-600">
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
                             Delivery Date:{' '}
-                            <span className="font-medium text-gray-900">
+                            <span className="font-medium text-gray-900 dark:text-gray-100">
                               {new Date(order.deliveryDate).toLocaleDateString('en-US', {
                                 year: 'numeric',
                                 month: 'short',
@@ -346,14 +346,14 @@ const WorkerDetails = () => {
                         </div>
 
                         <div className="flex flex-col items-end gap-2">
-                          <p className="text-lg font-bold text-gray-900">${order.totalAmount}</p>
+                          <p className="text-lg font-bold text-gray-900 dark:text-gray-100">${order.totalAmount}</p>
                           <span
                             className={`px-3 py-1 rounded-full text-xs font-medium ${
                               order.priority === 'high'
-                                ? 'bg-red-100 text-red-800'
+                                ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400'
                                 : order.priority === 'medium'
-                                ? 'bg-yellow-100 text-yellow-800'
-                                : 'bg-gray-100 text-gray-800'
+                                ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400'
+                                : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300'
                             }`}
                           >
                             {order.priority} priority
@@ -362,13 +362,13 @@ const WorkerDetails = () => {
                       </div>
 
                       {/* Order Items */}
-                      <div className="mt-3 pt-3 border-t border-gray-100">
-                        <p className="text-sm text-gray-600 mb-2">Items:</p>
+                      <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Items:</p>
                         <div className="flex flex-wrap gap-2">
                           {order.items.map((item) => (
                             <span
                               key={item.id}
-                              className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs"
+                              className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded text-xs"
                             >
                               {item.type} ({item.quantity})
                             </span>
@@ -380,8 +380,8 @@ const WorkerDetails = () => {
                 </div>
               ) : (
                 <div className="text-center py-12">
-                  <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500">No orders currently assigned to this worker</p>
+                  <Package className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+                  <p className="text-gray-500 dark:text-gray-400">No orders currently assigned to this worker</p>
                 </div>
               )}
             </motion.div>
