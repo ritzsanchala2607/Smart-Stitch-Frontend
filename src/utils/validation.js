@@ -159,20 +159,30 @@ export const validateWorkerForm = (formData) => {
     errors.name = 'Name must be between 2 and 50 characters';
   }
 
+  if (!isValidEmail(formData.email)) {
+    errors.email = 'Please enter a valid email address';
+  }
+
+  if (!isRequired(formData.password)) {
+    errors.password = 'Password is required';
+  } else if (formData.password.length < 6) {
+    errors.password = 'Password must be at least 6 characters';
+  }
+
   if (!isValidPhone(formData.mobile)) {
     errors.mobile = 'Please enter a valid phone number (10-15 digits)';
   }
 
-  if (!isRequired(formData.skill)) {
-    errors.skill = 'Please select a skill';
+  if (!isRequired(formData.primarySkill)) {
+    errors.primarySkill = 'Please select a primary skill';
+  }
+
+  if (!isRequired(formData.specialization)) {
+    errors.specialization = 'Please select a specialization';
   }
 
   if (!isNonNegativeNumber(formData.experience)) {
     errors.experience = 'Experience must be a non-negative number';
-  }
-
-  if (!isPositiveNumber(formData.salary)) {
-    errors.salary = 'Salary must be a positive number';
   }
 
   if (formData.profilePhoto && !isValidImageFile(formData.profilePhoto)) {

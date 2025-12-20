@@ -33,8 +33,11 @@ const Workers = () => {
   
   const [workerForm, setWorkerForm] = useState({
     name: '',
+    email: '',
+    password: '',
     mobile: '',
-    skill: '',
+    primarySkill: '', // New field for Stitching, Cutting, etc.
+    specialization: '', // Existing field for Shirts, Traditional, etc.
     experience: '',
     garmentTypes: [], // Array of {type, rate} objects
     profilePhoto: null
@@ -166,9 +169,11 @@ const Workers = () => {
     const newWorker = {
       id: `WORK${String(workers.length + 1).padStart(3, '0')}`,
       name: workerForm.name,
-      email: `${workerForm.name.toLowerCase().replace(/\s+/g, '.')}@smartstitch.com`,
+      email: workerForm.email,
+      password: workerForm.password, // In production, this should be hashed
       phone: workerForm.mobile,
-      specialization: workerForm.skill,
+      primarySkill: workerForm.primarySkill,
+      specialization: workerForm.specialization,
       joinDate: new Date().toISOString().split('T')[0],
       status: 'active',
       assignedOrders: 0,
@@ -186,8 +191,11 @@ const Workers = () => {
     // Reset form and close modal
     setWorkerForm({
       name: '',
+      email: '',
+      password: '',
       mobile: '',
-      skill: '',
+      primarySkill: '',
+      specialization: '',
       experience: '',
       garmentTypes: [],
       profilePhoto: null
@@ -205,8 +213,11 @@ const Workers = () => {
       setEditingWorker(worker);
       setWorkerForm({
         name: worker.name,
+        email: worker.email || '',
+        password: '', // Don't populate password for security
         mobile: worker.phone,
-        skill: worker.specialization,
+        primarySkill: worker.primarySkill || '',
+        specialization: worker.specialization || '',
         experience: '0',
         garmentTypes: worker.garmentTypes || [],
         profilePhoto: null
@@ -234,9 +245,12 @@ const Workers = () => {
     const updatedWorker = {
       ...editingWorker,
       name: workerForm.name,
-      email: `${workerForm.name.toLowerCase().replace(/\s+/g, '.')}@smartstitch.com`,
+      email: workerForm.email,
+      // Only update password if a new one is provided
+      ...(workerForm.password && { password: workerForm.password }),
       phone: workerForm.mobile,
-      specialization: workerForm.skill,
+      primarySkill: workerForm.primarySkill,
+      specialization: workerForm.specialization,
       garmentTypes: workerForm.garmentTypes,
       avatar: photoPreview || editingWorker.avatar
     };
@@ -248,8 +262,11 @@ const Workers = () => {
     // Reset form and close modal
     setWorkerForm({
       name: '',
+      email: '',
+      password: '',
       mobile: '',
-      skill: '',
+      primarySkill: '',
+      specialization: '',
       experience: '',
       garmentTypes: [],
       profilePhoto: null
@@ -415,6 +432,50 @@ const Workers = () => {
                     )}
                   </div>
 
+                  {/* Email */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Email <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="email"
+                      value={workerForm.email}
+                      onChange={(e) => handleInputChange('email', e.target.value)}
+                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 ${
+                        errors.email ? 'border-red-500 dark:border-red-700' : 'border-gray-300 dark:border-gray-600'
+                      }`}
+                      placeholder="worker@example.com"
+                    />
+                    {errors.email && (
+                      <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.email}</p>
+                    )}
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      Worker will use this email to login
+                    </p>
+                  </div>
+
+                  {/* Password */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Password <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="password"
+                      value={workerForm.password}
+                      onChange={(e) => handleInputChange('password', e.target.value)}
+                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 ${
+                        errors.password ? 'border-red-500 dark:border-red-700' : 'border-gray-300 dark:border-gray-600'
+                      }`}
+                      placeholder="Enter password"
+                    />
+                    {errors.password && (
+                      <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.password}</p>
+                    )}
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      Minimum 6 characters
+                    </p>
+                  </div>
+
                   {/* Mobile */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -434,26 +495,56 @@ const Workers = () => {
                     )}
                   </div>
 
-                  {/* Skill */}
+                  {/* Primary Skill */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Skill <span className="text-red-500">*</span>
+                      Primary Skill <span className="text-red-500">*</span>
                     </label>
                     <select
-                      value={workerForm.skill}
-                      onChange={(e) => handleInputChange('skill', e.target.value)}
+                      value={workerForm.primarySkill}
+                      onChange={(e) => handleInputChange('primarySkill', e.target.value)}
                       className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
-                        errors.skill ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                        errors.primarySkill ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                       }`}
                     >
-                      <option value="">Select skill</option>
-                      <option value="Shirts & Formal Wear">Shirts & Formal Wear</option>
-                      <option value="Traditional Wear">Traditional Wear</option>
+                      <option value="">Select primary skill</option>
+                      <option value="Stitching">Stitching</option>
+                      <option value="Cutting">Cutting</option>
+                      <option value="Fitting">Fitting</option>
+                      <option value="Iron Work">Iron Work</option>
+                      <option value="Embroidery">Embroidery</option>
                       <option value="Alterations">Alterations</option>
-                      <option value="Both">Both</option>
+                      <option value="All-Round">All-Round (Multiple Skills)</option>
                     </select>
-                    {errors.skill && (
-                      <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.skill}</p>
+                    {errors.primarySkill && (
+                      <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.primarySkill}</p>
+                    )}
+                  </div>
+
+                  {/* Specialization */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Specialization <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      value={workerForm.specialization}
+                      onChange={(e) => handleInputChange('specialization', e.target.value)}
+                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
+                        errors.specialization ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                      }`}
+                    >
+                      <option value="">Select specialization</option>
+                      <option value="Shirts & Formal Wear">Shirts & Formal Wear</option>
+                      <option value="Pants & Trousers">Pants & Trousers</option>
+                      <option value="Traditional Wear">Traditional Wear</option>
+                      <option value="Suits & Coats">Suits & Coats</option>
+                      <option value="Blouses & Tops">Blouses & Tops</option>
+                      <option value="Wedding & Bridal">Wedding & Bridal</option>
+                      <option value="Alterations">Alterations</option>
+                      <option value="All Types">All Types</option>
+                    </select>
+                    {errors.specialization && (
+                      <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.specialization}</p>
                     )}
                   </div>
 
@@ -654,8 +745,11 @@ const Workers = () => {
               setEditingWorker(null);
               setWorkerForm({
                 name: '',
+                email: '',
+                password: '',
                 mobile: '',
-                skill: '',
+                primarySkill: '',
+                specialization: '',
                 experience: '',
                 garmentTypes: [],
                 profilePhoto: null
@@ -681,8 +775,11 @@ const Workers = () => {
                     setEditingWorker(null);
                     setWorkerForm({
                       name: '',
+                      email: '',
+                      password: '',
                       mobile: '',
-                      skill: '',
+                      primarySkill: '',
+                      specialization: '',
                       experience: '',
                       garmentTypes: [],
                       profilePhoto: null
@@ -720,6 +817,45 @@ const Workers = () => {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Email <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="email"
+                      value={workerForm.email}
+                      onChange={(e) => handleInputChange('email', e.target.value)}
+                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 ${
+                        errors.email ? 'border-red-500 dark:border-red-700' : 'border-gray-300 dark:border-gray-600'
+                      }`}
+                      placeholder="worker@example.com"
+                    />
+                    {errors.email && (
+                      <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.email}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Password
+                    </label>
+                    <input
+                      type="password"
+                      value={workerForm.password}
+                      onChange={(e) => handleInputChange('password', e.target.value)}
+                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 ${
+                        errors.password ? 'border-red-500 dark:border-red-700' : 'border-gray-300 dark:border-gray-600'
+                      }`}
+                      placeholder="Leave blank to keep current"
+                    />
+                    {errors.password && (
+                      <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.password}</p>
+                    )}
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      Leave blank to keep current password
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Mobile <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -738,23 +874,52 @@ const Workers = () => {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Skill <span className="text-red-500">*</span>
+                      Primary Skill <span className="text-red-500">*</span>
                     </label>
                     <select
-                      value={workerForm.skill}
-                      onChange={(e) => handleInputChange('skill', e.target.value)}
+                      value={workerForm.primarySkill}
+                      onChange={(e) => handleInputChange('primarySkill', e.target.value)}
                       className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
-                        errors.skill ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                        errors.primarySkill ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                       }`}
                     >
-                      <option value="">Select skill</option>
-                      <option value="Shirts & Formal Wear">Shirts & Formal Wear</option>
-                      <option value="Traditional Wear">Traditional Wear</option>
+                      <option value="">Select primary skill</option>
+                      <option value="Stitching">Stitching</option>
+                      <option value="Cutting">Cutting</option>
+                      <option value="Fitting">Fitting</option>
+                      <option value="Iron Work">Iron Work</option>
+                      <option value="Embroidery">Embroidery</option>
                       <option value="Alterations">Alterations</option>
-                      <option value="Both">Both</option>
+                      <option value="All-Round">All-Round (Multiple Skills)</option>
                     </select>
-                    {errors.skill && (
-                      <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.skill}</p>
+                    {errors.primarySkill && (
+                      <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.primarySkill}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Specialization <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      value={workerForm.specialization}
+                      onChange={(e) => handleInputChange('specialization', e.target.value)}
+                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
+                        errors.specialization ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                      }`}
+                    >
+                      <option value="">Select specialization</option>
+                      <option value="Shirts & Formal Wear">Shirts & Formal Wear</option>
+                      <option value="Pants & Trousers">Pants & Trousers</option>
+                      <option value="Traditional Wear">Traditional Wear</option>
+                      <option value="Suits & Coats">Suits & Coats</option>
+                      <option value="Blouses & Tops">Blouses & Tops</option>
+                      <option value="Wedding & Bridal">Wedding & Bridal</option>
+                      <option value="Alterations">Alterations</option>
+                      <option value="All Types">All Types</option>
+                    </select>
+                    {errors.specialization && (
+                      <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.specialization}</p>
                     )}
                   </div>
 
@@ -1019,6 +1184,14 @@ const Workers = () => {
                         <div>
                           <p className="text-sm text-gray-600 dark:text-gray-400">Phone</p>
                           <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">{selectedWorker.phone}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-start gap-3">
+                        <Award className="w-5 h-5 text-orange-500 mt-1" />
+                        <div>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">Primary Skill</p>
+                          <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">{selectedWorker.primarySkill || 'Not specified'}</p>
                         </div>
                       </div>
 
