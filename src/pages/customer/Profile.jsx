@@ -96,7 +96,7 @@ const Profile = () => {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
       <Sidebar role="customer" />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Topbar />
@@ -108,12 +108,12 @@ const Profile = () => {
           >
             {/* Header */}
             <div className="flex items-center gap-3">
-              <div className="p-3 bg-blue-100 rounded-lg">
-                <User className="w-6 h-6 text-blue-600" />
+              <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                <User className="w-6 h-6 text-blue-600 dark:text-blue-400" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">My Profile</h1>
-                <p className="text-gray-600">Manage your account information</p>
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">My Profile</h1>
+                <p className="text-gray-600 dark:text-gray-400">Manage your account information</p>
               </div>
             </div>
 
@@ -124,10 +124,10 @@ const Profile = () => {
                   initial={{ opacity: 0, y: -20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
-                  className="flex items-center gap-2 p-4 bg-green-50 border border-green-200 rounded-lg"
+                  className="flex items-center gap-2 p-4 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700 rounded-lg"
                 >
-                  <CheckCircle className="w-5 h-5 text-green-600" />
-                  <span className="text-green-700 font-medium">{successMessage}</span>
+                  <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+                  <span className="text-green-700 dark:text-green-300 font-medium">{successMessage}</span>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -135,13 +135,13 @@ const Profile = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Left Column - Profile Card */}
               <div className="lg:col-span-1">
-                <div className="bg-white rounded-lg shadow-md p-6">
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
                   {/* Avatar */}
                   <div className="relative w-32 h-32 mx-auto mb-4">
                     <img
                       src={isEditing ? editedData.avatar : profileData.avatar}
                       alt="Profile"
-                      className="w-full h-full rounded-full object-cover border-4 border-blue-100"
+                      className="w-full h-full rounded-full object-cover border-4 border-blue-100 dark:border-blue-900"
                     />
                     {isEditing && (
                       <label className="absolute bottom-0 right-0 p-2 bg-blue-600 rounded-full cursor-pointer hover:bg-blue-700 transition-colors">
@@ -158,44 +158,44 @@ const Profile = () => {
 
                   {/* Name and Tier */}
                   <div className="text-center mb-6">
-                    <h2 className="text-2xl font-bold text-gray-900 mb-1">{profileData.name}</h2>
-                    <span className="inline-block px-3 py-1 bg-yellow-100 text-yellow-700 text-sm font-semibold rounded-full">
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-1">{profileData.name}</h2>
+                    <span className="inline-block px-3 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 text-sm font-semibold rounded-full">
                       {customerStats.tier} Member
                     </span>
                   </div>
 
                   {/* Stats Grid */}
                   <div className="grid grid-cols-2 gap-4 mb-6">
-                    <div className="text-center p-3 bg-blue-50 rounded-lg">
-                      <Package className="w-5 h-5 text-blue-600 mx-auto mb-1" />
-                      <p className="text-2xl font-bold text-gray-900">{customerStats.totalOrders}</p>
-                      <p className="text-xs text-gray-600">Total Orders</p>
+                    <div className="text-center p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
+                      <Package className="w-5 h-5 text-blue-600 dark:text-blue-400 mx-auto mb-1" />
+                      <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{customerStats.totalOrders}</p>
+                      <p className="text-xs text-gray-600 dark:text-gray-400">Total Orders</p>
                     </div>
-                    <div className="text-center p-3 bg-green-50 rounded-lg">
-                      <CheckCircle className="w-5 h-5 text-green-600 mx-auto mb-1" />
-                      <p className="text-2xl font-bold text-gray-900">{customerStats.completedOrders}</p>
-                      <p className="text-xs text-gray-600">Completed</p>
+                    <div className="text-center p-3 bg-green-50 dark:bg-green-900/30 rounded-lg">
+                      <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 mx-auto mb-1" />
+                      <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{customerStats.completedOrders}</p>
+                      <p className="text-xs text-gray-600 dark:text-gray-400">Completed</p>
                     </div>
-                    <div className="text-center p-3 bg-purple-50 rounded-lg">
-                      <Award className="w-5 h-5 text-purple-600 mx-auto mb-1" />
-                      <p className="text-2xl font-bold text-gray-900">{customerStats.loyaltyPoints}</p>
-                      <p className="text-xs text-gray-600">Points</p>
+                    <div className="text-center p-3 bg-purple-50 dark:bg-purple-900/30 rounded-lg">
+                      <Award className="w-5 h-5 text-purple-600 dark:text-purple-400 mx-auto mb-1" />
+                      <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{customerStats.loyaltyPoints}</p>
+                      <p className="text-xs text-gray-600 dark:text-gray-400">Points</p>
                     </div>
-                    <div className="text-center p-3 bg-orange-50 rounded-lg">
-                      <Star className="w-5 h-5 text-orange-600 mx-auto mb-1" />
-                      <p className="text-2xl font-bold text-gray-900">{customerStats.avgRating}</p>
-                      <p className="text-xs text-gray-600">Rating</p>
+                    <div className="text-center p-3 bg-orange-50 dark:bg-orange-900/30 rounded-lg">
+                      <Star className="w-5 h-5 text-orange-600 dark:text-orange-400 mx-auto mb-1" />
+                      <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{customerStats.avgRating}</p>
+                      <p className="text-xs text-gray-600 dark:text-gray-400">Rating</p>
                     </div>
                   </div>
 
                   {/* Member Since */}
-                  <div className="text-center p-4 bg-gray-50 rounded-lg">
-                    <div className="flex items-center justify-center gap-2 text-gray-600 mb-1">
+                  <div className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <div className="flex items-center justify-center gap-2 text-gray-600 dark:text-gray-400 mb-1">
                       <Calendar className="w-4 h-4" />
                       <span className="text-sm">Member Since</span>
                     </div>
-                    <p className="font-semibold text-gray-900">{profileData.joinDate}</p>
-                    <p className="text-xs text-gray-500 mt-1">{customerStats.joinedDays} days ago</p>
+                    <p className="font-semibold text-gray-900 dark:text-gray-100">{profileData.joinDate}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{customerStats.joinedDays} days ago</p>
                   </div>
                 </div>
 
@@ -227,9 +227,9 @@ const Profile = () => {
               {/* Right Column - Profile Details */}
               <div className="lg:col-span-2 space-y-6">
                 {/* Personal Information */}
-                <div className="bg-white rounded-lg shadow-md p-6">
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
                   <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xl font-bold text-gray-900">Personal Information</h2>
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Personal Information</h2>
                     {!isEditing ? (
                       <button
                         onClick={() => setIsEditing(true)}
@@ -242,7 +242,7 @@ const Profile = () => {
                       <div className="flex gap-2">
                         <button
                           onClick={handleCancel}
-                          className="flex items-center gap-2 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition-colors"
+                          className="flex items-center gap-2 px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg transition-colors"
                         >
                           <X className="w-4 h-4" />
                           Cancel
@@ -261,7 +261,7 @@ const Profile = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Full Name */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         <div className="flex items-center gap-2">
                           <User className="w-4 h-4" />
                           Full Name
@@ -272,15 +272,15 @@ const Profile = () => {
                         value={isEditing ? editedData.name : profileData.name}
                         onChange={(e) => setEditedData({ ...editedData, name: e.target.value })}
                         disabled={!isEditing}
-                        className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                          isEditing ? 'bg-white' : 'bg-gray-50'
+                        className={`w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-gray-100 ${
+                          isEditing ? 'bg-white dark:bg-gray-700' : 'bg-gray-50 dark:bg-gray-700/50'
                         }`}
                       />
                     </div>
 
                     {/* Email */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         <div className="flex items-center gap-2">
                           <Mail className="w-4 h-4" />
                           Email Address
@@ -291,15 +291,15 @@ const Profile = () => {
                         value={isEditing ? editedData.email : profileData.email}
                         onChange={(e) => setEditedData({ ...editedData, email: e.target.value })}
                         disabled={!isEditing}
-                        className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                          isEditing ? 'bg-white' : 'bg-gray-50'
+                        className={`w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-gray-100 ${
+                          isEditing ? 'bg-white dark:bg-gray-700' : 'bg-gray-50 dark:bg-gray-700/50'
                         }`}
                       />
                     </div>
 
                     {/* Phone */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         <div className="flex items-center gap-2">
                           <Phone className="w-4 h-4" />
                           Phone Number
@@ -310,15 +310,15 @@ const Profile = () => {
                         value={isEditing ? editedData.phone : profileData.phone}
                         onChange={(e) => setEditedData({ ...editedData, phone: e.target.value })}
                         disabled={!isEditing}
-                        className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                          isEditing ? 'bg-white' : 'bg-gray-50'
+                        className={`w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-gray-100 ${
+                          isEditing ? 'bg-white dark:bg-gray-700' : 'bg-gray-50 dark:bg-gray-700/50'
                         }`}
                       />
                     </div>
 
                     {/* Join Date (Read-only) */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         <div className="flex items-center gap-2">
                           <Calendar className="w-4 h-4" />
                           Join Date
@@ -328,13 +328,13 @@ const Profile = () => {
                         type="text"
                         value={profileData.joinDate}
                         disabled
-                        className="w-full px-4 py-2 border rounded-lg bg-gray-50"
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-gray-100"
                       />
                     </div>
 
                     {/* Address (Full Width) */}
                     <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         <div className="flex items-center gap-2">
                           <MapPin className="w-4 h-4" />
                           Address
@@ -345,8 +345,8 @@ const Profile = () => {
                         onChange={(e) => setEditedData({ ...editedData, address: e.target.value })}
                         disabled={!isEditing}
                         rows={3}
-                        className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                          isEditing ? 'bg-white' : 'bg-gray-50'
+                        className={`w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-gray-100 ${
+                          isEditing ? 'bg-white dark:bg-gray-700' : 'bg-gray-50 dark:bg-gray-700/50'
                         }`}
                       />
                     </div>
@@ -354,18 +354,18 @@ const Profile = () => {
                 </div>
 
                 {/* Security Settings */}
-                <div className="bg-white rounded-lg shadow-md p-6">
-                  <h2 className="text-xl font-bold text-gray-900 mb-6">Security Settings</h2>
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-6">Security Settings</h2>
                   
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                          <Lock className="w-5 h-5 text-blue-600" />
+                        <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
+                          <Lock className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                         </div>
                         <div>
-                          <p className="font-semibold text-gray-900">Password</p>
-                          <p className="text-sm text-gray-600">Last changed 30 days ago</p>
+                          <p className="font-semibold text-gray-900 dark:text-gray-100">Password</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">Last changed 30 days ago</p>
                         </div>
                       </div>
                       <button
@@ -376,12 +376,12 @@ const Profile = () => {
                       </button>
                     </div>
 
-                    <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                    <div className="p-4 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700 rounded-lg">
                       <div className="flex items-start gap-3">
-                        <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
+                        <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 mt-0.5" />
                         <div>
-                          <p className="font-semibold text-gray-900 mb-1">Account Verified</p>
-                          <p className="text-sm text-gray-700">Your email and phone number are verified</p>
+                          <p className="font-semibold text-gray-900 dark:text-gray-100 mb-1">Account Verified</p>
+                          <p className="text-sm text-gray-700 dark:text-gray-300">Your email and phone number are verified</p>
                         </div>
                       </div>
                     </div>
@@ -389,30 +389,30 @@ const Profile = () => {
                 </div>
 
                 {/* Preferences */}
-                <div className="bg-white rounded-lg shadow-md p-6">
-                  <h2 className="text-xl font-bold text-gray-900 mb-6">Preferences</h2>
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-6">Preferences</h2>
                   
                   <div className="space-y-4">
-                    <label className="flex items-center justify-between p-4 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
+                    <label className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
                       <div>
-                        <p className="font-semibold text-gray-900">Email Notifications</p>
-                        <p className="text-sm text-gray-600">Receive order updates via email</p>
+                        <p className="font-semibold text-gray-900 dark:text-gray-100">Email Notifications</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">Receive order updates via email</p>
                       </div>
                       <input type="checkbox" defaultChecked className="w-5 h-5 text-blue-600 rounded" />
                     </label>
 
-                    <label className="flex items-center justify-between p-4 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
+                    <label className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
                       <div>
-                        <p className="font-semibold text-gray-900">SMS Notifications</p>
-                        <p className="text-sm text-gray-600">Get delivery alerts via SMS</p>
+                        <p className="font-semibold text-gray-900 dark:text-gray-100">SMS Notifications</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">Get delivery alerts via SMS</p>
                       </div>
                       <input type="checkbox" defaultChecked className="w-5 h-5 text-blue-600 rounded" />
                     </label>
 
-                    <label className="flex items-center justify-between p-4 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
+                    <label className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
                       <div>
-                        <p className="font-semibold text-gray-900">Marketing Emails</p>
-                        <p className="text-sm text-gray-600">Receive offers and promotions</p>
+                        <p className="font-semibold text-gray-900 dark:text-gray-100">Marketing Emails</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">Receive offers and promotions</p>
                       </div>
                       <input type="checkbox" className="w-5 h-5 text-blue-600 rounded" />
                     </label>
@@ -439,36 +439,36 @@ const Profile = () => {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full"
+              className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 max-w-md w-full"
             >
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Change Password</h2>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Change Password</h2>
               
               <div className="space-y-4 mb-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Current Password</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Current Password</label>
                   <input
                     type="password"
                     value={passwordData.current}
                     onChange={(e) => setPasswordData({ ...passwordData, current: e.target.value })}
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">New Password</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">New Password</label>
                   <input
                     type="password"
                     value={passwordData.new}
                     onChange={(e) => setPasswordData({ ...passwordData, new: e.target.value })}
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Confirm New Password</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Confirm New Password</label>
                   <input
                     type="password"
                     value={passwordData.confirm}
                     onChange={(e) => setPasswordData({ ...passwordData, confirm: e.target.value })}
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                   />
                 </div>
               </div>
@@ -476,7 +476,7 @@ const Profile = () => {
               <div className="flex gap-3">
                 <button
                   onClick={() => setShowPasswordModal(false)}
-                  className="flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition-colors"
+                  className="flex-1 px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg transition-colors"
                 >
                   Cancel
                 </button>

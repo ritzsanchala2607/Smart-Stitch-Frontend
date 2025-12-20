@@ -85,7 +85,7 @@ const Payment = () => {
 
   if (paymentSuccess) {
     return (
-      <div className="flex h-screen bg-gray-50">
+      <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
         <Sidebar role="customer" />
         <div className="flex-1 flex flex-col overflow-hidden">
           <Topbar />
@@ -96,7 +96,7 @@ const Payment = () => {
               className="max-w-3xl mx-auto"
             >
               {/* Success Card */}
-              <div className="bg-white rounded-lg shadow-xl p-8 text-center">
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8 text-center">
                 <motion.div
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
@@ -362,55 +362,55 @@ const Payment = () => {
 
               {/* Payment Summary */}
               <div className="lg:col-span-1">
-                <div className="bg-white rounded-lg shadow-md p-6 sticky top-6">
-                  <h2 className="text-xl font-bold text-gray-900 mb-4">Payment Summary</h2>
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 sticky top-6">
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">Payment Summary</h2>
 
                   {/* Order Items */}
                   <div className="mb-4">
-                    <p className="text-sm font-semibold text-gray-900 mb-2">Order Items:</p>
+                    <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">Order Items:</p>
                     <div className="space-y-2">
                       {orderData.items.map((item, idx) => (
                         <div key={idx} className="flex justify-between text-sm">
-                          <span className="text-gray-700">{item.name} × {item.quantity}</span>
-                          <span className="text-gray-900">₹{(item.price * item.quantity).toLocaleString()}</span>
+                          <span className="text-gray-700 dark:text-gray-300">{item.name} × {item.quantity}</span>
+                          <span className="text-gray-900 dark:text-gray-100">₹{(item.price * item.quantity).toLocaleString()}</span>
                         </div>
                       ))}
                     </div>
                   </div>
 
                   {/* Price Breakdown */}
-                  <div className="space-y-2 mb-4 pt-4 border-t border-gray-200">
-                    <div className="flex justify-between text-gray-700">
+                  <div className="space-y-2 mb-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <div className="flex justify-between text-gray-700 dark:text-gray-300">
                       <span>Subtotal</span>
                       <span>₹{orderData.subtotal.toLocaleString()}</span>
                     </div>
-                    <div className="flex justify-between text-green-600">
+                    <div className="flex justify-between text-green-600 dark:text-green-400">
                       <span>Discount</span>
                       <span>-₹{orderData.discount.toLocaleString()}</span>
                     </div>
-                    <div className="flex justify-between text-gray-700">
+                    <div className="flex justify-between text-gray-700 dark:text-gray-300">
                       <span>Delivery</span>
-                      <span className="text-green-600">FREE</span>
+                      <span className="text-green-600 dark:text-green-400">FREE</span>
                     </div>
-                    <div className="flex justify-between text-gray-700">
+                    <div className="flex justify-between text-gray-700 dark:text-gray-300">
                       <span>GST (18%)</span>
                       <span>₹{orderData.gst.toLocaleString()}</span>
                     </div>
                   </div>
 
-                  <div className="pt-4 border-t border-gray-200 mb-4">
+                  <div className="pt-4 border-t border-gray-200 dark:border-gray-700 mb-4">
                     <div className="flex justify-between items-center">
-                      <span className="text-lg font-semibold text-gray-900">Total Amount</span>
-                      <span className="text-2xl font-bold text-blue-600">₹{orderData.total.toLocaleString()}</span>
+                      <span className="text-lg font-semibold text-gray-900 dark:text-gray-100">Total Amount</span>
+                      <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">₹{orderData.total.toLocaleString()}</span>
                     </div>
                   </div>
 
                   {/* Delivery Date */}
-                  <div className="mb-6 p-3 bg-blue-50 rounded-lg">
+                  <div className="mb-6 p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
                     <div className="flex items-center gap-2 text-sm">
-                      <Calendar className="w-4 h-4 text-blue-600" />
-                      <span className="text-gray-700">Expected Delivery:</span>
-                      <span className="font-semibold text-gray-900">{orderData.deliveryDate}</span>
+                      <Calendar className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                      <span className="text-gray-700 dark:text-gray-300">Expected Delivery:</span>
+                      <span className="font-semibold text-gray-900 dark:text-gray-100">{orderData.deliveryDate}</span>
                     </div>
                   </div>
 
@@ -433,7 +433,7 @@ const Payment = () => {
                     )}
                   </button>
 
-                  <p className="text-xs text-gray-600 text-center mt-3">
+                  <p className="text-xs text-gray-600 dark:text-gray-400 text-center mt-3">
                     By proceeding, you agree to our terms and conditions
                   </p>
                 </div>
