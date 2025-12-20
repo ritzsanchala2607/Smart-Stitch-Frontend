@@ -39,6 +39,13 @@ import CustomerPayment from '../pages/customer/Payment';
 import CustomerSupport from '../pages/customer/Support';
 import CustomerProfile from '../pages/customer/Profile';
 
+// Admin Pages
+import AdminDashboard from '../pages/admin/AdminDashboard';
+import OwnersShops from '../pages/admin/OwnersShops';
+import PlatformAnalytics from '../pages/admin/PlatformAnalytics';
+import SystemReports from '../pages/admin/SystemReports';
+import AdminProfile from '../pages/admin/AdminProfile';
+
 const ProtectedRoute = ({ children, allowedRole }) => {
   const { user, isAuthenticated } = useAuth();
 
@@ -102,6 +109,13 @@ const AppRoutes = () => {
       <Route path="/customer/payment" element={<ProtectedRoute allowedRole="customer"><CustomerPayment /></ProtectedRoute>} />
       <Route path="/customer/support" element={<ProtectedRoute allowedRole="customer"><CustomerSupport /></ProtectedRoute>} />
       <Route path="/customer/profile" element={<ProtectedRoute allowedRole="customer"><CustomerProfile /></ProtectedRoute>} />
+
+      {/* Admin Routes */}
+      <Route path="/admin/dashboard" element={<ProtectedRoute allowedRole="admin"><AdminDashboard /></ProtectedRoute>} />
+      <Route path="/admin/owners-shops" element={<ProtectedRoute allowedRole="admin"><OwnersShops /></ProtectedRoute>} />
+      <Route path="/admin/analytics" element={<ProtectedRoute allowedRole="admin"><PlatformAnalytics /></ProtectedRoute>} />
+      <Route path="/admin/reports" element={<ProtectedRoute allowedRole="admin"><SystemReports /></ProtectedRoute>} />
+      <Route path="/admin/profile" element={<ProtectedRoute allowedRole="admin"><AdminProfile /></ProtectedRoute>} />
 
       {/* Default Route */}
       <Route path="/" element={<Navigate to={isAuthenticated ? `/${user.role}/dashboard` : "/login"} replace />} />

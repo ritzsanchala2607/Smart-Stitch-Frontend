@@ -21,7 +21,10 @@ import {
   Settings,
   Bell,
   Calendar,
-  X
+  X,
+  Store,
+  BarChart3,
+  FileText
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
@@ -76,9 +79,18 @@ const Sidebar = ({ role, isOpen, onClose }) => {
     { icon: Settings, label: 'Profile', path: '/customer/profile' },
   ];
 
+  const adminMenuItems = [
+    { icon: LayoutDashboard, label: 'Dashboard', path: '/admin/dashboard' },
+    { icon: Store, label: 'Owners & Shops', path: '/admin/owners-shops' },
+    { icon: BarChart3, label: 'Platform Analytics', path: '/admin/analytics' },
+    { icon: FileText, label: 'System Reports', path: '/admin/reports' },
+    { icon: Settings, label: 'Settings', path: '/admin/profile' },
+  ];
+
   const menuItems = 
     role === 'owner' ? ownerMenuItems :
     role === 'worker' ? workerMenuItems :
+    role === 'admin' ? adminMenuItems :
     customerMenuItems;
 
   const isActive = (path) => location.pathname === path;

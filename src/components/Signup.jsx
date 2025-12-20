@@ -449,6 +449,7 @@ const handleGoogleSignUp = async () => {
                   <option value="OWNER">Shop Owner</option>
                   <option value="WORKER">Worker</option>
                   <option value="CUSTOMER">Customer</option>
+                  <option value="ADMIN">Admin</option>
                 </select>
               </motion.div>
 
