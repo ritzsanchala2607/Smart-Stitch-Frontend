@@ -181,7 +181,7 @@ function AddCustomerModal({ isOpen, onClose, onSave }) {
           onClick={handleBackdropClick}
         >
           <motion.div
-            className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 relative"
+            className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full p-8 relative"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
@@ -191,7 +191,7 @@ function AddCustomerModal({ isOpen, onClose, onSave }) {
             {/* Close Button */}
             <button
               onClick={handleClose}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
               aria-label="Close modal"
             >
               <X className="w-6 h-6" />
@@ -199,10 +199,10 @@ function AddCustomerModal({ isOpen, onClose, onSave }) {
 
             {/* Header */}
             <div className="mb-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
                 Add New Customer
               </h2>
-              <p className="text-gray-600 text-sm">
+              <p className="text-gray-600 dark:text-gray-400 text-sm">
                 Enter customer details to create a new profile
               </p>
             </div>
@@ -211,7 +211,7 @@ function AddCustomerModal({ isOpen, onClose, onSave }) {
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Name Input Field */}
               <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Customer Name <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -221,8 +221,8 @@ function AddCustomerModal({ isOpen, onClose, onSave }) {
                   value={formData.name}
                   onChange={handleInputChange}
                   placeholder="Enter customer name"
-                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors ${
-                    errors.name ? 'border-red-500' : 'border-gray-300'
+                  className={`w-full px-4 py-2 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors placeholder-gray-500 dark:placeholder-gray-400 ${
+                    errors.name ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                   }`}
                 />
                 {errors.name && (
@@ -232,7 +232,7 @@ function AddCustomerModal({ isOpen, onClose, onSave }) {
 
               {/* Mobile Input Field */}
               <div>
-                <label htmlFor="mobile" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="mobile" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Mobile Number <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -242,8 +242,8 @@ function AddCustomerModal({ isOpen, onClose, onSave }) {
                   value={formData.mobile}
                   onChange={handleInputChange}
                   placeholder="Enter mobile number"
-                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors ${
-                    errors.mobile ? 'border-red-500' : 'border-gray-300'
+                  className={`w-full px-4 py-2 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors placeholder-gray-500 dark:placeholder-gray-400 ${
+                    errors.mobile ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                   }`}
                 />
                 {errors.mobile && (
@@ -253,7 +253,7 @@ function AddCustomerModal({ isOpen, onClose, onSave }) {
 
               {/* Email Input Field */}
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Email Address <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -263,8 +263,8 @@ function AddCustomerModal({ isOpen, onClose, onSave }) {
                   value={formData.email}
                   onChange={handleInputChange}
                   placeholder="Enter email address"
-                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors ${
-                    errors.email ? 'border-red-500' : 'border-gray-300'
+                  className={`w-full px-4 py-2 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors placeholder-gray-500 dark:placeholder-gray-400 ${
+                    errors.email ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                   }`}
                 />
                 {errors.email && (
@@ -277,7 +277,7 @@ function AddCustomerModal({ isOpen, onClose, onSave }) {
                 <motion.button
                   type="button"
                   onClick={handleClose}
-                  className="flex-1 py-3 rounded-lg font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors"
+                  className="flex-1 py-3 rounded-lg font-semibold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >

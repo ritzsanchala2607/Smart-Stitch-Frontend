@@ -23,7 +23,7 @@ function GoogleAuthButton({ onClick, isLoading = false, disabled = false }) {
       disabled={disabled || isLoading}
       whileHover={{ scale: 1.01 }}
       whileTap={{ scale: 0.99 }}
-      className="w-full py-3 px-4 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 transition-all duration-200 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed bg-white"
+      className="w-full py-3 px-4 border border-gray-300 dark:border-gray-600 rounded-lg font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed bg-white dark:bg-gray-800"
     >
       {/* Google Icon SVG */}
       <svg

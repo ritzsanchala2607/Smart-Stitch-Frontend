@@ -112,7 +112,7 @@ const Sidebar = ({ role, isOpen, onClose }) => {
         transition={{ type: 'spring', damping: 25, stiffness: 200 }}
         className={`
           ${isMobile ? 'fixed' : 'relative'}
-          w-64 bg-gradient-to-b from-[#004E89] to-[#003366] text-white h-screen flex flex-col shadow-2xl z-50
+          w-64 bg-gradient-to-b from-[#004E89] to-[#003366] dark:from-gray-900 dark:to-gray-950 text-white h-screen flex flex-col shadow-2xl z-50
         `}
       >
         {/* Close button for mobile */}
@@ -125,14 +125,14 @@ const Sidebar = ({ role, isOpen, onClose }) => {
           </button>
         )}
       {/* Logo */}
-      <div className="p-6 border-b border-white/10">
+      <div className="p-6 border-b border-white/10 dark:border-gray-800">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center">
+          <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 dark:from-orange-600 dark:to-orange-700 rounded-lg flex items-center justify-center">
             <Scissors className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="text-xl font-bold">Smart Stitch</h1>
-            <p className="text-xs text-orange-300 capitalize">{role} Panel</p>
+            <h1 className="text-xl font-bold text-white">Smart Stitch</h1>
+            <p className="text-xs text-orange-300 dark:text-orange-400 capitalize">{role} Panel</p>
           </div>
         </div>
       </div>
@@ -150,8 +150,8 @@ const Sidebar = ({ role, isOpen, onClose }) => {
                 whileTap={{ scale: 0.98 }}
                 className={`flex items-center gap-3 px-4 py-3 rounded-lg mb-2 transition-all ${
                   active
-                    ? 'bg-orange-500 text-white shadow-lg'
-                    : 'text-white/80 hover:bg-white/10'
+                    ? 'bg-orange-500 dark:bg-orange-600 text-white shadow-lg'
+                    : 'text-white/80 dark:text-gray-300 hover:bg-white/10 dark:hover:bg-gray-800'
                 }`}
               >
                 <Icon className="w-5 h-5" />
@@ -163,12 +163,12 @@ const Sidebar = ({ role, isOpen, onClose }) => {
       </nav>
 
       {/* Logout Button */}
-      <div className="p-4 border-t border-white/10">
+      <div className="p-4 border-t border-white/10 dark:border-gray-800">
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={logout}
-          className="flex items-center gap-3 px-4 py-3 rounded-lg w-full text-white/80 hover:bg-red-500/20 hover:text-red-300 transition-all"
+          className="flex items-center gap-3 px-4 py-3 rounded-lg w-full text-white/80 dark:text-gray-300 hover:bg-red-500/20 dark:hover:bg-red-900/30 hover:text-red-300 dark:hover:text-red-400 transition-all"
         >
           <LogOut className="w-5 h-5" />
           <span className="font-medium">Logout</span>

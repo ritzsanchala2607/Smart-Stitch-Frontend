@@ -272,15 +272,15 @@ const Orders = () => {
   const getStatusColor = (status) => {
     switch (status) {
       case 'ready':
-        return 'bg-green-100 text-green-700';
+        return 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400';
       case 'stitching':
-        return 'bg-blue-100 text-blue-700';
+        return 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400';
       case 'cutting':
-        return 'bg-purple-100 text-purple-700';
+        return 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400';
       case 'fitting':
-        return 'bg-indigo-100 text-indigo-700';
+        return 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400';
       default:
-        return 'bg-orange-100 text-orange-700';
+        return 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400';
     }
   };
 
@@ -379,7 +379,7 @@ const Orders = () => {
   });
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
       <Sidebar role="owner" />
       
       <div className="flex-1 flex flex-col overflow-hidden">
@@ -397,10 +397,10 @@ const Orders = () => {
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
-                className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3"
+                className="mb-6 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-lg p-4 flex items-center gap-3"
               >
-                <CheckCircle className="w-5 h-5 text-green-600" />
-                <span className="text-green-800 font-medium">
+                <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+                <span className="text-green-800 dark:text-green-400 font-medium">
                   Order created successfully!
                 </span>
               </motion.div>
@@ -409,8 +409,8 @@ const Orders = () => {
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">Order Management</h1>
-                <p className="text-gray-600 mt-2">Track and manage all orders</p>
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Order Management</h1>
+                <p className="text-gray-600 dark:text-gray-400 mt-2">Track and manage all orders</p>
               </div>
               <motion.button
                 whileHover={{ scale: 1.05 }}
@@ -427,23 +427,23 @@ const Orders = () => {
             <div className="flex flex-col md:flex-row gap-4 mb-6">
               {/* Search */}
               <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
                 <input
                   type="text"
                   placeholder="Search orders by ID or customer name..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
                 />
               </div>
 
               {/* Status Filter */}
               <div className="relative">
-                <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
                 <select
                   value={filterStatus}
                   onChange={(e) => setFilterStatus(e.target.value)}
-                  className="pl-10 pr-8 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent appearance-none bg-white"
+                  className="pl-10 pr-8 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent appearance-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                 >
                   <option value="all">All Status</option>
                   <option value="pending">Pending</option>
@@ -456,26 +456,26 @@ const Orders = () => {
             </div>
 
             {/* Orders List */}
-            <div className="bg-white rounded-lg shadow-md overflow-hidden">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-gray-50 border-b border-gray-200">
+                  <thead className="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
                     <tr>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Order ID</th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Customer</th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Date</th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Delivery</th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Status</th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Amount</th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Actions</th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">Order ID</th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">Customer</th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">Date</th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">Delivery</th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">Status</th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">Amount</th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-200">
+                  <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                     {filteredOrders.length === 0 ? (
                       <tr>
                         <td colSpan="7" className="px-6 py-12 text-center">
-                          <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                          <p className="text-gray-600">
+                          <Package className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+                          <p className="text-gray-600 dark:text-gray-400">
                             {searchQuery || filterStatus !== 'all' 
                               ? 'No orders found matching your filters.' 
                               : 'No orders yet. Create your first order!'}
@@ -484,13 +484,13 @@ const Orders = () => {
                       </tr>
                     ) : (
                       filteredOrders.map((order) => (
-                        <tr key={order.id} className="hover:bg-gray-50 transition-colors">
+                        <tr key={order.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                           <td className="px-6 py-4">
-                            <span className="font-semibold text-gray-900">{order.id}</span>
+                            <span className="font-semibold text-gray-900 dark:text-gray-100">{order.id}</span>
                           </td>
-                          <td className="px-6 py-4 text-gray-900">{order.customerName}</td>
-                          <td className="px-6 py-4 text-gray-600">{order.orderDate}</td>
-                          <td className="px-6 py-4 text-gray-600">{order.deliveryDate}</td>
+                          <td className="px-6 py-4 text-gray-900 dark:text-gray-100">{order.customerName}</td>
+                          <td className="px-6 py-4 text-gray-600 dark:text-gray-400">{order.orderDate}</td>
+                          <td className="px-6 py-4 text-gray-600 dark:text-gray-400">{order.deliveryDate}</td>
                           <td className="px-6 py-4">
                             <span className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1 w-fit ${getStatusColor(order.status)}`}>
                               {getStatusIcon(order.status)}
@@ -498,30 +498,30 @@ const Orders = () => {
                             </span>
                           </td>
                           <td className="px-6 py-4">
-                            <span className="font-semibold text-gray-900">${order.totalAmount}</span>
+                            <span className="font-semibold text-gray-900 dark:text-gray-100">${order.totalAmount}</span>
                           </td>
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-2">
                               <button 
                                 onClick={() => handleViewOrder(order.id)}
-                                className="p-2 hover:bg-blue-50 rounded-lg transition-colors" 
+                                className="p-2 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors" 
                                 title="View"
                               >
-                                <Eye className="w-4 h-4 text-blue-600" />
+                                <Eye className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                               </button>
                               <button 
                                 onClick={() => handleEditOrder(order.id)}
-                                className="p-2 hover:bg-orange-50 rounded-lg transition-colors" 
+                                className="p-2 hover:bg-orange-50 dark:hover:bg-orange-900/30 rounded-lg transition-colors" 
                                 title="Edit"
                               >
-                                <Edit className="w-4 h-4 text-orange-600" />
+                                <Edit className="w-4 h-4 text-orange-600 dark:text-orange-400" />
                               </button>
                               <button 
                                 onClick={() => handleDeleteOrder(order.id)}
-                                className="p-2 hover:bg-red-50 rounded-lg transition-colors" 
+                                className="p-2 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors" 
                                 title="Delete"
                               >
-                                <Trash2 className="w-4 h-4 text-red-600" />
+                                <Trash2 className="w-4 h-4 text-red-600 dark:text-red-400" />
                               </button>
                             </div>
                           </td>
@@ -551,16 +551,16 @@ const Orders = () => {
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 20 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-2xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto"
+              className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto"
             >
               {/* Modal Header */}
-              <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between rounded-t-2xl z-10">
-                <h2 className="text-2xl font-bold text-gray-900">Create New Order</h2>
+              <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between rounded-t-2xl z-10">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Create New Order</h2>
                 <button
                   onClick={() => setShowNewOrderModal(false)}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                 >
-                  <X className="w-6 h-6 text-gray-600" />
+                  <X className="w-6 h-6 text-gray-600 dark:text-gray-400" />
                 </button>
               </div>
 
@@ -632,12 +632,12 @@ const Orders = () => {
                     <motion.div
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: 'auto' }}
-                      className="mt-4 p-4 bg-gray-50 rounded-lg"
+                      className="mt-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg"
                     >
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
                         <span className="font-medium">Email:</span> {selectedCustomer.email}
                       </p>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
                         <span className="font-medium">Phone:</span> {selectedCustomer.phone}
                       </p>
                     </motion.div>

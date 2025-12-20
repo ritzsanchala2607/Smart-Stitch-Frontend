@@ -40,11 +40,11 @@ export const OrderStatusDonutChart = ({ orders }) => {
     <motion.div
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="bg-white rounded-lg shadow-md p-6"
+      className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"
     >
       <div className="flex items-center gap-2 mb-4">
-        <PieChart className="w-5 h-5 text-orange-500" />
-        <h2 className="text-xl font-bold text-gray-900">Order Status Distribution</h2>
+        <PieChart className="w-5 h-5 text-orange-500 dark:text-orange-400" />
+        <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Order Status Distribution</h2>
       </div>
       
       <div className="flex items-center justify-center gap-8">
@@ -89,8 +89,8 @@ export const OrderStatusDonutChart = ({ orders }) => {
           </svg>
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center">
-              <p className="text-2xl font-bold text-gray-900">{total}</p>
-              <p className="text-xs text-gray-500">Total</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{total}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Total</p>
             </div>
           </div>
         </div>
@@ -104,8 +104,8 @@ export const OrderStatusDonutChart = ({ orders }) => {
                 style={{ backgroundColor: segment.color }}
               />
               <div className="flex-1">
-                <p className="text-sm font-medium text-gray-900 capitalize">{segment.status}</p>
-                <p className="text-xs text-gray-500">{segment.count} orders ({segment.percentage}%)</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-gray-100 capitalize">{segment.status}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">{segment.count} orders ({segment.percentage}%)</p>
               </div>
             </div>
           ))}
@@ -132,21 +132,21 @@ export const RevenueTrendChart = () => {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white rounded-lg shadow-md p-6"
+      className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"
     >
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
-          <TrendingUp className="w-5 h-5 text-orange-500" />
-          <h2 className="text-xl font-bold text-gray-900">Revenue Trend</h2>
+          <TrendingUp className="w-5 h-5 text-orange-500 dark:text-orange-400" />
+          <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Revenue Trend</h2>
         </div>
         <div className="flex gap-4 text-sm">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-            <span className="text-gray-600">Revenue</span>
+            <span className="text-gray-600 dark:text-gray-400">Revenue</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-            <span className="text-gray-600">Expense</span>
+            <span className="text-gray-600 dark:text-gray-400">Expense</span>
           </div>
         </div>
       </div>
@@ -189,7 +189,7 @@ export const RevenueTrendChart = () => {
                     </div>
                   </div>
                 </div>
-                <span className="text-xs font-medium text-gray-600">{data.month}</span>
+                <span className="text-xs font-medium text-gray-600 dark:text-gray-400">{data.month}</span>
               </div>
             );
           })}
@@ -208,11 +208,11 @@ export const WorkerPerformanceRadarChart = ({ workers }) => {
     <motion.div
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="bg-white rounded-lg shadow-md p-6"
+      className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"
     >
       <div className="flex items-center gap-2 mb-4">
-        <Activity className="w-5 h-5 text-orange-500" />
-        <h2 className="text-xl font-bold text-gray-900">Worker Performance</h2>
+        <Activity className="w-5 h-5 text-orange-500 dark:text-orange-400" />
+        <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Worker Performance</h2>
       </div>
 
       <div className="space-y-4">
@@ -233,21 +233,21 @@ export const WorkerPerformanceRadarChart = ({ workers }) => {
                     className="w-10 h-10 rounded-full"
                   />
                   <div>
-                    <p className="font-medium text-gray-900 text-sm">{worker.name}</p>
-                    <p className="text-xs text-gray-500">{worker.specialization}</p>
+                    <p className="font-medium text-gray-900 dark:text-gray-100 text-sm">{worker.name}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{worker.specialization}</p>
                   </div>
                 </div>
-                <span className="text-sm font-bold text-gray-900">{performance}%</span>
+                <span className="text-sm font-bold text-gray-900 dark:text-gray-100">{performance}%</span>
               </div>
 
               {/* Performance Bars */}
               <div className="grid grid-cols-3 gap-2">
                 <div>
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs text-gray-600">Performance</span>
-                    <span className="text-xs font-semibold">{performance}%</span>
+                    <span className="text-xs text-gray-600 dark:text-gray-400">Performance</span>
+                    <span className="text-xs font-semibold text-gray-900 dark:text-gray-100">{performance}%</span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                     <div
                       className="bg-blue-500 h-2 rounded-full transition-all"
                       style={{ width: `${performance}%` }}
@@ -256,10 +256,10 @@ export const WorkerPerformanceRadarChart = ({ workers }) => {
                 </div>
                 <div>
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs text-gray-600">Rating</span>
-                    <span className="text-xs font-semibold">{rating}/5</span>
+                    <span className="text-xs text-gray-600 dark:text-gray-400">Rating</span>
+                    <span className="text-xs font-semibold text-gray-900 dark:text-gray-100">{rating}/5</span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                     <div
                       className="bg-yellow-500 h-2 rounded-full transition-all"
                       style={{ width: `${(rating / 5) * 100}%` }}
@@ -268,10 +268,10 @@ export const WorkerPerformanceRadarChart = ({ workers }) => {
                 </div>
                 <div>
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs text-gray-600">Completion</span>
-                    <span className="text-xs font-semibold">{completionRate.toFixed(0)}%</span>
+                    <span className="text-xs text-gray-600 dark:text-gray-400">Completion</span>
+                    <span className="text-xs font-semibold text-gray-900 dark:text-gray-100">{completionRate.toFixed(0)}%</span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                     <div
                       className="bg-green-500 h-2 rounded-full transition-all"
                       style={{ width: `${completionRate}%` }}
@@ -299,11 +299,11 @@ export const InventoryLowStockChart = ({ inventory }) => {
     <motion.div
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
-      className="bg-white rounded-lg shadow-md p-6"
+      className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"
     >
       <div className="flex items-center gap-2 mb-4">
-        <BarChart3 className="w-5 h-5 text-orange-500" />
-        <h2 className="text-xl font-bold text-gray-900">Low Stock Alert</h2>
+        <BarChart3 className="w-5 h-5 text-orange-500 dark:text-orange-400" />
+        <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Low Stock Alert</h2>
       </div>
 
       <div className="space-y-4">
@@ -315,17 +315,17 @@ export const InventoryLowStockChart = ({ inventory }) => {
           return (
             <div key={item.id} className="space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-900">{item.name}</span>
+                <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{item.name}</span>
                 <span className={`text-sm font-bold ${
-                  isCritical ? 'text-red-600' :
-                  isVeryLow ? 'text-orange-600' :
-                  'text-yellow-600'
+                  isCritical ? 'text-red-600 dark:text-red-400' :
+                  isVeryLow ? 'text-orange-600 dark:text-orange-400' :
+                  'text-yellow-600 dark:text-yellow-400'
                 }`}>
                   {item.quantity} / {item.minStock} {item.unit}
                 </span>
               </div>
               <div className="relative">
-                <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
                   <div
                     className={`h-full rounded-full transition-all ${
                       isCritical ? 'bg-red-500' :
@@ -336,7 +336,7 @@ export const InventoryLowStockChart = ({ inventory }) => {
                   />
                 </div>
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-xs font-semibold text-gray-700">
+                  <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">
                     {percentage.toFixed(0)}%
                   </span>
                 </div>
@@ -347,7 +347,7 @@ export const InventoryLowStockChart = ({ inventory }) => {
       </div>
 
       {lowStockItems.length === 0 && (
-        <div className="text-center py-8 text-gray-500">
+        <div className="text-center py-8 text-gray-500 dark:text-gray-400">
           <p className="text-sm">All items are well stocked!</p>
         </div>
       )}
@@ -375,16 +375,16 @@ export const CustomerRatingsChart = ({ reviews }) => {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white rounded-lg shadow-md p-6"
+      className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"
     >
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
-          <BarChart3 className="w-5 h-5 text-orange-500" />
-          <h2 className="text-xl font-bold text-gray-900">Customer Ratings</h2>
+          <BarChart3 className="w-5 h-5 text-orange-500 dark:text-orange-400" />
+          <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Customer Ratings</h2>
         </div>
         <div className="text-right">
-          <p className="text-3xl font-bold text-orange-600">{avgRating}</p>
-          <p className="text-xs text-gray-500">{totalReviews} reviews</p>
+          <p className="text-3xl font-bold text-orange-600 dark:text-orange-400">{avgRating}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">{totalReviews} reviews</p>
         </div>
       </div>
 
@@ -396,14 +396,14 @@ export const CustomerRatingsChart = ({ reviews }) => {
           return (
             <div key={rating} className="flex items-center gap-3">
               <div className="flex items-center gap-1 w-16">
-                <span className="text-sm font-medium text-gray-700">{rating}</span>
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{rating}</span>
                 <svg className="w-4 h-4 text-yellow-500 fill-yellow-500" viewBox="0 0 20 20">
                   <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
                 </svg>
               </div>
               <div className="flex-1">
                 <div className="relative">
-                  <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
                     <div
                       className="bg-yellow-500 h-full rounded-full transition-all"
                       style={{ width: `${percentage}%` }}
@@ -411,7 +411,7 @@ export const CustomerRatingsChart = ({ reviews }) => {
                   </div>
                 </div>
               </div>
-              <span className="text-sm text-gray-600 w-20 text-right">
+              <span className="text-sm text-gray-600 dark:text-gray-400 w-20 text-right">
                 {count} ({percentage.toFixed(0)}%)
               </span>
             </div>
@@ -443,11 +443,11 @@ export const WorkerAvailabilityPieChart = ({ workers }) => {
     <motion.div
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="bg-white rounded-lg shadow-md p-6"
+      className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"
     >
       <div className="flex items-center gap-2 mb-4">
-        <PieChart className="w-5 h-5 text-orange-500" />
-        <h2 className="text-xl font-bold text-gray-900">Worker Availability</h2>
+        <PieChart className="w-5 h-5 text-orange-500 dark:text-orange-400" />
+        <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Worker Availability</h2>
       </div>
 
       <div className="flex items-center justify-center gap-8">
@@ -486,9 +486,9 @@ export const WorkerAvailabilityPieChart = ({ workers }) => {
             })}
           </svg>
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="text-center bg-white rounded-full w-20 h-20 flex flex-col items-center justify-center shadow-sm">
-              <p className="text-2xl font-bold text-gray-900">{total}</p>
-              <p className="text-xs text-gray-500">Workers</p>
+            <div className="text-center bg-white dark:bg-gray-800 rounded-full w-20 h-20 flex flex-col items-center justify-center shadow-sm">
+              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{total}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Workers</p>
             </div>
           </div>
         </div>
@@ -502,8 +502,8 @@ export const WorkerAvailabilityPieChart = ({ workers }) => {
                 style={{ backgroundColor: segment.color }}
               />
               <div>
-                <p className="text-sm font-medium text-gray-900">{segment.label}</p>
-                <p className="text-xs text-gray-500">{segment.count} ({segment.percentage.toFixed(0)}%)</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{segment.label}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">{segment.count} ({segment.percentage.toFixed(0)}%)</p>
               </div>
             </div>
           ))}
@@ -533,11 +533,11 @@ export const OrdersLineChart = () => {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white rounded-lg shadow-md p-6"
+      className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"
     >
       <div className="flex items-center gap-2 mb-6">
-        <TrendingUp className="w-5 h-5 text-orange-500" />
-        <h2 className="text-xl font-bold text-gray-900">Daily Orders Trend</h2>
+        <TrendingUp className="w-5 h-5 text-orange-500 dark:text-orange-400" />
+        <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Daily Orders Trend</h2>
       </div>
 
       <div className="relative h-64">

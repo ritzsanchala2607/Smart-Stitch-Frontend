@@ -15,7 +15,7 @@ import {
 
 const Analytics = () => {
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
       <Sidebar role="owner" />
       
       <div className="flex-1 flex flex-col overflow-hidden">
@@ -29,12 +29,12 @@ const Analytics = () => {
           >
             {/* Header */}
             <div className="flex items-center gap-3 mb-6">
-              <div className="p-3 bg-orange-100 rounded-lg">
-                <BarChart3 className="w-6 h-6 text-orange-600" />
+              <div className="p-3 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
+                <BarChart3 className="w-6 h-6 text-orange-600 dark:text-orange-400" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">Analytics & Reports</h1>
-                <p className="text-gray-600">Comprehensive business insights and performance metrics</p>
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Analytics & Reports</h1>
+                <p className="text-gray-600 dark:text-gray-400">Comprehensive business insights and performance metrics</p>
               </div>
             </div>
 
