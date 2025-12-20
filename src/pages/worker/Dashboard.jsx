@@ -121,11 +121,11 @@ const WorkerDashboard = () => {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
       <Sidebar role="worker" />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Topbar />
-        <main className="flex-1 overflow-y-auto p-6">
+        <main className="flex-1 overflow-y-auto p-6 dark:bg-gray-900">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -134,12 +134,12 @@ const WorkerDashboard = () => {
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
-                <div className="p-3 bg-blue-100 rounded-lg">
-                  <Scissors className="w-6 h-6 text-blue-600" />
+                <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                  <Scissors className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                 </div>
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-900">Worker Dashboard</h1>
-                  <p className="text-gray-600">Track your tasks and performance</p>
+                  <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Worker Dashboard</h1>
+                  <p className="text-gray-600 dark:text-gray-400">Track your tasks and performance</p>
                 </div>
               </div>
               {/* Productivity Badge */}
@@ -194,9 +194,9 @@ const WorkerDashboard = () => {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.1 }}
-                  className="bg-white rounded-lg shadow-md p-6"
+                  className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"
                 >
-                  <h2 className="text-xl font-bold text-gray-900 mb-6">Task Progress</h2>
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-6">Task Progress</h2>
                   <div className="flex items-center justify-center">
                     <DonutChart
                       completed={completedPercentage}
@@ -209,26 +209,26 @@ const WorkerDashboard = () => {
                     <div className="text-center">
                       <div className="flex items-center justify-center gap-2 mb-1">
                         <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                        <span className="text-sm font-medium text-gray-600">Completed</span>
+                        <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Completed</span>
                       </div>
-                      <p className="text-2xl font-bold text-gray-900">{completedPercentage}%</p>
-                      <p className="text-xs text-gray-500">{completedTasks} tasks</p>
+                      <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{completedPercentage}%</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{completedTasks} tasks</p>
                     </div>
                     <div className="text-center">
                       <div className="flex items-center justify-center gap-2 mb-1">
                         <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                        <span className="text-sm font-medium text-gray-600">In Progress</span>
+                        <span className="text-sm font-medium text-gray-600 dark:text-gray-400">In Progress</span>
                       </div>
-                      <p className="text-2xl font-bold text-gray-900">{inProgressPercentage}%</p>
-                      <p className="text-xs text-gray-500">{inProgressTasks} tasks</p>
+                      <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{inProgressPercentage}%</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{inProgressTasks} tasks</p>
                     </div>
                     <div className="text-center">
                       <div className="flex items-center justify-center gap-2 mb-1">
                         <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
-                        <span className="text-sm font-medium text-gray-600">Pending</span>
+                        <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Pending</span>
                       </div>
-                      <p className="text-2xl font-bold text-gray-900">{pendingPercentage}%</p>
-                      <p className="text-xs text-gray-500">{pendingTasks} tasks</p>
+                      <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{pendingPercentage}%</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{pendingTasks} tasks</p>
                     </div>
                   </div>
                 </motion.div>
@@ -238,9 +238,9 @@ const WorkerDashboard = () => {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.2 }}
-                  className="bg-white rounded-lg shadow-md p-6"
+                  className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"
                 >
-                  <h2 className="text-xl font-bold text-gray-900 mb-6">Workload Trend (Last 7 Days)</h2>
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-6">Workload Trend (Last 7 Days)</h2>
                   <WorkloadChart data={workloadTrend} />
                 </motion.div>
 
@@ -249,37 +249,37 @@ const WorkerDashboard = () => {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.3 }}
-                  className="bg-white rounded-lg shadow-md overflow-hidden"
+                  className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden"
                 >
-                  <div className="p-6 border-b border-gray-200">
-                    <h2 className="text-xl font-bold text-gray-900">Recent Assigned Tasks</h2>
+                  <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Recent Assigned Tasks</h2>
                   </div>
                   <div className="overflow-x-auto">
                     <table className="w-full">
-                      <thead className="bg-gray-50 border-b border-gray-200">
+                      <thead className="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
                         <tr>
-                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600">Order ID</th>
-                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600">Customer</th>
-                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600">Task Type</th>
-                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600">Deadline</th>
-                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600">Status</th>
-                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600">Action</th>
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400">Order ID</th>
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400">Customer</th>
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400">Task Type</th>
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400">Deadline</th>
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400">Status</th>
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400">Action</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-gray-200">
+                      <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                         {recentTasks.map((task) => (
-                          <tr key={task.id} className="hover:bg-gray-50">
-                            <td className="px-6 py-4 text-sm font-medium text-gray-900">{task.id}</td>
-                            <td className="px-6 py-4 text-sm text-gray-600">{task.customerName}</td>
-                            <td className="px-6 py-4 text-sm text-gray-600">{task.items[0]?.type || 'N/A'}</td>
-                            <td className="px-6 py-4 text-sm text-gray-600">{task.deliveryDate}</td>
+                          <tr key={task.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                            <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-100">{task.id}</td>
+                            <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{task.customerName}</td>
+                            <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{task.items[0]?.type || 'N/A'}</td>
+                            <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{task.deliveryDate}</td>
                             <td className="px-6 py-4">
                               <StatusBadge status={task.status} />
                             </td>
                             <td className="px-6 py-4">
                               <button
                                 onClick={() => navigate('/worker/tasks')}
-                                className="text-blue-600 hover:text-blue-800"
+                                className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
                               >
                                 <Eye className="w-4 h-4" />
                               </button>
@@ -299,37 +299,37 @@ const WorkerDashboard = () => {
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.05 }}
-                  className="bg-white rounded-lg shadow-md p-6"
+                  className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"
                 >
-                  <h2 className="text-lg font-bold text-gray-900 mb-4">Quick Actions</h2>
+                  <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4">Quick Actions</h2>
                   <div className="grid grid-cols-2 gap-3">
                     <button
                       onClick={() => navigate('/worker/tasks')}
-                      className="flex flex-col items-center justify-center p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+                      className="flex flex-col items-center justify-center p-4 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 rounded-lg transition-colors"
                     >
-                      <ListTodo className="w-6 h-6 text-blue-600 mb-2" />
-                      <span className="text-xs font-medium text-gray-700">My Tasks</span>
+                      <ListTodo className="w-6 h-6 text-blue-600 dark:text-blue-400 mb-2" />
+                      <span className="text-xs font-medium text-gray-700 dark:text-gray-300">My Tasks</span>
                     </button>
                     <button
                       onClick={() => navigate('/worker/progress')}
-                      className="flex flex-col items-center justify-center p-4 bg-green-50 hover:bg-green-100 rounded-lg transition-colors"
+                      className="flex flex-col items-center justify-center p-4 bg-green-50 dark:bg-green-900/30 hover:bg-green-100 dark:hover:bg-green-900/50 rounded-lg transition-colors"
                     >
-                      <BarChart3 className="w-6 h-6 text-green-600 mb-2" />
-                      <span className="text-xs font-medium text-gray-700">Progress</span>
+                      <BarChart3 className="w-6 h-6 text-green-600 dark:text-green-400 mb-2" />
+                      <span className="text-xs font-medium text-gray-700 dark:text-gray-300">Progress</span>
                     </button>
                     <button
                       onClick={() => navigate('/worker/chat')}
-                      className="flex flex-col items-center justify-center p-4 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors"
+                      className="flex flex-col items-center justify-center p-4 bg-purple-50 dark:bg-purple-900/30 hover:bg-purple-100 dark:hover:bg-purple-900/50 rounded-lg transition-colors"
                     >
-                      <MessageSquare className="w-6 h-6 text-purple-600 mb-2" />
-                      <span className="text-xs font-medium text-gray-700">Chat</span>
+                      <MessageSquare className="w-6 h-6 text-purple-600 dark:text-purple-400 mb-2" />
+                      <span className="text-xs font-medium text-gray-700 dark:text-gray-300">Chat</span>
                     </button>
                     <button
                       onClick={() => navigate('/worker/statistics')}
-                      className="flex flex-col items-center justify-center p-4 bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors"
+                      className="flex flex-col items-center justify-center p-4 bg-orange-50 dark:bg-orange-900/30 hover:bg-orange-100 dark:hover:bg-orange-900/50 rounded-lg transition-colors"
                     >
-                      <Activity className="w-6 h-6 text-orange-600 mb-2" />
-                      <span className="text-xs font-medium text-gray-700">Statistics</span>
+                      <Activity className="w-6 h-6 text-orange-600 dark:text-orange-400 mb-2" />
+                      <span className="text-xs font-medium text-gray-700 dark:text-gray-300">Statistics</span>
                     </button>
                   </div>
                 </motion.div>
@@ -339,50 +339,50 @@ const WorkerDashboard = () => {
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.1 }}
-                  className="bg-white rounded-lg shadow-md p-6"
+                  className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"
                 >
-                  <h2 className="text-lg font-bold text-gray-900 mb-4">Performance Overview</h2>
+                  <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4">Performance Overview</h2>
                   
                   {/* Today's Performance */}
-                  <div className="mb-4 p-4 bg-blue-50 rounded-lg">
+                  <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
                     <div className="flex items-center justify-between mb-2">
-                      <h3 className="text-sm font-semibold text-gray-700">Today's Performance</h3>
-                      <Award className="w-5 h-5 text-blue-600" />
+                      <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Today's Performance</h3>
+                      <Award className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                     </div>
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs text-gray-600">Total Tasks</span>
-                        <span className="text-sm font-bold text-gray-900">{totalTasksToday}</span>
+                        <span className="text-xs text-gray-600 dark:text-gray-400">Total Tasks</span>
+                        <span className="text-sm font-bold text-gray-900 dark:text-gray-100">{totalTasksToday}</span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-xs text-gray-600">Completed</span>
-                        <span className="text-sm font-bold text-green-600">{todayCompleted}</span>
+                        <span className="text-xs text-gray-600 dark:text-gray-400">Completed</span>
+                        <span className="text-sm font-bold text-green-600 dark:text-green-400">{todayCompleted}</span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-xs text-gray-600">Completion Rate</span>
-                        <span className="text-sm font-bold text-blue-600">{todayCompletionRate}%</span>
+                        <span className="text-xs text-gray-600 dark:text-gray-400">Completion Rate</span>
+                        <span className="text-sm font-bold text-blue-600 dark:text-blue-400">{todayCompletionRate}%</span>
                       </div>
                     </div>
                   </div>
 
                   {/* Monthly Summary */}
-                  <div className="p-4 bg-green-50 rounded-lg">
+                  <div className="p-4 bg-green-50 dark:bg-green-900/30 rounded-lg">
                     <div className="flex items-center justify-between mb-2">
-                      <h3 className="text-sm font-semibold text-gray-700">Monthly Summary</h3>
-                      <TrendingUp className="w-5 h-5 text-green-600" />
+                      <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Monthly Summary</h3>
+                      <TrendingUp className="w-5 h-5 text-green-600 dark:text-green-400" />
                     </div>
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs text-gray-600">Total Completed</span>
-                        <span className="text-sm font-bold text-gray-900">{monthlyCompleted}</span>
+                        <span className="text-xs text-gray-600 dark:text-gray-400">Total Completed</span>
+                        <span className="text-sm font-bold text-gray-900 dark:text-gray-100">{monthlyCompleted}</span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-xs text-gray-600">Avg Completion Time</span>
-                        <span className="text-sm font-bold text-green-600">{avgCompletionTime}</span>
+                        <span className="text-xs text-gray-600 dark:text-gray-400">Avg Completion Time</span>
+                        <span className="text-sm font-bold text-green-600 dark:text-green-400">{avgCompletionTime}</span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-xs text-gray-600">Accuracy Rating</span>
-                        <span className="text-sm font-bold text-green-600">{accuracyRating}/5 ⭐</span>
+                        <span className="text-xs text-gray-600 dark:text-gray-400">Accuracy Rating</span>
+                        <span className="text-sm font-bold text-green-600 dark:text-green-400">{accuracyRating}/5 ⭐</span>
                       </div>
                     </div>
                   </div>
@@ -393,16 +393,16 @@ const WorkerDashboard = () => {
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.15 }}
-                  className="bg-white rounded-lg shadow-md p-6"
+                  className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"
                 >
                   <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-lg font-bold text-gray-900">Recent Activity</h2>
+                    <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">Recent Activity</h2>
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => navigate('/worker/chat')}
-                        className="relative p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                        className="relative p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                       >
-                        <MessageCircle className="w-5 h-5 text-gray-600" />
+                        <MessageCircle className="w-5 h-5 text-gray-600 dark:text-gray-300" />
                         {unreadMessages > 0 && (
                           <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
                             {unreadMessages}
@@ -411,9 +411,9 @@ const WorkerDashboard = () => {
                       </button>
                       <button
                         onClick={() => navigate('/worker/notifications')}
-                        className="relative p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                        className="relative p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                       >
-                        <Bell className="w-5 h-5 text-gray-600" />
+                        <Bell className="w-5 h-5 text-gray-600 dark:text-gray-300" />
                         {unreadNotifications > 0 && (
                           <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
                             {unreadNotifications}
@@ -426,7 +426,7 @@ const WorkerDashboard = () => {
                     {recentNotifications.map((notif) => (
                       <div
                         key={notif.id}
-                        className="p-3 bg-gray-50 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors"
+                        className="p-3 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg cursor-pointer transition-colors"
                         onClick={() => navigate('/worker/notifications')}
                       >
                         <div className="flex items-start gap-2">
@@ -436,15 +436,15 @@ const WorkerDashboard = () => {
                             'bg-purple-500'
                           }`}></div>
                           <div className="flex-1">
-                            <p className="text-xs text-gray-900 font-medium">{notif.message}</p>
-                            <p className="text-xs text-gray-500 mt-1">{notif.time}</p>
+                            <p className="text-xs text-gray-900 dark:text-gray-100 font-medium">{notif.message}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{notif.time}</p>
                           </div>
                         </div>
                       </div>
                     ))}
                     <button
                       onClick={() => navigate('/worker/notifications')}
-                      className="w-full text-center text-sm text-blue-600 hover:text-blue-800 font-medium py-2"
+                      className="w-full text-center text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium py-2"
                     >
                       View All Notifications
                     </button>
@@ -483,11 +483,11 @@ const WorkerDashboard = () => {
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.2 }}
-                  className="bg-white rounded-lg shadow-md p-6"
+                  className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"
                 >
                   <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-lg font-bold text-gray-900">Upcoming Deadlines</h2>
-                    <Calendar className="w-5 h-5 text-gray-400" />
+                    <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">Upcoming Deadlines</h2>
+                    <Calendar className="w-5 h-5 text-gray-400 dark:text-gray-500" />
                   </div>
                   <div className="space-y-3">
                     {upcomingDeadlines.length > 0 ? (
@@ -502,8 +502,8 @@ const WorkerDashboard = () => {
                         );
                       })
                     ) : (
-                      <div className="text-center py-8 text-gray-500">
-                        <Calendar className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+                      <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                        <Calendar className="w-12 h-12 mx-auto mb-2 text-gray-300 dark:text-gray-600" />
                         <p className="text-sm">No upcoming deadlines</p>
                       </div>
                     )}
@@ -515,21 +515,21 @@ const WorkerDashboard = () => {
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.25 }}
-                  className="bg-white rounded-lg shadow-md p-6"
+                  className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"
                 >
-                  <h2 className="text-lg font-bold text-gray-900 mb-4">Quick Stats</h2>
+                  <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4">Quick Stats</h2>
                   <div className="space-y-3">
-                    <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                      <span className="text-sm font-medium text-gray-700">Total Earnings</span>
-                      <span className="text-lg font-bold text-green-600">₹{stats.totalEarnings.toLocaleString()}</span>
+                    <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/30 rounded-lg">
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Total Earnings</span>
+                      <span className="text-lg font-bold text-green-600 dark:text-green-400">₹{stats.totalEarnings.toLocaleString()}</span>
                     </div>
-                    <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-                      <span className="text-sm font-medium text-gray-700">This Month</span>
-                      <span className="text-lg font-bold text-blue-600">₹{stats.monthlyEarnings.toLocaleString()}</span>
+                    <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">This Month</span>
+                      <span className="text-lg font-bold text-blue-600 dark:text-blue-400">₹{stats.monthlyEarnings.toLocaleString()}</span>
                     </div>
-                    <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
-                      <span className="text-sm font-medium text-gray-700">Assigned Tasks</span>
-                      <span className="text-lg font-bold text-purple-600">{stats.assignedTasks}</span>
+                    <div className="flex items-center justify-between p-3 bg-purple-50 dark:bg-purple-900/30 rounded-lg">
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Assigned Tasks</span>
+                      <span className="text-lg font-bold text-purple-600 dark:text-purple-400">{stats.assignedTasks}</span>
                     </div>
                   </div>
                 </motion.div>
@@ -563,16 +563,16 @@ const StatCard = ({ title, value, icon: Icon, color, subtitle }) => {
   return (
     <motion.div
       whileHover={{ scale: 1.02, y: -5 }}
-      className="bg-white rounded-lg shadow-md p-6 cursor-pointer"
+      className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 cursor-pointer"
     >
       <div className="flex items-center justify-between mb-4">
         <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${color}`}>
           <Icon className="w-6 h-6 text-white" />
         </div>
       </div>
-      <p className="text-gray-500 text-sm">{title}</p>
-      <p className="text-2xl font-bold text-gray-900 mt-2">{value}</p>
-      {subtitle && <p className="text-xs text-gray-500 mt-1">{subtitle}</p>}
+      <p className="text-gray-500 dark:text-gray-400 text-sm">{title}</p>
+      <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-2">{value}</p>
+      {subtitle && <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{subtitle}</p>}
     </motion.div>
   );
 };
@@ -643,8 +643,8 @@ const DonutChart = ({ completed, inProgress, pending, total }) => {
       
       {/* Center text */}
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <p className="text-4xl font-bold text-gray-900">{total}</p>
-        <p className="text-sm text-gray-500">Total Tasks</p>
+        <p className="text-4xl font-bold text-gray-900 dark:text-gray-100">{total}</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">Total Tasks</p>
       </div>
     </div>
   );
@@ -659,11 +659,11 @@ const WorkloadChart = ({ data }) => {
       <div className="flex items-center justify-end gap-4 text-sm mb-4">
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-          <span className="text-gray-600">Assigned</span>
+          <span className="text-gray-600 dark:text-gray-400">Assigned</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-          <span className="text-gray-600">Completed</span>
+          <span className="text-gray-600 dark:text-gray-400">Completed</span>
         </div>
       </div>
       <div className="flex items-end justify-between h-48 gap-3">
@@ -676,21 +676,21 @@ const WorkloadChart = ({ data }) => {
             <div key={index} className="flex-1 flex flex-col items-center gap-2">
               <div className="w-full flex items-end justify-center gap-1 h-40">
                 <div className="relative flex-1 flex flex-col items-center">
-                  <span className="text-xs font-semibold text-gray-700 mb-1">{day.assigned}</span>
+                  <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">{day.assigned}</span>
                   <div
                     className="w-full bg-blue-500 rounded-t transition-all hover:bg-blue-600"
                     style={{ height: `${assignedHeight}%` }}
                   ></div>
                 </div>
                 <div className="relative flex-1 flex flex-col items-center">
-                  <span className="text-xs font-semibold text-gray-700 mb-1">{day.completed}</span>
+                  <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">{day.completed}</span>
                   <div
                     className="w-full bg-green-500 rounded-t transition-all hover:bg-green-600"
                     style={{ height: `${completedHeight}%` }}
                   ></div>
                 </div>
               </div>
-              <span className="text-xs text-gray-600 font-medium">{dayLabel}</span>
+              <span className="text-xs text-gray-600 dark:text-gray-400 font-medium">{dayLabel}</span>
             </div>
           );
         })}
@@ -702,11 +702,11 @@ const WorkloadChart = ({ data }) => {
 // Deadline Card Component
 const DeadlineCard = ({ task, deadlineStatus }) => {
   const statusConfig = {
-    overdue: { bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-600', label: 'Overdue' },
-    today: { bg: 'bg-orange-50', border: 'border-orange-200', text: 'text-orange-600', label: 'Due Today' },
-    tomorrow: { bg: 'bg-yellow-50', border: 'border-yellow-200', text: 'text-yellow-600', label: 'Tomorrow' },
-    future: { bg: 'bg-green-50', border: 'border-green-200', text: 'text-green-600', label: task.deliveryDate },
-    completed: { bg: 'bg-gray-50', border: 'border-gray-200', text: 'text-gray-600', label: 'Completed' }
+    overdue: { bg: 'bg-red-50 dark:bg-red-900/20', border: 'border-red-200 dark:border-red-800', text: 'text-red-600 dark:text-red-400', label: 'Overdue' },
+    today: { bg: 'bg-orange-50 dark:bg-orange-900/20', border: 'border-orange-200 dark:border-orange-800', text: 'text-orange-600 dark:text-orange-400', label: 'Due Today' },
+    tomorrow: { bg: 'bg-yellow-50 dark:bg-yellow-900/20', border: 'border-yellow-200 dark:border-yellow-800', text: 'text-yellow-600 dark:text-yellow-400', label: 'Tomorrow' },
+    future: { bg: 'bg-green-50 dark:bg-green-900/20', border: 'border-green-200 dark:border-green-800', text: 'text-green-600 dark:text-green-400', label: task.deliveryDate },
+    completed: { bg: 'bg-gray-50 dark:bg-gray-700', border: 'border-gray-200 dark:border-gray-600', text: 'text-gray-600 dark:text-gray-400', label: 'Completed' }
   };
 
   const config = statusConfig[deadlineStatus];
@@ -714,11 +714,11 @@ const DeadlineCard = ({ task, deadlineStatus }) => {
   return (
     <div className={`p-3 rounded-lg border ${config.bg} ${config.border}`}>
       <div className="flex items-center justify-between mb-1">
-        <span className="font-semibold text-sm text-gray-900">{task.id}</span>
+        <span className="font-semibold text-sm text-gray-900 dark:text-gray-100">{task.id}</span>
         <span className={`text-xs font-medium ${config.text}`}>{config.label}</span>
       </div>
-      <p className="text-xs text-gray-600 mb-1">{task.customerName}</p>
-      <p className="text-xs text-gray-500">{task.items[0]?.type || 'N/A'}</p>
+      <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">{task.customerName}</p>
+      <p className="text-xs text-gray-500 dark:text-gray-400">{task.items[0]?.type || 'N/A'}</p>
     </div>
   );
 };
@@ -726,11 +726,11 @@ const DeadlineCard = ({ task, deadlineStatus }) => {
 // Status Badge Component
 const StatusBadge = ({ status }) => {
   const statusConfig = {
-    pending: { bg: 'bg-gray-100', text: 'text-gray-700', label: 'Pending' },
-    cutting: { bg: 'bg-purple-100', text: 'text-purple-700', label: 'Cutting' },
-    stitching: { bg: 'bg-blue-100', text: 'text-blue-700', label: 'Stitching' },
-    fitting: { bg: 'bg-orange-100', text: 'text-orange-700', label: 'Fitting' },
-    ready: { bg: 'bg-green-100', text: 'text-green-700', label: 'Ready' }
+    pending: { bg: 'bg-gray-100 dark:bg-gray-900/30', text: 'text-gray-700 dark:text-gray-400', label: 'Pending' },
+    cutting: { bg: 'bg-purple-100 dark:bg-purple-900/30', text: 'text-purple-700 dark:text-purple-400', label: 'Cutting' },
+    stitching: { bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-700 dark:text-blue-400', label: 'Stitching' },
+    fitting: { bg: 'bg-orange-100 dark:bg-orange-900/30', text: 'text-orange-700 dark:text-orange-400', label: 'Fitting' },
+    ready: { bg: 'bg-green-100 dark:bg-green-900/30', text: 'text-green-700 dark:text-green-400', label: 'Ready' }
   };
 
   const config = statusConfig[status] || statusConfig.pending;

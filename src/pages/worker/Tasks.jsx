@@ -121,7 +121,7 @@ const WorkerTasks = () => {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
       <Sidebar role="worker" />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Topbar />
@@ -134,17 +134,17 @@ const WorkerTasks = () => {
             {/* Header */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="p-3 bg-blue-100 rounded-lg">
-                  <Package className="w-6 h-6 text-blue-600" />
+                <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                  <Package className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                 </div>
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-900">My Tasks</h1>
-                  <p className="text-gray-600">Manage your daily work assignments</p>
+                  <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">My Tasks</h1>
+                  <p className="text-gray-600 dark:text-gray-400">Manage your daily work assignments</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <div className="px-4 py-2 bg-blue-100 rounded-lg">
-                  <span className="text-sm font-semibold text-blue-900">
+                <div className="px-4 py-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                  <span className="text-sm font-semibold text-blue-900 dark:text-blue-400">
                     {sortedTasks.length} Tasks
                   </span>
                 </div>
@@ -152,24 +152,24 @@ const WorkerTasks = () => {
             </div>
 
             {/* Search and Filters */}
-            <div className="bg-white rounded-lg shadow-md p-4">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
               <div className="flex flex-col md:flex-row gap-4">
                 {/* Search Bar */}
                 <div className="flex-1 relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
                   <input
                     type="text"
                     placeholder="Search by Order ID, Customer, or Garment Type..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
                   />
                 </div>
 
                 {/* Filter Toggle Button */}
                 <button
                   onClick={() => setShowFilters(!showFilters)}
-                  className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors text-gray-900 dark:text-gray-100"
                 >
                   <Filter className="w-5 h-5" />
                   <span className="font-medium">Filters</span>
@@ -186,14 +186,14 @@ const WorkerTasks = () => {
                     exit={{ height: 0, opacity: 0 }}
                     className="overflow-hidden"
                   >
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4 pt-4 border-t border-gray-200">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
                       {/* Status Filter */}
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status</label>
                         <select
                           value={statusFilter}
                           onChange={(e) => setStatusFilter(e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-gray-100"
                         >
                           <option value="all">All Status</option>
                           <option value="pending">Pending</option>
@@ -206,11 +206,11 @@ const WorkerTasks = () => {
 
                       {/* Priority Filter */}
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Priority</label>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Priority</label>
                         <select
                           value={priorityFilter}
                           onChange={(e) => setPriorityFilter(e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-gray-100"
                         >
                           <option value="all">All Priority</option>
                           <option value="high">High</option>
@@ -221,11 +221,11 @@ const WorkerTasks = () => {
 
                       {/* Garment Type Filter */}
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Garment Type</label>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Garment Type</label>
                         <select
                           value={garmentFilter}
                           onChange={(e) => setGarmentFilter(e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-gray-100"
                         >
                           <option value="all">All Types</option>
                           <option value="shirt">Shirt</option>
@@ -238,11 +238,11 @@ const WorkerTasks = () => {
 
                       {/* Sort By */}
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Sort By</label>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Sort By</label>
                         <select
                           value={sortBy}
                           onChange={(e) => setSortBy(e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-gray-100"
                         >
                           <option value="deadline">Deadline</option>
                           <option value="priority">Priority</option>
@@ -256,36 +256,36 @@ const WorkerTasks = () => {
             </div>
 
             {/* Tasks Table */}
-            <div className="bg-white rounded-lg shadow-md overflow-hidden">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-gray-50 border-b border-gray-200">
+                  <thead className="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600">Order ID</th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600">Garment Type</th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600">Customer</th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600">Instructions</th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600">Assigned Date</th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600">Deadline</th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600">Priority</th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600">Status</th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600">Actions</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400">Order ID</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400">Garment Type</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400">Customer</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400">Instructions</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400">Assigned Date</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400">Deadline</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400">Priority</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400">Status</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-200">
+                  <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                     {sortedTasks.length > 0 ? (
                       sortedTasks.map((task) => (
-                        <tr key={task.id} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 text-sm font-medium text-gray-900">{task.id}</td>
-                          <td className="px-6 py-4 text-sm text-gray-600">
+                        <tr key={task.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                          <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-100">{task.id}</td>
+                          <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
                             {task.items.map(item => item.type).join(', ')}
                           </td>
-                          <td className="px-6 py-4 text-sm text-gray-600">{task.customerName}</td>
-                          <td className="px-6 py-4 text-sm text-gray-600 max-w-xs truncate">
+                          <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{task.customerName}</td>
+                          <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400 max-w-xs truncate">
                             {task.notes || 'No special instructions'}
                           </td>
-                          <td className="px-6 py-4 text-sm text-gray-600">{task.orderDate}</td>
-                          <td className="px-6 py-4 text-sm text-gray-600">
+                          <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{task.orderDate}</td>
+                          <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
                             <div className="flex items-center gap-2">
                               <Calendar className="w-4 h-4" />
                               {task.deliveryDate}
@@ -301,7 +301,7 @@ const WorkerTasks = () => {
                             <div className="flex items-center gap-2">
                               <button
                                 onClick={() => setSelectedTask(task)}
-                                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                className="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
                                 title="View Details"
                               >
                                 <Eye className="w-4 h-4" />
@@ -309,7 +309,7 @@ const WorkerTasks = () => {
                               {task.status !== 'ready' && (
                                 <button
                                   onClick={() => handleStatusUpdate(task.id, getNextStatus(task.status))}
-                                  className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                                  className="p-2 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-lg transition-colors"
                                   title="Update Status"
                                 >
                                   <Edit className="w-4 h-4" />
@@ -322,8 +322,8 @@ const WorkerTasks = () => {
                     ) : (
                       <tr>
                         <td colSpan="9" className="px-6 py-12 text-center">
-                          <Package className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                          <p className="text-gray-500">No tasks found</p>
+                          <Package className="w-12 h-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
+                          <p className="text-gray-500 dark:text-gray-400">No tasks found</p>
                         </td>
                       </tr>
                     )}
@@ -386,17 +386,17 @@ const TaskDetailsModal = ({
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
         onClick={(e) => e.stopPropagation()}
-        className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+        className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
       >
         {/* Modal Header */}
-        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
+        <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between z-10">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Task Details</h2>
-            <p className="text-sm text-gray-600">{task.id}</p>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Task Details</h2>
+            <p className="text-sm text-gray-600 dark:text-gray-400">{task.id}</p>
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors text-gray-900 dark:text-gray-100"
           >
             <X className="w-6 h-6" />
           </button>
@@ -408,7 +408,7 @@ const TaskDetailsModal = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
               <div>
-                <h3 className="text-lg font-bold text-gray-900 mb-3">Customer Information</h3>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-3">Customer Information</h3>
                 <div className="space-y-2">
                   <InfoRow label="Customer Name" value={task.customerName} />
                   <InfoRow label="Order Date" value={task.orderDate} />
@@ -420,7 +420,7 @@ const TaskDetailsModal = ({
 
             <div className="space-y-4">
               <div>
-                <h3 className="text-lg font-bold text-gray-900 mb-3">Order Status</h3>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-3">Order Status</h3>
                 <div className="space-y-2">
                   <InfoRow label="Current Status" value={<StatusBadge status={task.status} />} />
                   <InfoRow label="Total Amount" value={`₹${task.totalAmount.toLocaleString()}`} />
@@ -433,10 +433,10 @@ const TaskDetailsModal = ({
 
           {/* Garment Items */}
           <div>
-            <h3 className="text-lg font-bold text-gray-900 mb-3">Garment Details</h3>
+            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-3">Garment Details</h3>
             <div className="space-y-3">
               {task.items.map((item, index) => (
-                <div key={index} className="p-4 bg-gray-50 rounded-lg">
+                <div key={index} className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <InfoRow label="Type" value={item.type} />
                     <InfoRow label="Fabric" value={item.fabric} />
@@ -450,18 +450,18 @@ const TaskDetailsModal = ({
 
           {/* Measurements */}
           <div>
-            <h3 className="text-lg font-bold text-gray-900 mb-3">Customer Measurements</h3>
-            <div className="p-4 bg-blue-50 rounded-lg">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-3">Customer Measurements</h3>
+            <div className="p-4 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
               {Object.keys(task.measurements).length > 0 ? (
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   {Object.entries(task.measurements).map(([key, value]) => (
                     <div key={key}>
                       {typeof value === 'object' ? (
                         <div>
-                          <p className="text-sm font-semibold text-gray-700 capitalize mb-2">{key}:</p>
+                          <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 capitalize mb-2">{key}:</p>
                           <div className="space-y-1 ml-2">
                             {Object.entries(value).map(([subKey, subValue]) => (
-                              <p key={subKey} className="text-sm text-gray-600">
+                              <p key={subKey} className="text-sm text-gray-600 dark:text-gray-400">
                                 <span className="capitalize">{subKey}:</span> {subValue}
                               </p>
                             ))}
@@ -474,18 +474,18 @@ const TaskDetailsModal = ({
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-gray-600">No measurements available</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">No measurements available</p>
               )}
             </div>
           </div>
 
           {/* Instructions & Notes */}
           <div>
-            <h3 className="text-lg font-bold text-gray-900 mb-3">Stitching Instructions</h3>
-            <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-3">Stitching Instructions</h3>
+            <div className="p-4 bg-yellow-50 dark:bg-yellow-900/30 rounded-lg border border-yellow-200 dark:border-yellow-800">
               <div className="flex items-start gap-3">
-                <FileText className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
-                <p className="text-sm text-gray-700">
+                <FileText className="w-5 h-5 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-gray-700 dark:text-gray-300">
                   {task.notes || 'No special instructions provided'}
                 </p>
               </div>
@@ -494,17 +494,17 @@ const TaskDetailsModal = ({
 
           {/* Material Needed */}
           <div>
-            <h3 className="text-lg font-bold text-gray-900 mb-3">Materials Needed</h3>
+            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-3">Materials Needed</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {task.items.map((item, index) => {
                 const material = inventory.find(inv => 
                   inv.name.toLowerCase().includes(item.fabric.toLowerCase())
                 );
                 return (
-                  <div key={index} className="p-3 bg-gray-50 rounded-lg border border-gray-200">
-                    <p className="text-sm font-semibold text-gray-900">{item.fabric}</p>
+                  <div key={index} className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
+                    <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{item.fabric}</p>
                     {material && (
-                      <p className="text-xs text-gray-600 mt-1">
+                      <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
                         Available: {material.quantity} {material.unit}
                       </p>
                     )}
@@ -516,28 +516,28 @@ const TaskDetailsModal = ({
 
           {/* Reference Images */}
           <div>
-            <h3 className="text-lg font-bold text-gray-900 mb-3">Reference Images</h3>
-            <div className="p-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 text-center">
-              <ImageIcon className="w-12 h-12 mx-auto mb-2 text-gray-400" />
-              <p className="text-sm text-gray-600">No reference images available</p>
+            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-3">Reference Images</h3>
+            <div className="p-8 bg-gray-50 dark:bg-gray-700 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 text-center">
+              <ImageIcon className="w-12 h-12 mx-auto mb-2 text-gray-400 dark:text-gray-500" />
+              <p className="text-sm text-gray-600 dark:text-gray-400">No reference images available</p>
             </div>
           </div>
 
           {/* Work Notes Section */}
           <div>
-            <h3 className="text-lg font-bold text-gray-900 mb-3">Add Work Notes</h3>
+            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-3">Add Work Notes</h3>
             <div className="space-y-3">
               <textarea
                 value={workNotes}
                 onChange={(e) => setWorkNotes(e.target.value)}
                 placeholder="Add notes like: Need more material, Measurement mismatch, Repair required..."
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none dark:bg-gray-800 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
                 rows="4"
               />
               <button
                 onClick={handleAddWorkNote}
                 disabled={!workNotes.trim()}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 dark:disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors"
               >
                 <Save className="w-4 h-4" />
                 Save Note
@@ -548,7 +548,7 @@ const TaskDetailsModal = ({
           {/* Upload Work Photo */}
           {task.status === 'fitting' && (
             <div>
-              <h3 className="text-lg font-bold text-gray-900 mb-3">Upload Work Photo</h3>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-3">Upload Work Photo</h3>
               <div className="space-y-3">
                 <div className="flex items-center gap-4">
                   <label className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 cursor-pointer transition-colors">
@@ -562,7 +562,7 @@ const TaskDetailsModal = ({
                     />
                   </label>
                   {uploadedPhoto && (
-                    <span className="text-sm text-green-600 font-medium">Photo uploaded!</span>
+                    <span className="text-sm text-green-600 dark:text-green-400 font-medium">Photo uploaded!</span>
                   )}
                 </div>
                 {uploadedPhoto && (
@@ -570,7 +570,7 @@ const TaskDetailsModal = ({
                     <img
                       src={uploadedPhoto}
                       alt="Work preview"
-                      className="max-w-xs rounded-lg border border-gray-300"
+                      className="max-w-xs rounded-lg border border-gray-300 dark:border-gray-600"
                     />
                   </div>
                 )}
@@ -580,7 +580,7 @@ const TaskDetailsModal = ({
 
           {/* Status Update Button */}
           {task.status !== 'ready' && (
-            <div className="pt-4 border-t border-gray-200">
+            <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
               <button
                 onClick={() => {
                   onStatusUpdate(task.id, getNextStatus(task.status));
@@ -602,17 +602,17 @@ const TaskDetailsModal = ({
 // Info Row Component
 const InfoRow = ({ label, value }) => (
   <div className="flex items-center justify-between">
-    <span className="text-sm text-gray-600">{label}:</span>
-    <span className="text-sm font-medium text-gray-900">{value}</span>
+    <span className="text-sm text-gray-600 dark:text-gray-400">{label}:</span>
+    <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{value}</span>
   </div>
 );
 
 // Priority Badge Component
 const PriorityBadge = ({ priority }) => {
   const config = {
-    high: { bg: 'bg-red-100', text: 'text-red-700', label: 'High' },
-    medium: { bg: 'bg-yellow-100', text: 'text-yellow-700', label: 'Medium' },
-    low: { bg: 'bg-green-100', text: 'text-green-700', label: 'Low' }
+    high: { bg: 'bg-red-100 dark:bg-red-900/30', text: 'text-red-700 dark:text-red-400', label: 'High' },
+    medium: { bg: 'bg-yellow-100 dark:bg-yellow-900/30', text: 'text-yellow-700 dark:text-yellow-400', label: 'Medium' },
+    low: { bg: 'bg-green-100 dark:bg-green-900/30', text: 'text-green-700 dark:text-green-400', label: 'Low' }
   };
 
   const { bg, text, label } = config[priority] || config.low;
@@ -627,11 +627,11 @@ const PriorityBadge = ({ priority }) => {
 // Status Badge Component
 const StatusBadge = ({ status }) => {
   const config = {
-    pending: { bg: 'bg-gray-100', text: 'text-gray-700', label: 'Pending', icon: Clock },
-    cutting: { bg: 'bg-purple-100', text: 'text-purple-700', label: 'Cutting', icon: Scissors },
-    stitching: { bg: 'bg-blue-100', text: 'text-blue-700', label: 'Stitching', icon: Scissors },
-    fitting: { bg: 'bg-orange-100', text: 'text-orange-700', label: 'Fitting', icon: AlertCircle },
-    ready: { bg: 'bg-green-100', text: 'text-green-700', label: 'Ready', icon: CheckCircle }
+    pending: { bg: 'bg-gray-100 dark:bg-gray-900/30', text: 'text-gray-700 dark:text-gray-400', label: 'Pending', icon: Clock },
+    cutting: { bg: 'bg-purple-100 dark:bg-purple-900/30', text: 'text-purple-700 dark:text-purple-400', label: 'Cutting', icon: Scissors },
+    stitching: { bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-700 dark:text-blue-400', label: 'Stitching', icon: Scissors },
+    fitting: { bg: 'bg-orange-100 dark:bg-orange-900/30', text: 'text-orange-700 dark:text-orange-400', label: 'Fitting', icon: AlertCircle },
+    ready: { bg: 'bg-green-100 dark:bg-green-900/30', text: 'text-green-700 dark:text-green-400', label: 'Ready', icon: CheckCircle }
   };
 
   const { bg, text, label, icon: Icon } = config[status] || config.pending;

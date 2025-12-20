@@ -128,7 +128,7 @@ const WorkerNotifications = () => {
   const unreadCount = notifications.filter(n => !n.read).length;
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
       <Sidebar role="worker" />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Topbar />
@@ -141,12 +141,12 @@ const WorkerNotifications = () => {
             {/* Header */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="p-3 bg-blue-100 rounded-lg">
-                  <Bell className="w-6 h-6 text-blue-600" />
+                <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                  <Bell className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                 </div>
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-900">Notifications</h1>
-                  <p className="text-gray-600">
+                  <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Notifications</h1>
+                  <p className="text-gray-600 dark:text-gray-400">
                     {unreadCount > 0 ? `${unreadCount} unread notifications` : 'All caught up!'}
                   </p>
                 </div>
@@ -154,7 +154,7 @@ const WorkerNotifications = () => {
               {unreadCount > 0 && (
                 <button
                   onClick={markAllAsRead}
-                  className="px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                  className="px-4 py-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
                 >
                   Mark all as read
                 </button>
@@ -162,9 +162,9 @@ const WorkerNotifications = () => {
             </div>
 
             {/* Filters */}
-            <div className="bg-white rounded-lg shadow-md p-4">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
               <div className="flex items-center gap-2 overflow-x-auto">
-                <Filter className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                <Filter className="w-5 h-5 text-gray-400 dark:text-gray-500 flex-shrink-0" />
                 {[
                   { value: 'all', label: 'All' },
                   { value: 'unread', label: 'Unread' },
@@ -180,7 +180,7 @@ const WorkerNotifications = () => {
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
                       filter === filterOption.value
                         ? 'bg-blue-600 text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                     }`}
                   >
                     {filterOption.label}
@@ -199,7 +199,7 @@ const WorkerNotifications = () => {
                       key={notification.id}
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
-                      className={`bg-white rounded-lg shadow-md p-4 transition-all ${
+                      className={`bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 transition-all ${
                         !notification.read ? 'border-l-4 border-blue-600' : ''
                       }`}
                     >
@@ -212,28 +212,28 @@ const WorkerNotifications = () => {
                         {/* Content */}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between gap-2 mb-1">
-                            <h3 className={`font-semibold ${!notification.read ? 'text-gray-900' : 'text-gray-700'}`}>
+                            <h3 className={`font-semibold ${!notification.read ? 'text-gray-900 dark:text-gray-100' : 'text-gray-700 dark:text-gray-300'}`}>
                               {notification.title}
                             </h3>
-                            <span className="text-xs text-gray-500 whitespace-nowrap">
+                            <span className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
                               {notification.time}
                             </span>
                           </div>
-                          <p className="text-sm text-gray-600 mb-2">{notification.message}</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">{notification.message}</p>
                           
                           {/* Actions */}
                           <div className="flex items-center gap-2">
                             {!notification.read && (
                               <button
                                 onClick={() => markAsRead(notification.id)}
-                                className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+                                className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium"
                               >
                                 Mark as read
                               </button>
                             )}
                             <button
                               onClick={() => deleteNotification(notification.id)}
-                              className="text-xs text-red-600 hover:text-red-700 font-medium"
+                              className="text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 font-medium"
                             >
                               Delete
                             </button>
@@ -243,19 +243,19 @@ const WorkerNotifications = () => {
                         {/* Delete Button */}
                         <button
                           onClick={() => deleteNotification(notification.id)}
-                          className="p-1 hover:bg-gray-100 rounded transition-colors flex-shrink-0"
+                          className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors flex-shrink-0"
                         >
-                          <X className="w-4 h-4 text-gray-400" />
+                          <X className="w-4 h-4 text-gray-400 dark:text-gray-500" />
                         </button>
                       </div>
                     </motion.div>
                   );
                 })
               ) : (
-                <div className="bg-white rounded-lg shadow-md p-12 text-center">
-                  <Bell className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">No notifications</h3>
-                  <p className="text-gray-600">You're all caught up! Check back later for updates.</p>
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-12 text-center">
+                  <Bell className="w-16 h-16 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">No notifications</h3>
+                  <p className="text-gray-600 dark:text-gray-400">You're all caught up! Check back later for updates.</p>
                 </div>
               )}
             </div>

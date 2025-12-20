@@ -127,7 +127,7 @@ const WorkerCalendar = () => {
   const weeklyWorkload = getWeeklyWorkload();
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
       <Sidebar role="worker" />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Topbar />
@@ -140,12 +140,12 @@ const WorkerCalendar = () => {
             {/* Header */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="p-3 bg-green-100 rounded-lg">
-                  <CalendarIcon className="w-6 h-6 text-green-600" />
+                <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                  <CalendarIcon className="w-6 h-6 text-green-600 dark:text-green-400" />
                 </div>
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-900">Work Calendar</h1>
-                  <p className="text-gray-600">Track your daily tasks and deadlines</p>
+                  <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Work Calendar</h1>
+                  <p className="text-gray-600 dark:text-gray-400">Track your daily tasks and deadlines</p>
                 </div>
               </div>
               <button
@@ -157,21 +157,21 @@ const WorkerCalendar = () => {
             </div>
 
             {/* Calendar Navigation */}
-            <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-gray-900">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                   {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
                 </h2>
                 <div className="flex gap-2">
                   <button
                     onClick={goToPreviousMonth}
-                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors text-gray-900 dark:text-gray-100"
                   >
                     <ChevronLeft className="w-5 h-5" />
                   </button>
                   <button
                     onClick={goToNextMonth}
-                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors text-gray-900 dark:text-gray-100"
                   >
                     <ChevronRight className="w-5 h-5" />
                   </button>
@@ -182,7 +182,7 @@ const WorkerCalendar = () => {
               <div className="grid grid-cols-7 gap-2">
                 {/* Day headers */}
                 {dayNames.map((day) => (
-                  <div key={day} className="text-center font-semibold text-gray-600 text-sm py-2">
+                  <div key={day} className="text-center font-semibold text-gray-600 dark:text-gray-400 text-sm py-2">
                     {day}
                   </div>
                 ))}
@@ -207,25 +207,25 @@ const WorkerCalendar = () => {
                       onClick={() => setSelectedDate(day)}
                       className={`aspect-square p-2 rounded-lg border-2 transition-all ${
                         isSelected
-                          ? 'border-blue-600 bg-blue-50'
+                          ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/30'
                           : isTodayDate
-                          ? 'border-green-600 bg-green-50'
-                          : 'border-transparent hover:border-gray-300'
+                          ? 'border-green-600 bg-green-50 dark:bg-green-900/30'
+                          : 'border-transparent hover:border-gray-300 dark:hover:border-gray-600'
                       } ${getIntensityColor(data?.total || 0)}`}
                     >
                       <div className="flex flex-col items-center justify-center h-full">
                         <span className={`text-sm font-semibold mb-1 ${
-                          isTodayDate ? 'text-green-700' : 'text-gray-900'
+                          isTodayDate ? 'text-green-700 dark:text-green-400' : 'text-gray-900 dark:text-gray-100'
                         }`}>
                           {day.getDate()}
                         </span>
                         {data && data.total > 0 && (
                           <div className="flex flex-col items-center gap-1">
-                            <span className="text-xs font-bold text-gray-700">
+                            <span className="text-xs font-bold text-gray-700 dark:text-gray-300">
                               {data.total}
                             </span>
                             {hasDeadline && (
-                              <AlertCircle className="w-3 h-3 text-red-600" />
+                              <AlertCircle className="w-3 h-3 text-red-600 dark:text-red-400" />
                             )}
                           </div>
                         )}
@@ -236,26 +236,26 @@ const WorkerCalendar = () => {
               </div>
 
               {/* Legend */}
-              <div className="flex items-center justify-center gap-6 mt-6 pt-6 border-t border-gray-200">
+              <div className="flex items-center justify-center gap-6 mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
                 <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-gray-100 rounded"></div>
-                  <span className="text-sm text-gray-600">No tasks</span>
+                  <div className="w-4 h-4 bg-gray-100 dark:bg-gray-700 rounded"></div>
+                  <span className="text-sm text-gray-600 dark:text-gray-400">No tasks</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-green-200 rounded"></div>
-                  <span className="text-sm text-gray-600">1-2 tasks</span>
+                  <div className="w-4 h-4 bg-green-200 dark:bg-green-800 rounded"></div>
+                  <span className="text-sm text-gray-600 dark:text-gray-400">1-2 tasks</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-green-300 rounded"></div>
-                  <span className="text-sm text-gray-600">3-4 tasks</span>
+                  <div className="w-4 h-4 bg-green-300 dark:bg-green-700 rounded"></div>
+                  <span className="text-sm text-gray-600 dark:text-gray-400">3-4 tasks</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-green-400 rounded"></div>
-                  <span className="text-sm text-gray-600">5-6 tasks</span>
+                  <div className="w-4 h-4 bg-green-400 dark:bg-green-600 rounded"></div>
+                  <span className="text-sm text-gray-600 dark:text-gray-400">5-6 tasks</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 bg-green-500 rounded"></div>
-                  <span className="text-sm text-gray-600">7+ tasks</span>
+                  <span className="text-sm text-gray-600 dark:text-gray-400">7+ tasks</span>
                 </div>
               </div>
             </div>
@@ -265,9 +265,9 @@ const WorkerCalendar = () => {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-white rounded-lg shadow-md p-6"
+                className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"
               >
-                <h3 className="text-xl font-bold text-gray-900 mb-4">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">
                   {selectedDate.toLocaleDateString('en-US', { 
                     weekday: 'long', 
                     year: 'numeric', 
@@ -276,39 +276,39 @@ const WorkerCalendar = () => {
                   })}
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                  <div className="p-4 bg-green-50 dark:bg-green-900/30 rounded-lg border border-green-200 dark:border-green-800">
                     <div className="flex items-center gap-3 mb-2">
-                      <CheckCircle className="w-5 h-5 text-green-600" />
-                      <span className="text-sm font-medium text-gray-700">Completed</span>
+                      <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Completed</span>
                     </div>
-                    <p className="text-3xl font-bold text-green-600">{selectedDateTasks.completed}</p>
+                    <p className="text-3xl font-bold text-green-600 dark:text-green-400">{selectedDateTasks.completed}</p>
                   </div>
-                  <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
+                  <div className="p-4 bg-orange-50 dark:bg-orange-900/30 rounded-lg border border-orange-200 dark:border-orange-800">
                     <div className="flex items-center gap-3 mb-2">
-                      <Clock className="w-5 h-5 text-orange-600" />
-                      <span className="text-sm font-medium text-gray-700">Deadlines</span>
+                      <Clock className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Deadlines</span>
                     </div>
-                    <p className="text-3xl font-bold text-orange-600">{selectedDateTasks.deadline}</p>
+                    <p className="text-3xl font-bold text-orange-600 dark:text-orange-400">{selectedDateTasks.deadline}</p>
                   </div>
-                  <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                  <div className="p-4 bg-blue-50 dark:bg-blue-900/30 rounded-lg border border-blue-200 dark:border-blue-800">
                     <div className="flex items-center gap-3 mb-2">
-                      <CalendarIcon className="w-5 h-5 text-blue-600" />
-                      <span className="text-sm font-medium text-gray-700">Total Tasks</span>
+                      <CalendarIcon className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Total Tasks</span>
                     </div>
-                    <p className="text-3xl font-bold text-blue-600">{selectedDateTasks.total}</p>
+                    <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">{selectedDateTasks.total}</p>
                   </div>
                 </div>
               </motion.div>
             )}
 
             {/* Weekly Workload */}
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Weekly Workload</h3>
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">Weekly Workload</h3>
               <div className="space-y-3">
                 {weeklyWorkload.map((week, index) => (
                   <div key={index} className="flex items-center gap-4">
-                    <span className="text-sm font-medium text-gray-600 w-16">Week {index + 1}</span>
-                    <div className="flex-1 bg-gray-200 rounded-full h-8 overflow-hidden">
+                    <span className="text-sm font-medium text-gray-600 dark:text-gray-400 w-16">Week {index + 1}</span>
+                    <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-8 overflow-hidden">
                       <div
                         className="bg-gradient-to-r from-green-400 to-green-600 h-8 flex items-center justify-end pr-3 transition-all"
                         style={{ width: `${Math.min((week.total / 50) * 100, 100)}%` }}
