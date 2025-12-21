@@ -9,6 +9,7 @@ import { workers as initialWorkers, orders } from '../../data/dummyData';
 import { useState } from 'react';
 import { validateWorkerForm } from '../../utils/validation';
 import WorkerCard from '../../components/common/WorkerCard';
+import { workerAPI } from '../../services/api';
 
 const Workers = () => {
   // Garment types for dropdown
@@ -175,12 +176,16 @@ const Workers = () => {
       if (userDataString) {
         try {
           const userData = JSON.parse(userDataString);
-          token = userData.jwt;
+          token = userData.jwt || userData.token; // Check both jwt and token fields
         } catch (e) {
           console.error('Error parsing user data:', e);
         }
       }
     }
+    
+    console.log('Token found:', token ? 'Yes (length: ' + token.length + ')' : 'No');
+    console.log('User data in localStorage:', localStorage.getItem('user'));
+    console.log('Token value (first 50 chars):', token ? token.substring(0, 50) + '...' : 'null');
     
     if (!token) {
       setErrors({ api: 'User not authenticated. Please login again.' });
@@ -188,7 +193,6 @@ const Workers = () => {
     }
 
     try {
-
       // Prepare API payload
       const payload = {
         user: {
@@ -196,37 +200,35 @@ const Workers = () => {
           email: workerForm.email,
           password: workerForm.password,
           contactNumber: workerForm.mobile,
-          roleId: 3, // Worker role ID
+          roleId: 2, // Worker role ID (as per API spec)
           profilePicture: photoPreview || null
         },
         worker: {
-          workType: workerForm.primarySkill.toUpperCase().replace(/\s+/g, '_'), // Convert to enum format
+          workType: workerForm.primarySkill.toUpperCase().replace(/\s+/g, '_'), // Convert to enum format (e.g., "TAILOR")
           experience: parseInt(workerForm.experience) || 0
         },
         rates: workerForm.garmentTypes.map(item => ({
-          workType: item.type.toUpperCase(), // Convert to uppercase for API
+          workType: item.type.toUpperCase(), // Convert to uppercase for API (e.g., "SHIRT", "PANT")
           rate: parseFloat(item.rate)
         }))
       };
 
       console.log('Creating worker with payload:', payload);
 
-      const response = await fetch(`http://localhost:8080/api/workers`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(payload)
-      });
+      // Use the API service
+      const result = await workerAPI.addWorker(payload, token);
 
-      if (!response.ok) {
-        const errorData = await response.text();
-        throw new Error(errorData || 'Failed to create worker');
+      console.log('API Result:', result);
+
+      if (!result.success) {
+        // Provide more specific error messages
+        if (result.error.includes('403')) {
+          throw new Error('Access denied. Please ensure you are logged in as a shop owner and have the necessary permissions.');
+        }
+        throw new Error(result.error);
       }
 
-      const data = await response.json();
-      console.log('Worker created successfully:', data);
+      console.log('Worker created successfully:', result.data);
 
       // Add to local state for display
       const newWorker = {
@@ -248,7 +250,7 @@ const Workers = () => {
 
       setWorkers(prev => [...prev, newWorker]);
       setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 3000);
+      setTimeout(() => setShowSuccess(false), 5000);
 
       // Reset form and close modal
       setWorkerForm({
@@ -373,19 +375,38 @@ const Workers = () => {
             className="max-w-7xl mx-auto"
           >
             {/* Success Message */}
-            {showSuccess && (
-              <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-                className="mb-6 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700 rounded-lg p-4 flex items-center gap-3"
-              >
-                <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
-                <span className="text-green-800 dark:text-green-300 font-medium">
-                  Worker added successfully!
-                </span>
-              </motion.div>
-            )}
+            <AnimatePresence>
+              {showSuccess && (
+                <motion.div
+                  initial={{ opacity: 0, y: -50, scale: 0.9 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -50, scale: 0.9 }}
+                  className="fixed top-6 right-6 z-50 bg-white dark:bg-gray-800 border-l-4 border-green-500 rounded-lg shadow-2xl p-6 max-w-md"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="flex-shrink-0">
+                      <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
+                        <CheckCircle className="w-7 h-7 text-green-600 dark:text-green-400" />
+                      </div>
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-1">
+                        Worker Added Successfully!
+                      </h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        The worker has been added to your team and can now be assigned to orders.
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setShowSuccess(false)}
+                      className="flex-shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             <div className="flex items-center justify-between mb-6">
               <div>
