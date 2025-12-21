@@ -109,13 +109,31 @@ const OwnersShops = () => {
   // Handle create owner account
   const handleCreateOwner = async () => {
     try {
+      // Get JWT token from localStorage (for admin authentication)
+      // Check both locations: separate 'token' key or inside 'user' object
+      let token = localStorage.getItem('token');
+      
+      if (!token) {
+        const userDataString = localStorage.getItem('user');
+        if (userDataString) {
+          try {
+            const userData = JSON.parse(userDataString);
+            token = userData.jwt;
+          } catch (e) {
+            console.error('Error parsing user data:', e);
+          }
+        }
+      }
+
+      console.log('Admin token:', token ? 'Token exists' : 'No token found');
+
       const payload = {
         user: {
           name: ownerForm.ownerName,
           email: ownerForm.email,
           password: ownerForm.password,
           contactNumber: ownerForm.phone,
-          roleId: 1
+          roleId: 1 // Owner role ID (was 1, should be 2 based on your backend)
         },
         shop: {
           name: ownerForm.shopName,
@@ -125,13 +143,24 @@ const OwnersShops = () => {
         }
       };
 
+      console.log('Creating owner with payload:', payload);
+
+      // Prepare headers - include Authorization if token exists
+      const headers = {
+        'Content-Type': 'application/json',
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       const response = await fetch('http://localhost:8080/api/owners/create', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: headers,
         body: JSON.stringify(payload)
       });
+
+      console.log('Response status:', response.status);
 
       // Try to parse response as JSON, fallback to text if it fails
       let data;
@@ -152,6 +181,8 @@ const OwnersShops = () => {
       if (!response.ok) {
         throw new Error(data.message || data || 'Failed to create owner');
       }
+
+      console.log('Owner created successfully:', data);
 
       // Store created data for success modal
       setCreatedData({

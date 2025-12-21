@@ -166,11 +166,24 @@ const Workers = () => {
       return;
     }
 
-    // Get shopId from localStorage
-    const shopId = localStorage.getItem('shopId');
+    // Get JWT token from localStorage
+    // Check both locations: separate 'token' key or inside 'user' object
+    let token = localStorage.getItem('token');
     
-    if (!shopId) {
-      setErrors({ api: 'Shop ID not found. Please login again.' });
+    if (!token) {
+      const userDataString = localStorage.getItem('user');
+      if (userDataString) {
+        try {
+          const userData = JSON.parse(userDataString);
+          token = userData.jwt;
+        } catch (e) {
+          console.error('Error parsing user data:', e);
+        }
+      }
+    }
+    
+    if (!token) {
+      setErrors({ api: 'User not authenticated. Please login again.' });
       return;
     }
 
@@ -198,10 +211,11 @@ const Workers = () => {
 
       console.log('Creating worker with payload:', payload);
 
-      const response = await fetch(`http://localhost:8080/api/shops/${shopId}/workers`, {
+      const response = await fetch(`http://localhost:8080/api/workers`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(payload)
       });

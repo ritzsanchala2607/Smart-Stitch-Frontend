@@ -83,20 +83,31 @@ function Login() {
     }
 
     const data = await res.json();
+    console.log('Login response:', data);
     
-    // Handle different response structures
-    const user = data.user || data;
-    const token = data.token || data.accessToken;
+    // New backend response structure:
+    // { message, userId, email, jwt, name, role }
     
-    if (!user || !user.role) {
-      throw new Error('Invalid response from server');
+    if (!data.jwt) {
+      throw new Error('No JWT token received from server');
     }
     
-    login(user, token);
-    const userRole = user.role.toLowerCase();
+    // Save the entire response to localStorage (includes jwt)
+    localStorage.setItem('user', JSON.stringify(data));
+    
+    // Also save individual items for easy access
+    localStorage.setItem('userId', data.userId);
+    localStorage.setItem('userRole', data.role);
+    
+    // Use AuthContext login (for compatibility)
+    login(data, data.jwt);
+    
+    // Navigate based on role
+    const userRole = data.role.toLowerCase();
     navigate(`/${userRole}/dashboard`);
     
   } catch (err) {
+    console.error('Login error:', err);
     setErrors({ submit: err.message });
   } finally {
     setIsLoading(false);

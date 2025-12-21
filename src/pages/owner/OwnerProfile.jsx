@@ -40,38 +40,73 @@ const OwnerProfile = () => {
   // Fetch profile data from API
   useEffect(() => {
     const fetchProfile = async () => {
-      // Get userId from localStorage
-      const userDataString = localStorage.getItem('user');
+      // Get JWT token from localStorage
+      // Check both locations: separate 'token' key or inside 'user' object
+      let token = localStorage.getItem('token');
       
-      if (!userDataString) {
-        setErrors({ fetch: 'User not authenticated' });
+      if (!token) {
+        const userDataString = localStorage.getItem('user');
+        if (userDataString) {
+          try {
+            const userData = JSON.parse(userDataString);
+            token = userData.jwt;
+          } catch (e) {
+            console.error('Error parsing user data:', e);
+          }
+        }
+      }
+      
+      console.log('Token from localStorage:', token ? 'Token exists' : 'No token found');
+      
+      if (token) {
+        // Log first and last 20 characters of token for debugging
+        console.log('Token preview:', token.substring(0, 20) + '...' + token.substring(token.length - 20));
+      }
+      
+      if (!token) {
+        setErrors({ fetch: 'User not authenticated. Please login again.' });
         setLoading(false);
         return;
       }
 
       try {
-        const userData = JSON.parse(userDataString);
-        const userId = userData.userId;
+        console.log('Fetching profile from: http://localhost:8080/api/owners/my-shop');
+        console.log('Authorization header:', `Bearer ${token.substring(0, 20)}...`);
         
-        if (!userId) {
-          setErrors({ fetch: 'User ID not found' });
-          setLoading(false);
-          return;
-        }
-
-        const response = await fetch(`http://localhost:8080/api/owners/profile/${userId}`, {
+        const response = await fetch(`http://localhost:8080/api/owners/my-shop`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
           }
         });
         
+        console.log('Response status:', response.status);
+        console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+        
         if (!response.ok) {
-          throw new Error('Failed to fetch profile');
+          let errorText = '';
+          try {
+            errorText = await response.text();
+            console.error('Error response:', errorText);
+          } catch (e) {
+            console.error('Could not read error response');
+          }
+          
+          if (response.status === 403) {
+            throw new Error('Access denied. This is a backend security configuration issue. Please check:\n1. Spring Security allows /api/owners/my-shop for OWNER role\n2. JWT filter is extracting the role correctly\n3. Backend logs for JWT validation errors');
+          } else if (response.status === 401) {
+            throw new Error('Invalid or expired token. Please login again.');
+          } else {
+            throw new Error(errorText || 'Failed to fetch profile');
+          }
         }
 
-        const data = await response.json();
-        console.log('API Response:', data); // Debug log
+        const result = await response.json();
+        console.log('API Response:', result);
+        
+        // Extract data from the response structure
+        const data = result.data || result;
         
         // Map API response to profile state (flat structure)
         setProfile({
@@ -92,7 +127,7 @@ const OwnerProfile = () => {
 
       } catch (error) {
         console.error('Error fetching profile:', error);
-        setErrors({ fetch: 'Failed to load profile data' });
+        setErrors({ fetch: error.message || 'Failed to load profile data' });
       } finally {
         setLoading(false);
       }
@@ -205,39 +240,43 @@ const OwnerProfile = () => {
       return;
     }
 
-    // Get userId from localStorage
-    const userDataString = localStorage.getItem('user');
-    if (!userDataString) {
-      setErrors({ save: 'User not authenticated' });
+    // Get JWT token from localStorage
+    // Check both locations: separate 'token' key or inside 'user' object
+    let token = localStorage.getItem('token');
+    
+    if (!token) {
+      const userDataString = localStorage.getItem('user');
+      if (userDataString) {
+        try {
+          const userData = JSON.parse(userDataString);
+          token = userData.jwt;
+        } catch (e) {
+          console.error('Error parsing user data:', e);
+        }
+      }
+    }
+    
+    if (!token) {
+      setErrors({ save: 'User not authenticated. Please login again.' });
       return;
     }
 
     try {
-      const userData = JSON.parse(userDataString);
-      const userId = userData.userId;
-
-      if (!userId) {
-        setErrors({ save: 'User ID not found' });
-        return;
-      }
-
       // Prepare payload for API
       const payload = {
         name: profile.name,
-        email: profile.email,
         contactNumber: profile.mobile,
         shopName: profile.shopName,
-        shopEmail: profile.shopEmail,
-        shopContactNumber: profile.shopPhone,
         shopAddress: profile.address
       };
 
       console.log('Updating profile with payload:', payload);
 
-      const response = await fetch(`http://localhost:8080/api/owners/profile/${userId}`, {
+      const response = await fetch(`http://localhost:8080/api/owners/my-shop`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(payload)
       });
