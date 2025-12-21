@@ -4,7 +4,8 @@ import { Eye, EyeOff } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import GoogleAuthButton from './GoogleAuthButton';
-import { API_URL } from '../config'; 
+import { API_URL } from '../config';
+import usePageTitle from '../hooks/usePageTitle'; 
 
 /**
  * Signup Component
@@ -24,6 +25,7 @@ import { API_URL } from '../config';
  * - Redirect to dashboard or email verification page
  */
 function Signup() {
+  usePageTitle('Sign Up');
   const navigate = useNavigate();
   const { signup } = useAuth();
   

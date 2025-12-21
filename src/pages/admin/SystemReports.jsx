@@ -1,6 +1,7 @@
 import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
 import { motion } from 'framer-motion';
+import usePageTitle from '../../hooks/usePageTitle';
 import {
   FileText,
   Download,
@@ -14,6 +15,7 @@ import {
 import { useState } from 'react';
 
 const SystemReports = () => {
+  usePageTitle('System Reports');
   const [selectedDateRange, setSelectedDateRange] = useState('thisMonth');
   const [downloadingReport, setDownloadingReport] = useState(null);
 

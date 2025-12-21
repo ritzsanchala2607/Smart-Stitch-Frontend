@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
 import { motion } from 'framer-motion';
+import usePageTitle from '../../hooks/usePageTitle';
 import {
   Store,
   Users,
@@ -33,6 +34,7 @@ import {
 } from 'recharts';
 
 const AdminDashboard = () => {
+  usePageTitle('Admin Dashboard');
   // Mock data for KPI cards
   const kpiData = {
     totalShops: 45,

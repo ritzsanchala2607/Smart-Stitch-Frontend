@@ -5,7 +5,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import GoogleAuthButton from './GoogleAuthButton';
 import ForgotPasswordModal from './ForgotPasswordModal';
-import { API_URL } from '../config'; 
+import { API_URL } from '../config';
+import usePageTitle from '../hooks/usePageTitle'; 
 
 
 /**
@@ -26,6 +27,7 @@ import { API_URL } from '../config';
  * - Add "Forgot password" link
  */
 function Login() {
+  usePageTitle('Login');
   const navigate = useNavigate();
   const { login } = useAuth();
   

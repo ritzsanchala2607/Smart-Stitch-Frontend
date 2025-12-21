@@ -1,6 +1,7 @@
 import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
 import { motion } from 'framer-motion';
+import usePageTitle from '../../hooks/usePageTitle';
 import {
   BarChart3,
   TrendingUp,
@@ -29,6 +30,8 @@ import {
 } from 'recharts';
 
 const PlatformAnalytics = () => {
+  usePageTitle('Platform Analytics');
+  
   // System Metrics Data
   const systemMetrics = {
     ordersToday: 45,
