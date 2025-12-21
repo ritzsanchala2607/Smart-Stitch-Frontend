@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import usePageTitle from '../../hooks/usePageTitle';
 import { 
   Plus, X, Upload, CheckCircle, Mail, Phone, Calendar, 
-  Award, TrendingUp, User, Briefcase, DollarSign, Star, Package, Search
+  Award, TrendingUp, User, Briefcase, DollarSign, Star, Package, Search, Eye, EyeOff
 } from 'lucide-react';
 import { workers as initialWorkers, orders } from '../../data/dummyData';
 import { useState } from 'react';
@@ -33,6 +33,8 @@ const Workers = () => {
   const [editingWorker, setEditingWorker] = useState(null);
   const [assignedOrders, setAssignedOrders] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showEditPassword, setShowEditPassword] = useState(false);
   
   const [workerForm, setWorkerForm] = useState({
     name: '',
@@ -558,15 +560,28 @@ const Workers = () => {
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Password <span className="text-red-500">*</span>
                     </label>
-                    <input
-                      type="password"
-                      value={workerForm.password}
-                      onChange={(e) => handleInputChange('password', e.target.value)}
-                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 ${
-                        errors.password ? 'border-red-500 dark:border-red-700' : 'border-gray-300 dark:border-gray-600'
-                      }`}
-                      placeholder="Enter password"
-                    />
+                    <div className="relative">
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        value={workerForm.password}
+                        onChange={(e) => handleInputChange('password', e.target.value)}
+                        className={`w-full px-4 py-2 pr-10 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 ${
+                          errors.password ? 'border-red-500 dark:border-red-700' : 'border-gray-300 dark:border-gray-600'
+                        }`}
+                        placeholder="Enter password"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                      >
+                        {showPassword ? (
+                          <EyeOff className="w-5 h-5" />
+                        ) : (
+                          <Eye className="w-5 h-5" />
+                        )}
+                      </button>
+                    </div>
                     {errors.password && (
                       <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.password}</p>
                     )}
@@ -583,15 +598,24 @@ const Workers = () => {
                     <input
                       type="tel"
                       value={workerForm.mobile}
-                      onChange={(e) => handleInputChange('mobile', e.target.value)}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/\D/g, '');
+                        if (value.length <= 10) {
+                          handleInputChange('mobile', value);
+                        }
+                      }}
                       className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
                         errors.mobile ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                       }`}
-                      placeholder="+1234567890"
+                      placeholder="1234567890"
+                      maxLength="10"
                     />
                     {errors.mobile && (
                       <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.mobile}</p>
                     )}
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      Must be exactly 10 digits
+                    </p>
                   </div>
 
                   {/* Primary Skill */}
@@ -936,15 +960,28 @@ const Workers = () => {
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Password
                     </label>
-                    <input
-                      type="password"
-                      value={workerForm.password}
-                      onChange={(e) => handleInputChange('password', e.target.value)}
-                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 ${
-                        errors.password ? 'border-red-500 dark:border-red-700' : 'border-gray-300 dark:border-gray-600'
-                      }`}
-                      placeholder="Leave blank to keep current"
-                    />
+                    <div className="relative">
+                      <input
+                        type={showEditPassword ? 'text' : 'password'}
+                        value={workerForm.password}
+                        onChange={(e) => handleInputChange('password', e.target.value)}
+                        className={`w-full px-4 py-2 pr-10 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 ${
+                          errors.password ? 'border-red-500 dark:border-red-700' : 'border-gray-300 dark:border-gray-600'
+                        }`}
+                        placeholder="Leave blank to keep current"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowEditPassword(!showEditPassword)}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                      >
+                        {showEditPassword ? (
+                          <EyeOff className="w-5 h-5" />
+                        ) : (
+                          <Eye className="w-5 h-5" />
+                        )}
+                      </button>
+                    </div>
                     {errors.password && (
                       <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.password}</p>
                     )}
@@ -960,15 +997,24 @@ const Workers = () => {
                     <input
                       type="tel"
                       value={workerForm.mobile}
-                      onChange={(e) => handleInputChange('mobile', e.target.value)}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/\D/g, '');
+                        if (value.length <= 10) {
+                          handleInputChange('mobile', value);
+                        }
+                      }}
                       className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
                         errors.mobile ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                       }`}
-                      placeholder="+1234567890"
+                      placeholder="1234567890"
+                      maxLength="10"
                     />
                     {errors.mobile && (
                       <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.mobile}</p>
                     )}
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      Must be exactly 10 digits
+                    </p>
                   </div>
 
                   <div>
