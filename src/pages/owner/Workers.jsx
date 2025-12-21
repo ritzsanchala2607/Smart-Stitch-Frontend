@@ -153,7 +153,7 @@ const Workers = () => {
     }
   };
 
-  const handleAddWorker = () => {
+  const handleAddWorker = async () => {
     const validationErrors = validateWorkerForm(workerForm);
     
     if (Object.keys(validationErrors).length > 0) {
@@ -166,45 +166,97 @@ const Workers = () => {
       return;
     }
 
-    const newWorker = {
-      id: `WORK${String(workers.length + 1).padStart(3, '0')}`,
-      name: workerForm.name,
-      email: workerForm.email,
-      password: workerForm.password, // In production, this should be hashed
-      phone: workerForm.mobile,
-      primarySkill: workerForm.primarySkill,
-      specialization: workerForm.specialization,
-      joinDate: new Date().toISOString().split('T')[0],
-      status: 'active',
-      assignedOrders: 0,
-      completedOrders: 0,
-      rating: 0,
-      performance: 0,
-      garmentTypes: workerForm.garmentTypes,
-      avatar: photoPreview || `https://i.pravatar.cc/150?img=${workers.length + 10}`
-    };
+    // Get shopId from localStorage
+    const shopId = localStorage.getItem('shopId');
+    
+    if (!shopId) {
+      setErrors({ api: 'Shop ID not found. Please login again.' });
+      return;
+    }
 
-    setWorkers(prev => [...prev, newWorker]);
-    setShowSuccess(true);
-    setTimeout(() => setShowSuccess(false), 3000);
+    try {
 
-    // Reset form and close modal
-    setWorkerForm({
-      name: '',
-      email: '',
-      password: '',
-      mobile: '',
-      primarySkill: '',
-      specialization: '',
-      experience: '',
-      garmentTypes: [],
-      profilePhoto: null
-    });
-    setCurrentGarmentType('');
-    setCurrentRate('');
-    setPhotoPreview(null);
-    setErrors({});
-    setShowAddModal(false);
+      // Prepare API payload
+      const payload = {
+        user: {
+          name: workerForm.name,
+          email: workerForm.email,
+          password: workerForm.password,
+          contactNumber: workerForm.mobile,
+          roleId: 3, // Worker role ID
+          profilePicture: photoPreview || null
+        },
+        worker: {
+          workType: workerForm.primarySkill.toUpperCase().replace(/\s+/g, '_'), // Convert to enum format
+          experience: parseInt(workerForm.experience) || 0
+        },
+        rates: workerForm.garmentTypes.map(item => ({
+          workType: item.type.toUpperCase(), // Convert to uppercase for API
+          rate: parseFloat(item.rate)
+        }))
+      };
+
+      console.log('Creating worker with payload:', payload);
+
+      const response = await fetch(`http://localhost:8080/api/shops/${shopId}/workers`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.text();
+        throw new Error(errorData || 'Failed to create worker');
+      }
+
+      const data = await response.json();
+      console.log('Worker created successfully:', data);
+
+      // Add to local state for display
+      const newWorker = {
+        id: `WORK${String(workers.length + 1).padStart(3, '0')}`,
+        name: workerForm.name,
+        email: workerForm.email,
+        phone: workerForm.mobile,
+        primarySkill: workerForm.primarySkill,
+        specialization: workerForm.specialization,
+        joinDate: new Date().toISOString().split('T')[0],
+        status: 'active',
+        assignedOrders: 0,
+        completedOrders: 0,
+        rating: 0,
+        performance: 0,
+        garmentTypes: workerForm.garmentTypes,
+        avatar: photoPreview || `https://i.pravatar.cc/150?img=${workers.length + 10}`
+      };
+
+      setWorkers(prev => [...prev, newWorker]);
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 3000);
+
+      // Reset form and close modal
+      setWorkerForm({
+        name: '',
+        email: '',
+        password: '',
+        mobile: '',
+        primarySkill: '',
+        specialization: '',
+        experience: '',
+        garmentTypes: [],
+        profilePhoto: null
+      });
+      setCurrentGarmentType('');
+      setCurrentRate('');
+      setPhotoPreview(null);
+      setErrors({});
+      setShowAddModal(false);
+    } catch (error) {
+      console.error('Error creating worker:', error);
+      setErrors({ api: error.message || 'Failed to create worker' });
+    }
   };
 
   const handleEditWorker = (workerId) => {
@@ -412,6 +464,16 @@ const Workers = () => {
 
               {/* Modal Body */}
               <div className="p-6">
+                {/* API Error Message */}
+                {errors.api && (
+                  <div className="mb-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-lg p-4 flex items-center gap-3">
+                    <X className="w-5 h-5 text-red-600 dark:text-red-400" />
+                    <span className="text-red-800 dark:text-red-300 font-medium">
+                      {errors.api}
+                    </span>
+                  </div>
+                )}
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Name */}
                   <div>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   User, 
   Mail, 
@@ -34,6 +34,7 @@ const OwnerProfile = () => {
   const [darkMode, setDarkMode] = useState(false);
   const [photoPreview, setPhotoPreview] = useState(null);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [errors, setErrors] = useState({});
 
   // Fetch profile data from API
@@ -199,17 +200,68 @@ const OwnerProfile = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSaveChanges = () => {
+  const handleSaveChanges = async () => {
     if (!validateForm()) {
       return;
     }
 
-    // Simulate saving (frontend-only)
-    console.log('Profile updated:', profile);
+    // Get userId from localStorage
+    const userDataString = localStorage.getItem('user');
+    if (!userDataString) {
+      setErrors({ save: 'User not authenticated' });
+      return;
+    }
 
-    // Show success message
-    setShowSuccessMessage(true);
-    setTimeout(() => setShowSuccessMessage(false), 3000);
+    try {
+      const userData = JSON.parse(userDataString);
+      const userId = userData.userId;
+
+      if (!userId) {
+        setErrors({ save: 'User ID not found' });
+        return;
+      }
+
+      // Prepare payload for API
+      const payload = {
+        name: profile.name,
+        email: profile.email,
+        contactNumber: profile.mobile,
+        shopName: profile.shopName,
+        shopEmail: profile.shopEmail,
+        shopContactNumber: profile.shopPhone,
+        shopAddress: profile.address
+      };
+
+      console.log('Updating profile with payload:', payload);
+
+      const response = await fetch(`http://localhost:8080/api/owners/profile/${userId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.text();
+        throw new Error(errorData || 'Failed to update profile');
+      }
+
+      // Show success message
+      setShowSuccessMessage(false);
+      setShowSuccessModal(true);
+
+      console.log('Profile updated successfully');
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      setErrors({ save: error.message || 'Failed to save changes' });
+      
+      // Show error in a temporary message
+      setShowSuccessMessage(false);
+      setTimeout(() => {
+        setErrors({ save: '' });
+      }, 5000);
+    }
   };
 
   const handleToggleDarkMode = () => {
@@ -280,6 +332,21 @@ const OwnerProfile = () => {
                 <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
                 <span className="text-green-800 dark:text-green-300 font-medium">
                   Profile updated successfully!
+                </span>
+              </motion.div>
+            )}
+
+            {/* Error Message */}
+            {errors.save && (
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                className="mb-6 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-lg p-4 flex items-center gap-3"
+              >
+                <X className="w-5 h-5 text-red-600 dark:text-red-400" />
+                <span className="text-red-800 dark:text-red-300 font-medium">
+                  {errors.save}
                 </span>
               </motion.div>
             )}
@@ -583,6 +650,60 @@ const OwnerProfile = () => {
           )}
         </main>
       </div>
+
+      {/* Success Modal */}
+      <AnimatePresence>
+        {showSuccessModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            onClick={() => setShowSuccessModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full"
+            >
+              {/* Success Header */}
+              <div className="bg-gradient-to-r from-green-500 to-green-600 px-6 py-4 rounded-t-2xl">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                    <CheckCircle className="w-8 h-8 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold text-white">Success!</h2>
+                    <p className="text-green-50">Your changes have been saved</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Success Body */}
+              <div className="p-6 space-y-4">
+                <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 rounded-lg p-4">
+                  <p className="text-green-800 dark:text-green-200 font-medium">
+                    Your profile has been updated successfully!
+                  </p>
+                  <p className="text-sm text-green-700 dark:text-green-300 mt-2">
+                    All changes have been saved to the database.
+                  </p>
+                </div>
+
+                {/* Close Button */}
+                <button
+                  onClick={() => setShowSuccessModal(false)}
+                  className="w-full px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors font-medium"
+                >
+                  Close
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
