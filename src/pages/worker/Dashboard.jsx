@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
 import { motion } from 'framer-motion';
+import usePageTitle from '../../hooks/usePageTitle';
 import {
   Package,
   Clock,
@@ -24,6 +25,7 @@ import { orders, dashboardStats } from '../../data/dummyData';
 import { useNavigate } from 'react-router-dom';
 
 const WorkerDashboard = () => {
+  usePageTitle('Dashboard');
   const navigate = useNavigate();
   const stats = dashboardStats.worker;
 

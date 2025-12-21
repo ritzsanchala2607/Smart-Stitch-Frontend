@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
 import { motion, AnimatePresence } from 'framer-motion';
+import usePageTitle from '../../hooks/usePageTitle';
 import {
   Scissors,
   Search,
@@ -21,6 +22,7 @@ import {
 } from 'lucide-react';
 
 const Catalogue = () => {
+  usePageTitle('Catalogue');
   // Extended catalogue data
   const catalogueItems = [
     {

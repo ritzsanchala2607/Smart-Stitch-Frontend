@@ -1,6 +1,7 @@
 import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
 import { motion, AnimatePresence } from 'framer-motion';
+import usePageTitle from '../../hooks/usePageTitle';
 import { 
   Plus, X, Upload, CheckCircle, Mail, Phone, Calendar, 
   Award, TrendingUp, User, Briefcase, DollarSign, Star, Package, Search
@@ -12,6 +13,7 @@ import WorkerCard from '../../components/common/WorkerCard';
 import { workerAPI } from '../../services/api';
 
 const Workers = () => {
+  usePageTitle('Workers');
   // Garment types for dropdown
   const garmentTypes = [
     { value: 'shirt', label: 'Shirt' },

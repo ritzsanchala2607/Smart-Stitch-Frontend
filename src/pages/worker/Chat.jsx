@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
 import { motion, AnimatePresence } from 'framer-motion';
+import usePageTitle from '../../hooks/usePageTitle';
 import {
   MessageSquare,
   Send,
@@ -16,6 +17,7 @@ import {
 } from 'lucide-react';
 
 const WorkerChat = () => {
+  usePageTitle('Chat');
   const [selectedChat, setSelectedChat] = useState('owner');
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState({

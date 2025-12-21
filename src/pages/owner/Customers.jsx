@@ -1,6 +1,7 @@
 import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
 import { motion, AnimatePresence } from 'framer-motion';
+import usePageTitle from '../../hooks/usePageTitle';
 import { UserPlus, X, Upload, CheckCircle, Search } from 'lucide-react';
 import { customers as initialCustomers } from '../../data/dummyData';
 import { useState } from 'react';
@@ -8,6 +9,7 @@ import { validateCustomerForm } from '../../utils/validation';
 import CustomerCard from '../../components/common/CustomerCard';
 
 const Customers = () => {
+  usePageTitle('Customers');
   const [customers, setCustomers] = useState(initialCustomers);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);

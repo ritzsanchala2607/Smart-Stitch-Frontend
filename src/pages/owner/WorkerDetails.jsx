@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import usePageTitle from '../../hooks/usePageTitle';
 import {
   ArrowLeft,
   Mail,
@@ -20,6 +21,7 @@ import Topbar from '../../components/common/Topbar';
 import { workers, orders } from '../../data/dummyData';
 
 const WorkerDetails = () => {
+  usePageTitle('Worker Details');
   const { id } = useParams();
   const navigate = useNavigate();
   const [worker, setWorker] = useState(null);

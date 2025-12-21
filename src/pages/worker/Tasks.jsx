@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
 import { motion, AnimatePresence } from 'framer-motion';
+import usePageTitle from '../../hooks/usePageTitle';
 import {
   Search,
   Filter,
@@ -23,6 +24,7 @@ import {
 import { orders, inventory } from '../../data/dummyData';
 
 const WorkerTasks = () => {
+  usePageTitle('My Tasks');
   // Mock worker ID
   const currentWorkerId = 'WORK001';
 

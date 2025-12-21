@@ -1,6 +1,7 @@
 import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
 import { motion, AnimatePresence } from 'framer-motion';
+import usePageTitle from '../../hooks/usePageTitle';
 import { 
   Package, Plus, Search, AlertTriangle, TrendingDown, 
   Edit, Trash2, Eye, X, Upload, CheckCircle, Download,
@@ -9,6 +10,7 @@ import {
 import { useState } from 'react';
 
 const Inventory = () => {
+  usePageTitle('Inventory');
   const [inventoryItems, setInventoryItems] = useState([
     {
       id: 'INV001',

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
 import { motion, AnimatePresence } from 'framer-motion';
+import usePageTitle from '../../hooks/usePageTitle';
 import {
   CreditCard,
   Smartphone,
@@ -17,6 +18,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 
 const Payment = () => {
+  usePageTitle('Payment');
   const navigate = useNavigate();
 
   const [selectedMethod, setSelectedMethod] = useState('upi');

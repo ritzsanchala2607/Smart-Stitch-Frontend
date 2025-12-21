@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
 import { motion } from 'framer-motion';
+import usePageTitle from '../../hooks/usePageTitle';
 import {
   TrendingUp,
   Award,
@@ -17,6 +18,7 @@ import {
 import { orders, workers, dashboardStats } from '../../data/dummyData';
 
 const WorkerProgress = () => {
+  usePageTitle('Work Progress');
   // Mock worker ID
   const currentWorkerId = 'WORK001';
   const currentWorker = workers.find(w => w.id === currentWorkerId);

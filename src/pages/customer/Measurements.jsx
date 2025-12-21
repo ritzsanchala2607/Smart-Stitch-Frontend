@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
 import { motion, AnimatePresence } from 'framer-motion';
+import usePageTitle from '../../hooks/usePageTitle';
 import {
   Ruler,
   Save,
@@ -18,6 +19,7 @@ import {
 } from 'lucide-react';
 
 const Measurements = () => {
+  usePageTitle('Measurements');
   // Mock customer ID (in real app, this would come from auth context)
   const currentCustomerId = 'CUST001';
 

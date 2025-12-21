@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import usePageTitle from '../../hooks/usePageTitle';
 import { 
   User, 
   Mail, 
@@ -19,6 +20,7 @@ import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
 
 const OwnerProfile = () => {
+  usePageTitle('Profile');
   const [profile, setProfile] = useState({
     name: '',
     email: '',

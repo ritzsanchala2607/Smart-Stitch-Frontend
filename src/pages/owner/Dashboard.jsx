@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
 import { motion } from 'framer-motion';
+import usePageTitle from '../../hooks/usePageTitle';
 import { 
   Package, Users, DollarSign, AlertCircle, CheckCircle, Clock, UserCog,
   Scissors, TrendingUp, Calendar, MessageSquare, Star, Search, X,
@@ -12,6 +13,7 @@ import { dashboardStats, orders, workers, customers, inventory, notifications, r
 import { useNavigate } from 'react-router-dom';
 
 const OwnerDashboard = () => {
+  usePageTitle('Dashboard');
   const stats = dashboardStats.owner;
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
