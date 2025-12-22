@@ -33,6 +33,12 @@ const Workers = () => {
   const [editingWorker, setEditingWorker] = useState(null);
   const [assignedOrders, setAssignedOrders] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showEditPassword, setShowEditPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [fetchError, setFetchError] = useState(null);
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
   
   const [workerForm, setWorkerForm] = useState({
     name: '',

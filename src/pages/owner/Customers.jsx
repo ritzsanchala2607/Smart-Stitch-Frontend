@@ -2,7 +2,7 @@ import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
 import { motion, AnimatePresence } from 'framer-motion';
 import usePageTitle from '../../hooks/usePageTitle';
-import { UserPlus, X, Upload, CheckCircle, Search } from 'lucide-react';
+import { UserPlus, X, Upload, CheckCircle, Search, Eye, EyeOff } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { validateCustomerForm } from '../../utils/validation';
 import CustomerCard from '../../components/common/CustomerCard';
@@ -10,12 +10,13 @@ import { customerAPI } from '../../services/api';
 
 const Customers = () => {
   usePageTitle('Customers');
-  const [customers, setCustomers] = useState(initialCustomers);
+  const [customers, setCustomers] = useState([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [fetchError, setFetchError] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
   
   const [customerForm, setCustomerForm] = useState({
     name: '',
@@ -745,15 +746,22 @@ const Customers = () => {
                     <input
                       type="tel"
                       value={customerForm.mobile}
-                      onChange={(e) => handleInputChange('mobile', e.target.value)}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/\D/g, '');
+                        handleInputChange('mobile', value.slice(0, 10));
+                      }}
+                      maxLength="10"
                       className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600 ${
                         errors.mobile ? 'border-red-500 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'
                       }`}
-                      placeholder="+1234567890"
+                      placeholder="1234567890"
                     />
                     {errors.mobile && (
                       <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.mobile}</p>
                     )}
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      Must be exactly 10 digits
+                    </p>
                   </div>
 
                   {/* Email */}
@@ -1059,20 +1067,29 @@ const Customers = () => {
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Password <span className="text-red-500">*</span>
                     </label>
-                    <input
-                      type="password"
-                      value={customerForm.password}
-                      onChange={(e) => handleInputChange('password', e.target.value)}
-                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600 ${
-                        errors.password ? 'border-red-500 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'
-                      }`}
-                      placeholder="Enter password"
-                    />
+                    <div className="relative">
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        value={customerForm.password}
+                        onChange={(e) => handleInputChange('password', e.target.value)}
+                        className={`w-full px-4 py-2 pr-10 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600 ${
+                          errors.password ? 'border-red-500 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'
+                        }`}
+                        placeholder="Enter password"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                      >
+                        {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      </button>
+                    </div>
                     {errors.password && (
                       <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.password}</p>
                     )}
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                      Customer will use this to login
+                      Minimum 6 characters
                     </p>
                   </div>
 
