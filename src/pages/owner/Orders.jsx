@@ -648,7 +648,12 @@ const Orders = () => {
       order.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
       order.customerName.toLowerCase().includes(searchQuery.toLowerCase());
     
-    const matchesStatus = filterStatus === 'all' || order.status === filterStatus;
+    // "now" shows orders currently in progress (cutting, stitching, fitting)
+    const matchesStatus = filterStatus === 'all' 
+      ? true 
+      : filterStatus === 'now' 
+        ? ['cutting', 'stitching', 'fitting'].includes(order.status)
+        : order.status === filterStatus;
     
     return matchesSearch && matchesStatus;
   });
@@ -729,6 +734,7 @@ const Orders = () => {
                   className="pl-10 pr-8 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent appearance-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                 >
                   <option value="all">All Status</option>
+                  <option value="now">Now</option>
                   <option value="pending">Pending</option>
                   <option value="cutting">Cutting</option>
                   <option value="stitching">Stitching</option>
@@ -1302,112 +1308,129 @@ const Orders = () => {
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 20 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+              className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-5xl w-full"
             >
               {/* Modal Header */}
-              <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between rounded-t-2xl z-10">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Order Details</h2>
+              <div className="bg-gray-800 dark:bg-gray-900 px-6 py-4 flex items-center justify-between rounded-t-xl border-b-2 border-orange-500">
+                <div>
+                  <h2 className="text-xl font-bold text-white">{selectedOrderForView.id}</h2>
+                  <p className="text-gray-300 text-sm">{selectedOrderForView.customerName}</p>
+                </div>
                 <button
                   onClick={() => setShowViewModal(false)}
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                  className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
                 >
-                  <X className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+                  <X className="w-5 h-5 text-gray-300" />
                 </button>
               </div>
 
               {/* Modal Body */}
               <div className="p-6">
-                {/* Order Info */}
-                <div className="grid grid-cols-2 gap-4 mb-6">
-                  <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Order ID</p>
-                    <p className="text-lg font-bold text-gray-900 dark:text-gray-100">{selectedOrderForView.id}</p>
-                  </div>
-                  <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Status</p>
-                    <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-semibold mt-1 ${getStatusColor(selectedOrderForView.status)}`}>
+                {/* Top Info Cards - 4 columns */}
+                <div className="grid grid-cols-4 gap-4 mb-5">
+                  <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                    <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2">STATUS</p>
+                    <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold ${getStatusColor(selectedOrderForView.status)}`}>
                       {getStatusIcon(selectedOrderForView.status)}
-                      {selectedOrderForView.status}
+                      {selectedOrderForView.status.toUpperCase()}
                     </span>
                   </div>
-                  <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Customer</p>
-                    <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">{selectedOrderForView.customerName}</p>
+                  
+                  <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                    <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2">ORDER DATE</p>
+                    <p className="text-sm font-bold text-gray-900 dark:text-gray-100">{selectedOrderForView.orderDate}</p>
                   </div>
-                  <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Order Date</p>
-                    <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">{selectedOrderForView.orderDate}</p>
+                  
+                  <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                    <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2">DELIVERY DATE</p>
+                    <p className="text-sm font-bold text-gray-900 dark:text-gray-100">{selectedOrderForView.deliveryDate}</p>
                   </div>
-                  <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Delivery Date</p>
-                    <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">{selectedOrderForView.deliveryDate}</p>
-                  </div>
-                  <div className="p-4 bg-green-50 dark:bg-green-900/30 rounded-lg">
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Total Amount</p>
-                    <p className="text-2xl font-bold text-green-600 dark:text-green-400">${selectedOrderForView.totalAmount}</p>
+                  
+                  <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg border-2 border-orange-500 dark:border-orange-600">
+                    <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2">TOTAL AMOUNT</p>
+                    <p className="text-xl font-bold text-orange-600 dark:text-orange-500">${selectedOrderForView.totalAmount}</p>
                   </div>
                 </div>
 
-                {/* Order Items */}
-                <div className="mb-6">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Order Items</h3>
-                  <div className="space-y-3">
-                    {selectedOrderForView.items.map((item, index) => (
-                      <div key={index} className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg flex justify-between items-center">
-                        <div>
-                          <p className="font-semibold text-gray-900 dark:text-gray-100">{item.type}</p>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">Fabric: {item.fabric}</p>
+                {/* Main Content - 2 Columns */}
+                <div className="grid grid-cols-2 gap-5">
+                  {/* Left Column - Order Items */}
+                  <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                    <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2 pb-2 border-b border-gray-200 dark:border-gray-700">
+                      <Package className="w-4 h-4 text-orange-500" />
+                      ORDER ITEMS
+                    </h3>
+                    <div className="space-y-2.5 max-h-44 overflow-y-auto pr-2">
+                      {selectedOrderForView.items.map((item, index) => (
+                        <div key={index} className="bg-white dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-orange-300 dark:hover:border-orange-700 transition-colors">
+                          <div className="flex justify-between items-start mb-1">
+                            <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{item.type}</p>
+                            <p className="text-sm font-bold text-gray-900 dark:text-gray-100">${item.quantity * item.price}</p>
+                          </div>
+                          <div className="flex justify-between items-center text-xs text-gray-600 dark:text-gray-400">
+                            <span>Fabric: {item.fabric}</span>
+                            <span>Qty: {item.quantity} × ${item.price}</span>
+                          </div>
                         </div>
-                        <div className="text-right">
-                          <p className="text-gray-900 dark:text-gray-100">Qty: {item.quantity} × ${item.price}</p>
-                          <p className="font-semibold text-gray-900 dark:text-gray-100">${item.quantity * item.price}</p>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Right Column - Payment & Notes */}
+                  <div className="space-y-4">
+                    {/* Payment Information */}
+                    <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                      <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2 pb-2 border-b border-gray-200 dark:border-gray-700">
+                        <DollarSign className="w-4 h-4 text-orange-500" />
+                        PAYMENT DETAILS
+                      </h3>
+                      <div className="space-y-2.5">
+                        <div className="flex justify-between items-center p-2.5 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                          <span className="text-sm text-gray-600 dark:text-gray-400">Total Amount</span>
+                          <span className="text-sm font-bold text-gray-900 dark:text-gray-100">${selectedOrderForView.totalAmount}</span>
+                        </div>
+                        <div className="flex justify-between items-center p-2.5 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                          <span className="text-sm text-gray-600 dark:text-gray-400">Paid Amount</span>
+                          <span className="text-sm font-bold text-green-600 dark:text-green-500">${selectedOrderForView.paidAmount}</span>
+                        </div>
+                        <div className="flex justify-between items-center p-2.5 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                          <span className="text-sm text-gray-600 dark:text-gray-400">Balance Due</span>
+                          <span className="text-sm font-bold text-orange-600 dark:text-orange-500">${selectedOrderForView.balanceAmount}</span>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Payment Info */}
-                <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">Payment Information</h3>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Paid Amount:</span>
-                      <span className="font-semibold text-gray-900 dark:text-gray-100">${selectedOrderForView.paidAmount}</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Balance:</span>
-                      <span className="font-semibold text-orange-600 dark:text-orange-400">${selectedOrderForView.balanceAmount}</span>
-                    </div>
+
+                    {/* Notes */}
+                    {selectedOrderForView.notes && (
+                      <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                        <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 mb-2 flex items-center gap-2 pb-2 border-b border-gray-200 dark:border-gray-700">
+                          <FileText className="w-4 h-4 text-orange-500" />
+                          NOTES
+                        </h3>
+                        <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{selectedOrderForView.notes}</p>
+                      </div>
+                    )}
                   </div>
                 </div>
+              </div>
 
-                {/* Notes */}
-                {selectedOrderForView.notes && (
-                  <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Notes</h3>
-                    <p className="text-gray-700 dark:text-gray-300">{selectedOrderForView.notes}</p>
-                  </div>
-                )}
-
-                {/* Footer */}
-                <div className="flex gap-4 mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-                  <button
-                    onClick={() => {
-                      setShowViewModal(false);
-                      handleEditOrder(selectedOrderForView.id);
-                    }}
-                    className="flex-1 py-3 rounded-lg font-semibold text-white bg-orange-500 hover:bg-orange-600 transition-colors"
-                  >
-                    Edit Order
-                  </button>
-                  <button
-                    onClick={() => setShowViewModal(false)}
-                    className="flex-1 py-3 rounded-lg font-semibold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                  >
-                    Close
-                  </button>
-                </div>
+              {/* Footer */}
+              <div className="flex gap-3 px-6 py-4 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 rounded-b-xl">
+                <button
+                  onClick={() => setShowViewModal(false)}
+                  className="flex-1 py-2.5 rounded-lg font-semibold text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                >
+                  Close
+                </button>
+                <button
+                  onClick={() => {
+                    setShowViewModal(false);
+                    handleEditOrder(selectedOrderForView.id);
+                  }}
+                  className="flex-1 py-2.5 rounded-lg font-semibold text-sm text-white bg-orange-500 hover:bg-orange-600 transition-colors shadow-sm"
+                >
+                  Edit Order
+                </button>
               </div>
             </motion.div>
           </motion.div>
@@ -1433,93 +1456,85 @@ const Orders = () => {
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 20 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto"
+              className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-5xl w-full max-h-[85vh] overflow-hidden flex flex-col"
             >
-              {/* Modal Header */}
-              <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between rounded-t-2xl z-10">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Edit Order</h2>
+              {/* Modal Header - Fixed */}
+              <div className="bg-gray-800 dark:bg-gray-900 px-5 py-3 flex items-center justify-between border-b-2 border-orange-500 flex-shrink-0">
+                <h2 className="text-lg font-bold text-white">Edit Order - {editingOrder.id}</h2>
                 <button
                   onClick={() => {
                     setShowEditModal(false);
                     setEditingOrder(null);
                     resetForm();
                   }}
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                  className="p-1.5 hover:bg-gray-700 rounded-lg transition-colors"
                 >
-                  <X className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+                  <X className="w-5 h-5 text-gray-300" />
                 </button>
               </div>
 
-              {/* Modal Body - Same structure as New Order Modal */}
-              <div className="p-6 space-y-6">
-                {/* Customer Selection */}
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
-                    <User className="w-5 h-5 text-orange-500" />
-                    Customer Information
+              {/* Modal Body - Scrollable */}
+              <div className="p-4 space-y-3 overflow-y-auto flex-1">
+                {/* Customer Selection - Compact */}
+                <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                  <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-1.5">
+                    <User className="w-4 h-4 text-orange-500" />
+                    CUSTOMER
                   </h3>
                   
-                  <div className="relative">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Select Customer <span className="text-red-500">*</span>
-                    </label>
-                    <div className="flex gap-2">
-                      <div className="flex-1 relative">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
-                        <input
-                          type="text"
-                          value={customerSearchQuery}
-                          onChange={handleCustomerSearchChange}
-                          onFocus={() => setShowCustomerDropdown(true)}
-                          placeholder="Search customer by name, phone, or email..."
-                          className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 ${
-                            errors.customer ? 'border-red-500 dark:border-red-700' : 'border-gray-300 dark:border-gray-600'
-                          }`}
-                        />
-                        
-                        {/* Customer Dropdown */}
-                        {showCustomerDropdown && customerSearchQuery && (
-                          <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                            {isSearchingCustomers ? (
-                              <div className="px-4 py-3 text-center text-gray-500 dark:text-gray-400 text-sm">
-                                <div className="flex items-center justify-center gap-2">
-                                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-orange-500"></div>
-                                  Searching...
-                                </div>
-                              </div>
-                            ) : filteredCustomers.length > 0 ? (
-                              filteredCustomers.map(customer => (
-                                <div
-                                  key={customer.id}
-                                  onClick={() => handleCustomerSelect(customer)}
-                                  className="px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-600 cursor-pointer border-b border-gray-100 dark:border-gray-600 last:border-b-0"
-                                >
-                                  <p className="font-medium text-gray-900 dark:text-gray-100">{customer.name}</p>
-                                  <p className="text-sm text-gray-600 dark:text-gray-400">{customer.phone} • {customer.email}</p>
-                                </div>
-                              ))
-                            ) : (
-                              <div className="px-4 py-3 text-gray-500 dark:text-gray-400 text-sm">
-                                No customers found
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
+                  <div className="flex gap-2">
+                    <div className="flex-1 relative">
+                      <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <input
+                        type="text"
+                        value={customerSearchQuery}
+                        onChange={handleCustomerSearchChange}
+                        onFocus={() => setShowCustomerDropdown(true)}
+                        placeholder="Search customer..."
+                        className={`w-full pl-8 pr-2 py-2.5 text-sm border rounded-lg focus:outline-none focus:ring-1 focus:ring-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
+                          errors.customer ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                        }`}
+                      />
                       
-                      <button
-                        type="button"
-                        onClick={() => setShowCustomerModal(true)}
-                        className="px-4 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors flex items-center gap-2 whitespace-nowrap"
-                      >
-                        <Plus className="w-4 h-4" />
-                        Add New
-                      </button>
+                      {showCustomerDropdown && customerSearchQuery && (
+                        <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-h-40 overflow-y-auto">
+                          {isSearchingCustomers ? (
+                            <div className="px-3 py-2 text-center text-sm text-gray-500">
+                              <div className="flex items-center justify-center gap-2">
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-orange-500"></div>
+                                Searching...
+                              </div>
+                            </div>
+                          ) : filteredCustomers.length > 0 ? (
+                            filteredCustomers.map(customer => (
+                              <div
+                                key={customer.id}
+                                onClick={() => handleCustomerSelect(customer)}
+                                className="px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-600 cursor-pointer border-b border-gray-100 dark:border-gray-600 last:border-b-0"
+                              >
+                                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{customer.name}</p>
+                                <p className="text-sm text-gray-600 dark:text-gray-400">{customer.phone}</p>
+                              </div>
+                            ))
+                          ) : (
+                            <div className="px-3 py-2 text-sm text-gray-500">No customers found</div>
+                          )}
+                        </div>
+                      )}
                     </div>
-                    {errors.customer && (
-                      <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.customer}</p>
-                    )}
+                    
+                    <button
+                      type="button"
+                      onClick={() => setShowCustomerModal(true)}
+                      className="px-3.5 py-2.5 text-sm bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors flex items-center gap-1"
+                    >
+                      <Plus className="w-3 h-3" />
+                      Add
+                    </button>
                   </div>
+                  {errors.customer && (
+                    <p className="text-red-500 text-xs mt-1">{errors.customer}</p>
+                  )}
                 </div>
 
                 {/* Order Items */}
