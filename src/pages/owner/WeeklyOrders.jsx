@@ -1,27 +1,110 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
 import { motion } from 'framer-motion';
 import usePageTitle from '../../hooks/usePageTitle';
-import { Package, Calendar, DollarSign, Eye, ArrowLeft, TrendingUp, BarChart3 } from 'lucide-react';
-import { orders } from '../../data/dummyData';
+import { Package, Calendar, DollarSign, Eye, ArrowLeft, TrendingUp, BarChart3, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { orderAPI } from '../../services/api';
 
 const WeeklyOrders = () => {
   usePageTitle('Weekly Orders');
   const navigate = useNavigate();
   
-  // Calculate date 7 days ago
-  const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-  
-  // Filter orders for last 7 days
-  const weeklyOrders = orders.filter(o => o.orderDate >= weekAgo);
+  const [weeklyOrders, setWeeklyOrders] = useState([]);
+  const [totalOrders, setTotalOrders] = useState(0);
+  const [totalRevenue, setTotalRevenue] = useState(0);
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  // Fetch weekly orders on mount
+  useEffect(() => {
+    fetchWeeklyOrders();
+  }, []);
+
+  const fetchWeeklyOrders = async () => {
+    setIsLoading(true);
+    setError(null);
+
+    // Get token
+    let token = localStorage.getItem('token');
+    if (!token) {
+      const userDataString = localStorage.getItem('user');
+      if (userDataString) {
+        try {
+          const userData = JSON.parse(userDataString);
+          token = userData.jwt || userData.token;
+        } catch (e) {
+          console.error('Error parsing user data:', e);
+        }
+      }
+    }
+
+    if (!token) {
+      console.error('No token found for fetching weekly orders');
+      setError('Authentication error. Please log in again.');
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const result = await orderAPI.getWeeklyOrders(token);
+
+      if (result.success) {
+        console.log('Weekly orders fetched:', result.data);
+        // Handle nested data structure
+        const responseData = result.data.data || result.data;
+        setTotalOrders(responseData.totalOrders || 0);
+        setWeeklyOrders(responseData.orders || []);
+        setStartDate(responseData.startDate || '');
+        setEndDate(responseData.endDate || '');
+        
+        // Calculate total revenue from orders
+        const revenue = (responseData.orders || []).reduce((sum, order) => sum + (order.totalAmount || 0), 0);
+        setTotalRevenue(revenue);
+      } else {
+        console.error('Failed to fetch weekly orders:', result.error);
+        setError(result.error);
+        setWeeklyOrders([]);
+        setTotalOrders(0);
+        setTotalRevenue(0);
+      }
+    } catch (error) {
+      console.error('Error fetching weekly orders:', error);
+      setError('Failed to load weekly orders. Please try again.');
+      setWeeklyOrders([]);
+      setTotalOrders(0);
+      setTotalRevenue(0);
+    } finally {
+      setIsLoading(false);
+    }
+  };
   
   // Calculate statistics
-  const totalRevenue = weeklyOrders.reduce((sum, order) => sum + order.totalAmount, 0);
-  const completedOrders = weeklyOrders.filter(o => o.status === 'ready').length;
-  const pendingOrders = weeklyOrders.filter(o => o.status !== 'ready').length;
-  const avgOrderValue = weeklyOrders.length > 0 ? totalRevenue / weeklyOrders.length : 0;
+  const completedOrders = weeklyOrders.filter(o => o.status?.toLowerCase() === 'completed' || o.status?.toLowerCase() === 'ready').length;
+  const pendingOrders = weeklyOrders.filter(o => o.status?.toLowerCase() !== 'completed' && o.status?.toLowerCase() !== 'ready').length;
+  const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+
+  const getStatusColor = (status) => {
+    const statusLower = status?.toLowerCase() || '';
+    switch (statusLower) {
+      case 'ready':
+      case 'completed':
+        return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400';
+      case 'stitching':
+      case 'in_progress':
+        return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400';
+      case 'cutting':
+        return 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400';
+      case 'new':
+      case 'pending':
+        return 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400';
+      default:
+        return 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400';
+    }
+  };
 
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
@@ -134,26 +217,41 @@ const WeeklyOrders = () => {
                     </thead>
                     <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                       {weeklyOrders.map((order) => (
-                        <tr key={order.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                          <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-100">{order.id}</td>
-                          <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{order.orderDate}</td>
+                        <tr key={order.orderId} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                          <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-100">
+                            ORD{String(order.orderId).padStart(3, '0')}
+                          </td>
+                          <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
+                            {order.createdAt ? new Date(order.createdAt).toLocaleDateString() : 'N/A'}
+                          </td>
                           <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{order.customerName}</td>
                           <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
-                            {order.items.map(item => item.type).join(', ')}
+                            {order.items && order.items.length > 0 ? (
+                              <div className="flex flex-col gap-1">
+                                {order.items.map((item, idx) => (
+                                  <span key={idx}>{item}</span>
+                                ))}
+                              </div>
+                            ) : (
+                              'No items'
+                            )}
                           </td>
                           <td className="px-6 py-4 text-sm font-semibold text-gray-900 dark:text-gray-100">
-                            ${order.totalAmount.toLocaleString()}
+                            ${order.totalAmount?.toLocaleString() || '0'}
                           </td>
                           <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
-                            {order.workerName || 'Unassigned'}
+                            {order.workers && order.workers.length > 0 ? (
+                              <div className="flex flex-col gap-1">
+                                {order.workers.map((worker, idx) => (
+                                  <span key={idx} className="text-xs">{worker.workerName}</span>
+                                ))}
+                              </div>
+                            ) : (
+                              'Unassigned'
+                            )}
                           </td>
                           <td className="px-6 py-4">
-                            <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                              order.status === 'ready' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
-                              order.status === 'stitching' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
-                              order.status === 'cutting' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400' :
-                              'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'
-                            }`}>
+                            <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.status)}`}>
                               {order.status}
                             </span>
                           </td>
@@ -162,6 +260,7 @@ const WeeklyOrders = () => {
                             <button
                               onClick={() => navigate('/owner/orders')}
                               className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
+                              title="View in Orders"
                             >
                               <Eye className="w-4 h-4" />
                             </button>

@@ -698,5 +698,84 @@ export const orderAPI = {
                 error: error.message || 'Server error. Please try again later.'
             };
         }
+    },
+
+    /**
+     * Get daily orders summary for a specific date
+     * @param {string} date - Date in YYYY-MM-DD format
+     * @param {string} token - JWT token for authentication
+     * @returns {Promise} Response with daily orders summary
+     */
+    getDailyOrders: async (date, token) => {
+        try {
+            console.log('API Request - URL:', `${API_URL}/api/orders/daily?date=${date}`);
+
+            const response = await fetch(`${API_URL}/api/orders/daily?date=${date}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            console.log('API Response - Status:', response.status, response.statusText);
+
+            const data = await response.json();
+            console.log('API Response - Data:', data);
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to fetch daily orders');
+            }
+
+            return {
+                success: true,
+                data: data,
+                message: data.message || 'Daily orders fetched successfully'
+            };
+        } catch (error) {
+            console.error('Daily Orders API Error:', error);
+            return {
+                success: false,
+                error: error.message || 'Server error. Please try again later.'
+            };
+        }
+    },
+
+    /**
+     * Get weekly orders summary
+     * @param {string} token - JWT token for authentication
+     * @returns {Promise} Response with weekly orders summary
+     */
+    getWeeklyOrders: async (token) => {
+        try {
+            console.log('API Request - URL:', `${API_URL}/api/orders/weekly`);
+
+            const response = await fetch(`${API_URL}/api/orders/weekly`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            console.log('API Response - Status:', response.status, response.statusText);
+
+            const data = await response.json();
+            console.log('API Response - Data:', data);
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to fetch weekly orders');
+            }
+
+            return {
+                success: true,
+                data: data,
+                message: data.message || 'Weekly orders fetched successfully'
+            };
+        } catch (error) {
+            console.error('Weekly Orders API Error:', error);
+            return {
+                success: false,
+                error: error.message || 'Server error. Please try again later.'
+            };
+        }
     }
 };

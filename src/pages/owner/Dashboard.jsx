@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
 import { motion } from 'framer-motion';
@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { dashboardStats, orders, workers, customers, inventory, notifications, reviews } from '../../data/dummyData';
 import { useNavigate } from 'react-router-dom';
+import { orderAPI } from '../../services/api';
 
 const OwnerDashboard = () => {
   usePageTitle('Dashboard');
@@ -18,12 +19,109 @@ const OwnerDashboard = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearchResults, setShowSearchResults] = useState(false);
+  const [dailyOrdersCount, setDailyOrdersCount] = useState(0);
+  const [isLoadingDailyOrders, setIsLoadingDailyOrders] = useState(false);
+  const [weeklyOrdersCount, setWeeklyOrdersCount] = useState(0);
+  const [isLoadingWeeklyOrders, setIsLoadingWeeklyOrders] = useState(false);
 
   // Calculate today's and weekly orders
   const today = new Date().toISOString().split('T')[0];
   const todayOrders = orders.filter(o => o.orderDate === today);
   const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
   const weeklyOrders = orders.filter(o => o.orderDate >= weekAgo);
+
+  // Fetch daily and weekly orders count on mount
+  useEffect(() => {
+    fetchDailyOrdersCount();
+    fetchWeeklyOrdersCount();
+  }, []);
+
+  const fetchDailyOrdersCount = async () => {
+    setIsLoadingDailyOrders(true);
+
+    // Get token
+    let token = localStorage.getItem('token');
+    if (!token) {
+      const userDataString = localStorage.getItem('user');
+      if (userDataString) {
+        try {
+          const userData = JSON.parse(userDataString);
+          token = userData.jwt || userData.token;
+        } catch (e) {
+          console.error('Error parsing user data:', e);
+        }
+      }
+    }
+
+    if (!token) {
+      console.error('No token found for fetching daily orders');
+      setIsLoadingDailyOrders(false);
+      return;
+    }
+
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const result = await orderAPI.getDailyOrders(today, token);
+
+      if (result.success) {
+        const responseData = result.data.data || result.data;
+        setDailyOrdersCount(responseData.totalOrders || 0);
+      } else {
+        console.error('Failed to fetch daily orders count:', result.error);
+        // Fallback to dummy data count
+        setDailyOrdersCount(todayOrders.length);
+      }
+    } catch (error) {
+      console.error('Error fetching daily orders count:', error);
+      // Fallback to dummy data count
+      setDailyOrdersCount(todayOrders.length);
+    } finally {
+      setIsLoadingDailyOrders(false);
+    }
+  };
+
+  const fetchWeeklyOrdersCount = async () => {
+    setIsLoadingWeeklyOrders(true);
+
+    // Get token
+    let token = localStorage.getItem('token');
+    if (!token) {
+      const userDataString = localStorage.getItem('user');
+      if (userDataString) {
+        try {
+          const userData = JSON.parse(userDataString);
+          token = userData.jwt || userData.token;
+        } catch (e) {
+          console.error('Error parsing user data:', e);
+        }
+      }
+    }
+
+    if (!token) {
+      console.error('No token found for fetching weekly orders');
+      setIsLoadingWeeklyOrders(false);
+      return;
+    }
+
+    try {
+      const result = await orderAPI.getWeeklyOrders(token);
+
+      if (result.success) {
+        const responseData = result.data.data || result.data;
+        setWeeklyOrdersCount(responseData.totalOrders || 0);
+      } else {
+        console.error('Failed to fetch weekly orders count:', result.error);
+        // Fallback to dummy data count
+        setWeeklyOrdersCount(weeklyOrders.length);
+      }
+    } catch (error) {
+      console.error('Error fetching weekly orders count:', error);
+      // Fallback to dummy data count
+      setWeeklyOrdersCount(weeklyOrders.length);
+    } finally {
+      setIsLoadingWeeklyOrders(false);
+    }
+  };
   
   // Pending work with urgency
   const pendingOrders = orders.filter(o => o.status !== 'ready');
@@ -232,7 +330,7 @@ const OwnerDashboard = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <StatCard 
                 title="Daily Orders" 
-                value={todayOrders.length} 
+                value={isLoadingDailyOrders ? '...' : dailyOrdersCount} 
                 icon={Package}
                 color="bg-blue-500"
                 subtitle="Today"
@@ -240,7 +338,7 @@ const OwnerDashboard = () => {
               />
               <StatCard 
                 title="Weekly Orders" 
-                value={weeklyOrders.length} 
+                value={isLoadingWeeklyOrders ? '...' : weeklyOrdersCount} 
                 icon={TrendingUp}
                 color="bg-purple-500"
                 subtitle="Last 7 days"
