@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -21,17 +21,16 @@ import {
   ChevronDown,
   Package
 } from 'lucide-react';
-import { orders, inventory } from '../../data/dummyData';
+import { inventory } from '../../data/dummyData';
+import { workerAPI } from '../../services/api';
 
 const WorkerTasks = () => {
   usePageTitle('My Tasks');
-  // Mock worker ID
-  const currentWorkerId = 'WORK001';
-
-  // Get worker's tasks
-  const workerTasks = orders.filter(o => o.assignedWorker === currentWorkerId);
 
   // State management
+  const [tasks, setTasks] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [priorityFilter, setPriorityFilter] = useState('all');
@@ -42,17 +41,88 @@ const WorkerTasks = () => {
   const [workNotes, setWorkNotes] = useState('');
   const [uploadedPhoto, setUploadedPhoto] = useState(null);
 
+  // Fetch tasks on mount
+  useEffect(() => {
+    fetchMyTasks();
+  }, []);
+
+  const fetchMyTasks = async () => {
+    setIsLoading(true);
+    setError(null);
+
+    // Get token
+    let token = localStorage.getItem('token');
+    if (!token) {
+      const userDataString = localStorage.getItem('user');
+      if (userDataString) {
+        try {
+          const userData = JSON.parse(userDataString);
+          token = userData.jwt || userData.token;
+        } catch (e) {
+          console.error('Error parsing user data:', e);
+        }
+      }
+    }
+
+    if (!token) {
+      console.error('No token found for fetching tasks');
+      setError('Authentication error. Please log in again.');
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const result = await workerAPI.getMyTasks(token);
+
+      if (result.success) {
+        console.log('Tasks fetched successfully:', result.data);
+        // Map API response to component format
+        const mappedTasks = (result.data || []).map(task => ({
+          id: `ORD${String(task.order?.orderId || task.orderId).padStart(3, '0')}`,
+          taskId: task.taskId,
+          orderId: task.order?.orderId || task.orderId,
+          customerName: task.order?.customer?.user?.name || task.customerName || 'Unknown Customer',
+          taskType: task.taskType,
+          status: task.status?.toLowerCase() || 'pending',
+          priority: 'medium', // Default priority
+          orderDate: task.order?.createdAt ? new Date(task.order.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+          deliveryDate: task.order?.deadline || task.deliveryDate || 'N/A',
+          notes: task.order?.notes || task.notes || 'No special instructions',
+          items: [{ type: task.taskType || 'Task', fabric: 'Standard', color: 'N/A', quantity: 1 }],
+          measurements: {},
+          totalAmount: task.order?.totalPrice || 0,
+          paidAmount: task.order?.paidAmount || 0,
+          balanceAmount: (task.order?.totalPrice || 0) - (task.order?.paidAmount || 0),
+          assignedAt: task.assignedAt,
+          startedAt: task.startedAt,
+          completedAt: task.completedAt
+        }));
+        setTasks(mappedTasks);
+      } else {
+        console.error('Failed to fetch tasks:', result.error);
+        setError(result.error);
+        setTasks([]);
+      }
+    } catch (error) {
+      console.error('Error fetching tasks:', error);
+      setError('Failed to load tasks. Please try again.');
+      setTasks([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Filter and search tasks
-  const filteredTasks = workerTasks.filter(task => {
+  const filteredTasks = tasks.filter(task => {
     const matchesSearch = 
       task.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
       task.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      task.items.some(item => item.type.toLowerCase().includes(searchQuery.toLowerCase()));
+      task.taskType.toLowerCase().includes(searchQuery.toLowerCase());
 
     const matchesStatus = statusFilter === 'all' || task.status === statusFilter;
     const matchesPriority = priorityFilter === 'all' || task.priority === priorityFilter;
     const matchesGarment = garmentFilter === 'all' || 
-      task.items.some(item => item.type.toLowerCase().includes(garmentFilter.toLowerCase()));
+      task.taskType.toLowerCase().includes(garmentFilter.toLowerCase());
 
     return matchesSearch && matchesStatus && matchesPriority && matchesGarment;
   });
@@ -275,12 +345,34 @@ const WorkerTasks = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                    {sortedTasks.length > 0 ? (
+                    {isLoading ? (
+                      <tr>
+                        <td colSpan="9" className="px-6 py-12 text-center">
+                          <div className="flex flex-col items-center justify-center gap-3">
+                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+                            <p className="text-gray-600 dark:text-gray-400">Loading tasks...</p>
+                          </div>
+                        </td>
+                      </tr>
+                    ) : error ? (
+                      <tr>
+                        <td colSpan="9" className="px-6 py-12 text-center">
+                          <AlertCircle className="w-12 h-12 mx-auto mb-3 text-red-400" />
+                          <p className="text-red-600 dark:text-red-400 mb-3">{error}</p>
+                          <button
+                            onClick={fetchMyTasks}
+                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                          >
+                            Retry
+                          </button>
+                        </td>
+                      </tr>
+                    ) : sortedTasks.length > 0 ? (
                       sortedTasks.map((task) => (
-                        <tr key={task.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                        <tr key={task.taskId} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                           <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-100">{task.id}</td>
                           <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
-                            {task.items.map(item => item.type).join(', ')}
+                            {task.taskType}
                           </td>
                           <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{task.customerName}</td>
                           <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400 max-w-xs truncate">
@@ -308,7 +400,7 @@ const WorkerTasks = () => {
                               >
                                 <Eye className="w-4 h-4" />
                               </button>
-                              {task.status !== 'ready' && (
+                              {task.status !== 'ready' && task.status !== 'completed' && (
                                 <button
                                   onClick={() => handleStatusUpdate(task.id, getNextStatus(task.status))}
                                   className="p-2 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-lg transition-colors"

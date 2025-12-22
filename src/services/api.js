@@ -386,6 +386,45 @@ export const workerAPI = {
                 error: error.message || 'Server error. Please try again later.'
             };
         }
+    },
+
+    /**
+     * Get worker's assigned tasks
+     * @param {string} token - JWT token for authentication
+     * @returns {Promise} Response with worker's tasks
+     */
+    getMyTasks: async (token) => {
+        try {
+            console.log('API Request - URL:', `${API_URL}/api/workers/me/tasks`);
+
+            const response = await fetch(`${API_URL}/api/workers/me/tasks`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            console.log('API Response - Status:', response.status, response.statusText);
+
+            const data = await response.json();
+            console.log('API Response - Data:', data);
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to fetch tasks');
+            }
+
+            return {
+                success: true,
+                data: data.data || data,
+                message: data.message
+            };
+        } catch (error) {
+            console.error('Worker Tasks API Error:', error);
+            return {
+                success: false,
+                error: error.message || 'Server error. Please try again later.'
+            };
+        }
     }
 };
 
