@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import usePageTitle from '../../hooks/usePageTitle';
-import { Package, Eye, ArrowLeft, Calendar, AlertCircle } from 'lucide-react';
+import { Package, Eye, ArrowLeft, Calendar, AlertCircle, X, User, Phone, Mail } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { orderAPI } from '../../services/api';
 
@@ -17,6 +17,8 @@ const DailyOrders = () => {
   const [totalOrders, setTotalOrders] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState(null);
 
   // Fetch daily orders on mount and when date changes
   useEffect(() => {
@@ -90,6 +92,16 @@ const DailyOrders = () => {
       default:
         return 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400';
     }
+  };
+
+  const handleViewOrder = (order) => {
+    setSelectedOrder(order);
+    setShowViewModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowViewModal(false);
+    setSelectedOrder(null);
   };
 
   return (
@@ -230,9 +242,9 @@ const DailyOrders = () => {
                           </td>
                           <td className="px-6 py-4">
                             <button
-                              onClick={() => navigate('/owner/orders')}
+                              onClick={() => handleViewOrder(order)}
                               className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
-                              title="View in Orders"
+                              title="View Order Details"
                             >
                               <Eye className="w-4 h-4" />
                             </button>
@@ -247,6 +259,137 @@ const DailyOrders = () => {
           </motion.div>
         </main>
       </div>
+
+      {/* View Order Modal */}
+      <AnimatePresence>
+        {showViewModal && selectedOrder && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+            onClick={handleCloseModal}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Modal Header */}
+              <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+                  ORD{String(selectedOrder.orderId).padStart(3, '0')} - {selectedOrder.customerName}
+                </h2>
+                <button
+                  onClick={handleCloseModal}
+                  className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                >
+                  <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                </button>
+              </div>
+
+              {/* Modal Content */}
+              <div className="p-5">
+                {/* Status and Amount Row */}
+                <div className="flex items-center justify-between mb-5 pb-4 border-b border-gray-200 dark:border-gray-700">
+                  <span className={`px-3 py-1.5 text-sm font-semibold rounded-full ${getStatusColor(selectedOrder.status)}`}>
+                    {selectedOrder.status}
+                  </span>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                    ${selectedOrder.totalAmount?.toLocaleString() || '0'}
+                  </p>
+                </div>
+
+                {/* Grid Layout - 2 Columns */}
+                <div className="grid grid-cols-2 gap-4">
+                  {/* Customer Info */}
+                  <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 h-full">
+                    <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3 uppercase tracking-wide">Customer</h3>
+                    <div className="space-y-2 text-sm">
+                      <p className="text-gray-900 dark:text-gray-100 font-medium">{selectedOrder.customerName}</p>
+                      {selectedOrder.customerPhone && (
+                        <p className="text-gray-600 dark:text-gray-400">{selectedOrder.customerPhone}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Worker Assignments */}
+                  <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 h-full">
+                    <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3 uppercase tracking-wide">Workers</h3>
+                    {selectedOrder.workers && selectedOrder.workers.length > 0 ? (
+                      <div className="space-y-2">
+                        {selectedOrder.workers.map((worker, idx) => (
+                          <div key={idx} className="text-sm">
+                            <p className="font-medium text-gray-900 dark:text-gray-100">{worker.workerName}</p>
+                            <p className="text-xs text-gray-600 dark:text-gray-400 uppercase">{worker.taskType}</p>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-gray-500 dark:text-gray-400">Unassigned</p>
+                    )}
+                  </div>
+
+                  {/* Order Items */}
+                  <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 h-full">
+                    <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3 uppercase tracking-wide">Items</h3>
+                    {selectedOrder.items && selectedOrder.items.length > 0 ? (
+                      <ul className="space-y-1.5 text-sm">
+                        {selectedOrder.items.map((item, idx) => (
+                          <li key={idx} className="text-gray-900 dark:text-gray-100 flex items-start">
+                            <span className="text-orange-500 mr-2">•</span>
+                            <span>{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-sm text-gray-500 dark:text-gray-400">No items</p>
+                    )}
+                  </div>
+
+                  {/* Dates */}
+                  <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 h-full">
+                    <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3 uppercase tracking-wide">Dates</h3>
+                    <div className="space-y-2.5 text-sm">
+                      <div>
+                        <p className="text-xs text-gray-500 dark:text-gray-500 uppercase tracking-wide mb-0.5">Order Date</p>
+                        <p className="text-gray-900 dark:text-gray-100 font-medium">
+                          {new Date(selectedOrder.orderDate || selectedDate).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500 dark:text-gray-500 uppercase tracking-wide mb-0.5">Delivery Date</p>
+                        <p className="text-gray-900 dark:text-gray-100 font-medium">{selectedOrder.deliveryDate}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Modal Footer */}
+              <div className="flex justify-end gap-2 p-4 border-t border-gray-200 dark:border-gray-700">
+                <button
+                  onClick={handleCloseModal}
+                  className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors text-sm"
+                >
+                  Close
+                </button>
+                <button
+                  onClick={() => {
+                    handleCloseModal();
+                    navigate('/owner/orders');
+                  }}
+                  className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors text-sm"
+                >
+                  View Full Details
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
