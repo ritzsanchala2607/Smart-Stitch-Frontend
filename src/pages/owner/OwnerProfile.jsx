@@ -10,8 +10,6 @@ import {
   Upload, 
   X, 
   CheckCircle,
-  Moon,
-  Sun,
   Settings,
   Scissors,
   Loader
@@ -33,7 +31,6 @@ const OwnerProfile = () => {
   });
 
   const [loading, setLoading] = useState(true);
-  const [darkMode, setDarkMode] = useState(false);
   const [photoPreview, setPhotoPreview] = useState(null);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -304,13 +301,6 @@ const OwnerProfile = () => {
       }, 5000);
     }
   };
-
-  const handleToggleDarkMode = () => {
-    setDarkMode(!darkMode);
-    // In a real app, this would update theme context/localStorage
-    console.log('Dark mode toggled:', !darkMode);
-  };
-
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
       <Sidebar role="owner" />
@@ -642,51 +632,6 @@ const OwnerProfile = () => {
                 Save All Changes
               </motion.button>
             </div>
-
-            {/* Preferences Card */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.2 }}
-              className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"
-            >
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-6">Preferences</h2>
-
-              {/* Dark Mode Toggle */}
-              <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                <div className="flex items-center gap-3">
-                  {darkMode ? (
-                    <Moon className="w-5 h-5 text-orange-500" />
-                  ) : (
-                    <Sun className="w-5 h-5 text-orange-500" />
-                  )}
-                  <div>
-                    <p className="font-medium text-gray-900 dark:text-gray-100">Dark Mode</p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {darkMode ? 'Dark theme enabled' : 'Light theme enabled'}
-                    </p>
-                  </div>
-                </div>
-                
-                <motion.button
-                  onClick={handleToggleDarkMode}
-                  className={`relative w-14 h-7 rounded-full transition-colors ${
-                    darkMode ? 'bg-orange-500' : 'bg-gray-300'
-                  }`}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <motion.div
-                    className="absolute top-1 left-1 w-5 h-5 bg-white rounded-full shadow-md"
-                    animate={{ x: darkMode ? 28 : 0 }}
-                    transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                  />
-                </motion.button>
-              </div>
-
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-4">
-                More preferences will be available in future updates
-              </p>
-            </motion.div>
           </motion.div>
           )}
         </main>
