@@ -229,13 +229,14 @@ const OwnerDashboard = () => {
             </motion.div>
 
             {/* Dashboard Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <StatCard 
                 title="Daily Orders" 
                 value={todayOrders.length} 
                 icon={Package}
                 color="bg-blue-500"
                 subtitle="Today"
+                onClick={() => navigate('/owner/daily-orders')}
               />
               <StatCard 
                 title="Weekly Orders" 
@@ -243,27 +244,22 @@ const OwnerDashboard = () => {
                 icon={TrendingUp}
                 color="bg-purple-500"
                 subtitle="Last 7 days"
-              />
-              <StatCard 
-                title="Total Revenue" 
-                value={`$${stats.totalRevenue.toLocaleString()}`} 
-                icon={DollarSign}
-                color="bg-green-500"
-                subtitle="All time"
+                onClick={() => navigate('/owner/weekly-orders')}
               />
               <StatCard 
                 title="Pending Work" 
-                value={pendingOrders.length} 
+                value={pendingOrders.length}
                 icon={Clock}
                 color={urgentOrders > 5 ? 'bg-red-500' : mediumOrders > 10 ? 'bg-yellow-500' : 'bg-blue-500'}
                 subtitle={`${urgentOrders} urgent`}
+                onClick={() => navigate('/owner/pending-work')}
               />
               <StatCard 
-                title="Worker Performance" 
-                value={`${avgPerformance}%`} 
-                icon={Activity}
-                color="bg-indigo-500"
-                subtitle="Average"
+                title="Monthly Revenue" 
+                value={`$${stats.totalRevenue.toLocaleString()}`} 
+                icon={DollarSign}
+                color="bg-green-500"
+                subtitle="This month"
               />
             </div>
 
@@ -311,43 +307,6 @@ const OwnerDashboard = () => {
                   </div>
                 </motion.div>
 
-                {/* Worker Efficiency Chart */}
-                <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.3 }}
-                  className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"
-                >
-                  <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">Worker Efficiency</h2>
-                  <div className="space-y-4">
-                    {workers.slice(0, 5).map((worker) => (
-                      <div key={worker.id} className="flex items-center gap-4">
-                        <img 
-                          src={worker.avatar} 
-                          alt={worker.name}
-                          className="w-10 h-10 rounded-full"
-                        />
-                        <div className="flex-1">
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="font-medium text-gray-900 dark:text-gray-100 text-sm">{worker.name}</span>
-                            <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">{worker.performance}%</span>
-                          </div>
-                          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
-                            <div
-                              className={`h-full rounded-full transition-all ${
-                                worker.performance >= 90 ? 'bg-green-500' :
-                                worker.performance >= 70 ? 'bg-blue-500' :
-                                worker.performance >= 50 ? 'bg-yellow-500' :
-                                'bg-red-500'
-                              }`}
-                              style={{ width: `${worker.performance}%` }}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </motion.div>
 
                 {/* Recent Orders Table */}
                 <motion.div
@@ -686,10 +645,11 @@ const OwnerDashboard = () => {
 };
 
 // Stat Card Component
-const StatCard = ({ title, value, icon: Icon, color, subtitle }) => {
+const StatCard = ({ title, value, icon: Icon, color, subtitle, onClick }) => {
   return (
     <motion.div
       whileHover={{ scale: 1.02, y: -5 }}
+      onClick={onClick}
       className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 cursor-pointer"
     >
       <div className="flex items-center justify-between mb-4">

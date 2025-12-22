@@ -18,6 +18,9 @@ import OwnerAnalytics from '../pages/owner/Analytics';
 import WorkerDetails from '../pages/owner/WorkerDetails';
 import OwnerProfile from '../pages/owner/OwnerProfile';
 import OwnerNotifications from '../pages/owner/Notifications';
+import DailyOrders from '../pages/owner/DailyOrders';
+import WeeklyOrders from '../pages/owner/WeeklyOrders';
+import PendingWork from '../pages/owner/PendingWork';
 
 // Worker Pages
 import WorkerDashboard from '../pages/worker/Dashboard';
@@ -77,6 +80,9 @@ const AppRoutes = () => {
 
       {/* Owner Routes */}
       <Route path="/owner/dashboard" element={<ProtectedRoute allowedRole="owner"><OwnerDashboard /></ProtectedRoute>} />
+      <Route path="/owner/daily-orders" element={<ProtectedRoute allowedRole="owner"><DailyOrders /></ProtectedRoute>} />
+      <Route path="/owner/weekly-orders" element={<ProtectedRoute allowedRole="owner"><WeeklyOrders /></ProtectedRoute>} />
+      <Route path="/owner/pending-work" element={<ProtectedRoute allowedRole="owner"><PendingWork /></ProtectedRoute>} />
       <Route path="/owner/worker/:id" element={<ProtectedRoute allowedRole="owner"><WorkerDetails /></ProtectedRoute>} />
       <Route path="/owner/profile" element={<ProtectedRoute allowedRole="owner"><OwnerProfile /></ProtectedRoute>} />
       <Route path="/owner/notifications" element={<ProtectedRoute allowedRole="owner"><OwnerNotifications /></ProtectedRoute>} />
