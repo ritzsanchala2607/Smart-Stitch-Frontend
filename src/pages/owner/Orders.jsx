@@ -154,18 +154,18 @@ const Orders = () => {
         // Map API response to component format
         const mappedOrders = (result.data || []).map(order => ({
           id: `ORD${String(order.orderId).padStart(3, '0')}`,
-          customerId: order.customerId,
-          customerName: order.customerName,
+          customerId: order.customer?.customerId || order.customerId,
+          customerName: order.customer?.name || order.customerName || 'Unknown Customer',
           orderDate: order.createdAt ? new Date(order.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
           deliveryDate: order.deadline,
           status: order.status ? order.status.toLowerCase() : 'pending',
           priority: 'medium',
           items: order.items || [],
           totalAmount: order.totalPrice || 0,
-          paidAmount: order.advancePayment || 0,
-          balanceAmount: (order.totalPrice || 0) - (order.advancePayment || 0),
+          paidAmount: order.paidAmount || order.advancePayment || 0,
+          balanceAmount: (order.totalPrice || 0) - (order.paidAmount || order.advancePayment || 0),
           measurements: order.measurements || {},
-          notes: order.additionalNotes || '',
+          notes: order.notes || order.additionalNotes || '',
           assignedWorker: null,
           workerName: null,
           assignmentMode: 'individual'
