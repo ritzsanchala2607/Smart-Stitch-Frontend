@@ -8,7 +8,6 @@ import {
   User,
   Mail,
   Phone,
-  MapPin,
   Calendar,
   Edit2,
   Save,
@@ -30,7 +29,6 @@ const Profile = () => {
     name: '',
     email: '',
     phone: '',
-    address: '',
     joinDate: '',
     avatar: 'https://i.pravatar.cc/150?img=8'
   });
@@ -92,7 +90,6 @@ const Profile = () => {
           name: data.user?.name || '',
           email: data.user?.email || '',
           phone: data.user?.contactNumber || '',
-          address: '', // Not in API response yet
           joinDate: data.createdAt ? new Date(data.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
           avatar: data.user?.profilePicture || 'https://i.pravatar.cc/150?img=8',
           customerId: data.customerId,
@@ -428,25 +425,6 @@ const Profile = () => {
                         value={profileData.joinDate}
                         disabled
                         className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-gray-100"
-                      />
-                    </div>
-
-                    {/* Address (Full Width) */}
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        <div className="flex items-center gap-2">
-                          <MapPin className="w-4 h-4" />
-                          Address
-                        </div>
-                      </label>
-                      <textarea
-                        value={isEditing ? editedData.address : profileData.address}
-                        onChange={(e) => setEditedData({ ...editedData, address: e.target.value })}
-                        disabled={!isEditing}
-                        rows={3}
-                        className={`w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-gray-100 ${
-                          isEditing ? 'bg-white dark:bg-gray-700' : 'bg-gray-50 dark:bg-gray-700/50'
-                        }`}
                       />
                     </div>
                   </div>
