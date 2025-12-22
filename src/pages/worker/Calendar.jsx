@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
 import { motion } from 'framer-motion';
+import usePageTitle from '../../hooks/usePageTitle';
 import {
   Calendar as CalendarIcon,
   ChevronLeft,
@@ -12,6 +13,7 @@ import {
 } from 'lucide-react';
 
 const WorkerCalendar = () => {
+  usePageTitle('Calendar');
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(null);
 

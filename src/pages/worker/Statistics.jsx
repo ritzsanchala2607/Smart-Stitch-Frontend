@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
 import { motion } from 'framer-motion';
+import usePageTitle from '../../hooks/usePageTitle';
 import {
   BarChart3,
   PieChart,
@@ -15,6 +16,7 @@ import {
 import { orders, inventory } from '../../data/dummyData';
 
 const WorkerStatistics = () => {
+  usePageTitle('Statistics');
   // Mock worker ID
   const currentWorkerId = 'WORK001';
   const workerTasks = orders.filter(o => o.assignedWorker === currentWorkerId);

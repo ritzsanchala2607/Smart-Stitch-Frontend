@@ -11,13 +11,15 @@ export const isValidEmail = (email) => {
 };
 
 /**
- * Validates phone number format (10-15 digits)
+ * Validates phone number format (exactly 10 digits)
  * @param {string} phone - Phone number to validate
  * @returns {boolean} - True if valid phone format
  */
 export const isValidPhone = (phone) => {
-    const phoneRegex = /^[+]?[\d\s-]{10,15}$/;
-    return phoneRegex.test(phone);
+    // Remove all non-digit characters
+    const digitsOnly = phone.replace(/\D/g, '');
+    // Check if exactly 10 digits
+    return digitsOnly.length === 10;
 };
 
 /**

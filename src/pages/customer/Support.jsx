@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
 import { motion, AnimatePresence } from 'framer-motion';
+import usePageTitle from '../../hooks/usePageTitle';
 import {
   HelpCircle,
   MessageSquare,
@@ -17,6 +18,7 @@ import {
 } from 'lucide-react';
 
 const Support = () => {
+  usePageTitle('Support');
   const [activeTab, setActiveTab] = useState('tickets');
   const [issueType, setIssueType] = useState('');
   const [message, setMessage] = useState('');

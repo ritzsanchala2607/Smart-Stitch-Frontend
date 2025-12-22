@@ -1,10 +1,12 @@
 import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
 import { motion } from 'framer-motion';
+import usePageTitle from '../../hooks/usePageTitle';
 import { Bell, CheckCircle, AlertCircle, Info, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 
 const Notifications = () => {
+  usePageTitle('Notifications');
   const [notifications, setNotifications] = useState([
     { 
       id: 1, 

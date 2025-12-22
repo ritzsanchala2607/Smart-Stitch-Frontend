@@ -1,6 +1,7 @@
 import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
 import { motion, AnimatePresence } from 'framer-motion';
+import usePageTitle from '../../hooks/usePageTitle';
 import { 
   Plus, Package, Search, Filter, Eye, Edit, Trash2,
   Clock, CheckCircle, AlertCircle, X, Calendar,
@@ -12,6 +13,7 @@ import { isValidDate, isValidAmount } from '../../utils/validation';
 import AddCustomerModal from '../../components/AddCustomerModal';
 
 const Orders = () => {
+  usePageTitle('Orders');
   const [orders, setOrders] = useState(initialOrders);
   const [showNewOrderModal, setShowNewOrderModal] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);

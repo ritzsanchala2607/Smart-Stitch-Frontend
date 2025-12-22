@@ -1,6 +1,7 @@
 import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
 import { motion } from 'framer-motion';
+import usePageTitle from '../../hooks/usePageTitle';
 import {
   User,
   Mail,
@@ -17,6 +18,7 @@ import { useState } from 'react';
 import { useTheme } from '../../context/ThemeContext';
 
 const AdminProfile = () => {
+  usePageTitle('Admin Settings');
   const { theme, toggleTheme } = useTheme();
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);

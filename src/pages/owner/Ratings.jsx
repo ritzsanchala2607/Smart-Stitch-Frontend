@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
 import { motion } from 'framer-motion';
+import usePageTitle from '../../hooks/usePageTitle';
 import {
   Star, TrendingUp, Users, Award, Filter, Search,
   Eye, MessageSquare, CheckCircle, AlertCircle, Tag,
@@ -10,6 +11,7 @@ import {
 import { reviews, workers } from '../../data/dummyData';
 
 const Ratings = () => {
+  usePageTitle('Ratings & Feedback');
   const [activeTab, setActiveTab] = useState('overview'); // overview, feedback, workers, complaints
   const [filterRating, setFilterRating] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');

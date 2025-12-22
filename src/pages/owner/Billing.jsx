@@ -1,6 +1,7 @@
 import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
 import { motion, AnimatePresence } from 'framer-motion';
+import usePageTitle from '../../hooks/usePageTitle';
 import { 
   FileText, Plus, Download, DollarSign, TrendingUp, 
   Calendar, X, Trash2, User, Building2, Search
@@ -11,6 +12,7 @@ import { calculateInvoiceTotals } from '../../utils/calculations';
 import AddCustomerModal from '../../components/AddCustomerModal';
 
 const Billing = () => {
+  usePageTitle('Billing');
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [taxRate, setTaxRate] = useState(10);

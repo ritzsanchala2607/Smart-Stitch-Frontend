@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Layout from '../../components/common/Layout';
 import { motion, AnimatePresence } from 'framer-motion';
+import usePageTitle from '../../hooks/usePageTitle';
 import {
   LayoutDashboard,
   Package,
@@ -33,6 +34,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
+  usePageTitle('Dashboard');
   const navigate = useNavigate();
 
   // Mock customer data

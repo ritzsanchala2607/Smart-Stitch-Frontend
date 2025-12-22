@@ -6,8 +6,10 @@ import {
 import { workers } from '../../data/dummyData';
 import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
+import usePageTitle from '../../hooks/usePageTitle';
 
 const Chat = () => {
+  usePageTitle('Chat');
   const [selectedWorker, setSelectedWorker] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [messageInput, setMessageInput] = useState('');

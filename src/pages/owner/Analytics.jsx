@@ -1,6 +1,7 @@
 import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
 import { motion } from 'framer-motion';
+import usePageTitle from '../../hooks/usePageTitle';
 import { BarChart3 } from 'lucide-react';
 import { orders, workers, inventory, reviews } from '../../data/dummyData';
 import {
@@ -14,6 +15,7 @@ import {
 } from '../../components/charts/DashboardCharts';
 
 const Analytics = () => {
+  usePageTitle('Analytics');
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
       <Sidebar role="owner" />

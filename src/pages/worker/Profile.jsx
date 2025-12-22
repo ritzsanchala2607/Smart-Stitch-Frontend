@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
 import { motion } from 'framer-motion';
+import usePageTitle from '../../hooks/usePageTitle';
 import {
   User,
   Calendar,
@@ -19,6 +20,7 @@ import {
 import { workers } from '../../data/dummyData';
 
 const WorkerProfile = () => {
+  usePageTitle('Profile');
   // Mock current worker
   const currentWorkerId = 'WORK001';
   const workerData = workers.find(w => w.id === currentWorkerId);

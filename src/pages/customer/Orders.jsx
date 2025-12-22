@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
 import { motion, AnimatePresence } from 'framer-motion';
+import usePageTitle from '../../hooks/usePageTitle';
 import {
   Package,
   Search,
@@ -26,6 +27,7 @@ import {
 import { orders } from '../../data/dummyData';
 
 const Orders = () => {
+  usePageTitle('My Orders');
   // Mock customer ID (in real app, this would come from auth context)
   const currentCustomerId = 'CUST001';
 

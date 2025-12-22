@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
 import { motion, AnimatePresence } from 'framer-motion';
+import usePageTitle from '../../hooks/usePageTitle';
 import {
   User,
   Mail,
@@ -22,6 +23,7 @@ import {
 } from 'lucide-react';
 
 const Profile = () => {
+  usePageTitle('Profile');
   // Mock customer data
   const [profileData, setProfileData] = useState({
     name: 'Robert Johnson',

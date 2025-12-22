@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
 import { motion } from 'framer-motion';
+import usePageTitle from '../../hooks/usePageTitle';
 import {
   Bell,
   Package,
@@ -14,6 +15,7 @@ import {
 } from 'lucide-react';
 
 const WorkerNotifications = () => {
+  usePageTitle('Notifications');
   const [filter, setFilter] = useState('all');
   
   // Mock notifications
