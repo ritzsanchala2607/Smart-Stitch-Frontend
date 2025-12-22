@@ -37,6 +37,7 @@ const WorkerTasks = () => {
   const [garmentFilter, setGarmentFilter] = useState('all');
   const [sortBy, setSortBy] = useState('deadline');
   const [selectedTask, setSelectedTask] = useState(null);
+  const [editingTask, setEditingTask] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
   const [workNotes, setWorkNotes] = useState('');
   const [uploadedPhoto, setUploadedPhoto] = useState(null);
@@ -402,9 +403,9 @@ const WorkerTasks = () => {
                               </button>
                               {task.status !== 'ready' && task.status !== 'completed' && (
                                 <button
-                                  onClick={() => handleStatusUpdate(task.id, getNextStatus(task.status))}
+                                  onClick={() => setEditingTask(task)}
                                   className="p-2 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-lg transition-colors"
-                                  title="Update Status"
+                                  title="Edit Task"
                                 >
                                   <Edit className="w-4 h-4" />
                                 </button>
@@ -429,7 +430,7 @@ const WorkerTasks = () => {
         </main>
       </div>
 
-      {/* Task Details Modal */}
+      {/* Task Details Modal (View Only) */}
       <AnimatePresence>
         {selectedTask && (
           <TaskDetailsModal
@@ -450,7 +451,206 @@ const WorkerTasks = () => {
           />
         )}
       </AnimatePresence>
+
+      {/* Edit Task Modal */}
+      <AnimatePresence>
+        {editingTask && (
+          <EditTaskModal
+            task={editingTask}
+            onClose={() => {
+              setEditingTask(null);
+              setWorkNotes('');
+              setUploadedPhoto(null);
+            }}
+            onSave={(updatedTask) => {
+              handleStatusUpdate(updatedTask.id, updatedTask.status);
+              setEditingTask(null);
+              setWorkNotes('');
+              setUploadedPhoto(null);
+            }}
+            workNotes={workNotes}
+            setWorkNotes={setWorkNotes}
+            uploadedPhoto={uploadedPhoto}
+            handlePhotoUpload={handlePhotoUpload}
+          />
+        )}
+      </AnimatePresence>
     </div>
+  );
+};
+
+// Edit Task Modal Component
+const EditTaskModal = ({
+  task,
+  onClose,
+  onSave,
+  workNotes,
+  setWorkNotes,
+  uploadedPhoto,
+  handlePhotoUpload
+}) => {
+  const [editedStatus, setEditedStatus] = useState(task.status);
+  const [editedNotes, setEditedNotes] = useState(workNotes);
+  const [hasChanges, setHasChanges] = useState(false);
+
+  const handleSave = () => {
+    onSave({
+      ...task,
+      status: editedStatus,
+      notes: editedNotes
+    });
+  };
+
+  const handleStatusChange = (newStatus) => {
+    setEditedStatus(newStatus);
+    setHasChanges(true);
+  };
+
+  const handleNotesChange = (value) => {
+    setEditedNotes(value);
+    setWorkNotes(value);
+    setHasChanges(true);
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.9, opacity: 0 }}
+        onClick={(e) => e.stopPropagation()}
+        className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-3xl w-full flex flex-col"
+      >
+        {/* Modal Header */}
+        <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3 flex items-center justify-between">
+          <div>
+            <h2 className="text-base font-bold text-gray-900 dark:text-gray-100">Edit Task - {task.id}</h2>
+            <p className="text-xs text-gray-600 dark:text-gray-400">{task.customerName}</p>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors text-gray-900 dark:text-gray-100"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Modal Content - Single Column, No Scroll */}
+        <div className="p-4 space-y-3">
+          {/* Status & Basic Info Row */}
+          <div className="grid grid-cols-2 gap-3">
+            {/* Status Editor */}
+            <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+              <label className="block text-xs font-bold text-gray-900 dark:text-gray-100 mb-1.5">Update Status</label>
+              <select
+                value={editedStatus}
+                onChange={(e) => handleStatusChange(e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-gray-100"
+              >
+                <option value="pending">Pending</option>
+                <option value="cutting">Cutting</option>
+                <option value="stitching">Stitching</option>
+                <option value="fitting">Fitting</option>
+                <option value="ready">Ready</option>
+              </select>
+            </div>
+
+            {/* Task Info */}
+            <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+              <h3 className="text-xs font-bold text-gray-900 dark:text-gray-100 mb-1.5">Task Info</h3>
+              <div className="space-y-1 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-gray-600 dark:text-gray-400">Type:</span>
+                  <span className="font-medium text-gray-900 dark:text-gray-100">{task.items[0]?.type}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600 dark:text-gray-400">Deadline:</span>
+                  <span className="font-medium text-gray-900 dark:text-gray-100">{task.deliveryDate}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Instructions (if any) */}
+          {task.notes && task.notes !== 'No special instructions' && (
+            <div className="p-2.5 bg-yellow-50 dark:bg-yellow-900/30 rounded-lg border border-yellow-200 dark:border-yellow-800">
+              <div className="flex items-start gap-2">
+                <FileText className="w-3.5 h-3.5 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-xs font-semibold text-gray-900 dark:text-gray-100 mb-0.5">Instructions:</p>
+                  <p className="text-xs text-gray-700 dark:text-gray-300">{task.notes}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Work Notes Editor */}
+          <div>
+            <label className="block text-xs font-bold text-gray-900 dark:text-gray-100 mb-1.5">Work Notes</label>
+            <textarea
+              value={editedNotes}
+              onChange={(e) => handleNotesChange(e.target.value)}
+              placeholder="Add notes: material needed, issues found, progress updates..."
+              className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none dark:bg-gray-800 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
+              rows="2"
+            />
+          </div>
+
+          {/* Photo Upload */}
+          <div>
+            <label className="block text-xs font-bold text-gray-900 dark:text-gray-100 mb-1.5">Upload Work Photo</label>
+            <div className="flex items-center gap-3">
+              <label className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white text-xs rounded-lg hover:bg-blue-700 cursor-pointer transition-colors">
+                <Upload className="w-3.5 h-3.5" />
+                Choose Photo
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handlePhotoUpload}
+                  className="hidden"
+                />
+              </label>
+              {uploadedPhoto && (
+                <span className="text-xs text-green-600 dark:text-green-400 font-medium">✓ Photo uploaded</span>
+              )}
+            </div>
+            {uploadedPhoto && (
+              <div className="mt-2">
+                <img
+                  src={uploadedPhoto}
+                  alt="Work preview"
+                  className="w-32 h-32 object-cover rounded-lg border border-gray-300 dark:border-gray-600"
+                />
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Modal Footer */}
+        <div className="border-t border-gray-200 dark:border-gray-700 px-4 py-3 flex items-center justify-end gap-3">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={!hasChanges && !editedNotes.trim()}
+            className="flex items-center gap-2 px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 dark:disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors font-semibold"
+          >
+            <Save className="w-4 h-4" />
+            Save Changes
+          </button>
+        </div>
+      </motion.div>
+    </motion.div>
   );
 };
 
