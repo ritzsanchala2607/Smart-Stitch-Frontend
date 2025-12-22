@@ -7,14 +7,17 @@ import {
   Clock, CheckCircle, AlertCircle, X, Calendar,
   DollarSign, FileText, User, Users
 } from 'lucide-react';
-import { orders as initialOrders, customers, workers } from '../../data/dummyData';
-import { useState } from 'react';
+import { customers } from '../../data/dummyData';
+import { useState, useEffect } from 'react';
 import { isValidDate, isValidAmount } from '../../utils/validation';
 import AddCustomerModal from '../../components/AddCustomerModal';
+import { customerAPI, orderAPI, workerAPI } from '../../services/api';
 
 const Orders = () => {
   usePageTitle('Orders');
-  const [orders, setOrders] = useState(initialOrders);
+  const [orders, setOrders] = useState([]);
+  const [isLoadingOrders, setIsLoadingOrders] = useState(false);
+  const [ordersError, setOrdersError] = useState(null);
   const [showNewOrderModal, setShowNewOrderModal] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -48,13 +51,212 @@ const Orders = () => {
   // Customer search state
   const [customerSearchQuery, setCustomerSearchQuery] = useState('');
   const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
+  const [isSearchingCustomers, setIsSearchingCustomers] = useState(false);
+  const [searchedCustomers, setSearchedCustomers] = useState([]);
 
-  // Filter customers based on search query
-  const filteredCustomers = customerList.filter(customer =>
-    customer.name.toLowerCase().includes(customerSearchQuery.toLowerCase()) ||
-    customer.phone.includes(customerSearchQuery) ||
-    customer.email.toLowerCase().includes(customerSearchQuery.toLowerCase())
-  );
+  // Worker state
+  const [workers, setWorkers] = useState([]);
+  const [isLoadingWorkers, setIsLoadingWorkers] = useState(false);
+  const [workersError, setWorkersError] = useState(null);
+
+  // Fetch workers on component mount
+  useEffect(() => {
+    fetchWorkers();
+    fetchOrders();
+  }, []);
+
+  // Fetch workers from API
+  const fetchWorkers = async () => {
+    setIsLoadingWorkers(true);
+    setWorkersError(null);
+
+    // Get token
+    let token = localStorage.getItem('token');
+    if (!token) {
+      const userDataString = localStorage.getItem('user');
+      if (userDataString) {
+        try {
+          const userData = JSON.parse(userDataString);
+          token = userData.jwt || userData.token;
+        } catch (e) {
+          console.error('Error parsing user data:', e);
+        }
+      }
+    }
+
+    if (!token) {
+      console.error('No token found for fetching workers');
+      setWorkersError('Authentication error. Please log in again.');
+      setIsLoadingWorkers(false);
+      return;
+    }
+
+    try {
+      const result = await workerAPI.getWorkers(token);
+
+      if (result.success) {
+        console.log('Workers fetched successfully:', result.data);
+        // Map API response to component format
+        const mappedWorkers = (result.data.data || result.data || []).map(worker => ({
+          id: worker.workerId || worker.id,
+          name: worker.name,
+          email: worker.email,
+          phone: worker.contactNumber,
+          specialization: worker.workType || 'General',
+          experience: worker.experience || 0,
+          status: 'active', // Assume all fetched workers are active
+          ratings: worker.ratings || null
+        }));
+        setWorkers(mappedWorkers);
+      } else {
+        console.error('Failed to fetch workers:', result.error);
+        setWorkersError(result.error);
+      }
+    } catch (error) {
+      console.error('Error fetching workers:', error);
+      setWorkersError('Failed to load workers. Please try again.');
+    } finally {
+      setIsLoadingWorkers(false);
+    }
+  };
+
+  // Fetch orders from API
+  const fetchOrders = async () => {
+    setIsLoadingOrders(true);
+    setOrdersError(null);
+
+    // Get token
+    let token = localStorage.getItem('token');
+    if (!token) {
+      const userDataString = localStorage.getItem('user');
+      if (userDataString) {
+        try {
+          const userData = JSON.parse(userDataString);
+          token = userData.jwt || userData.token;
+        } catch (e) {
+          console.error('Error parsing user data:', e);
+        }
+      }
+    }
+
+    if (!token) {
+      console.error('No token found for fetching orders');
+      setOrdersError('Authentication error. Please log in again.');
+      setIsLoadingOrders(false);
+      return;
+    }
+
+    try {
+      const result = await orderAPI.getOrders(token);
+
+      if (result.success) {
+        console.log('Orders fetched successfully:', result.data);
+        // Map API response to component format
+        const mappedOrders = (result.data || []).map(order => ({
+          id: `ORD${String(order.orderId).padStart(3, '0')}`,
+          customerId: order.customerId,
+          customerName: order.customerName,
+          orderDate: order.createdAt ? new Date(order.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+          deliveryDate: order.deadline,
+          status: order.status ? order.status.toLowerCase() : 'pending',
+          priority: 'medium',
+          items: order.items || [],
+          totalAmount: order.totalPrice || 0,
+          paidAmount: order.advancePayment || 0,
+          balanceAmount: (order.totalPrice || 0) - (order.advancePayment || 0),
+          measurements: order.measurements || {},
+          notes: order.additionalNotes || '',
+          assignedWorker: null,
+          workerName: null,
+          assignmentMode: 'individual'
+        }));
+        setOrders(mappedOrders);
+      } else {
+        console.error('Failed to fetch orders:', result.error);
+        setOrdersError(result.error);
+      }
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+      setOrdersError('Failed to load orders. Please try again.');
+    } finally {
+      setIsLoadingOrders(false);
+    }
+  };
+
+  // Debounced customer search effect
+  useEffect(() => {
+    const delaySearch = setTimeout(() => {
+      if (customerSearchQuery.trim() && customerSearchQuery.trim().length >= 2) {
+        searchCustomersAPI(customerSearchQuery.trim());
+      } else {
+        setSearchedCustomers([]);
+        setIsSearchingCustomers(false);
+      }
+    }, 500); // 500ms delay
+
+    return () => clearTimeout(delaySearch);
+  }, [customerSearchQuery]);
+
+  // Search customers via API
+  const searchCustomersAPI = async (query) => {
+    setIsSearchingCustomers(true);
+
+    // Get token
+    let token = localStorage.getItem('token');
+    if (!token) {
+      const userDataString = localStorage.getItem('user');
+      if (userDataString) {
+        try {
+          const userData = JSON.parse(userDataString);
+          token = userData.jwt || userData.token;
+        } catch (e) {
+          console.error('Error parsing user data:', e);
+        }
+      }
+    }
+
+    if (!token) {
+      console.error('No token found for customer search');
+      setIsSearchingCustomers(false);
+      return;
+    }
+
+    try {
+      const result = await customerAPI.searchCustomers(query, token);
+      
+      if (result.success) {
+        console.log('Customer search results:', result.data);
+        // Map API response to component format
+        const mappedCustomers = (result.data || []).map(customer => ({
+          id: customer.customerId || customer.id,
+          name: customer.user?.name || customer.name,
+          email: customer.user?.email || customer.email,
+          phone: customer.user?.contactNumber || customer.phone,
+          measurements: customer.measurements
+        }));
+        setSearchedCustomers(mappedCustomers);
+      } else {
+        console.error('Customer search failed:', result.error);
+        setSearchedCustomers([]);
+      }
+    } catch (error) {
+      console.error('Customer search error:', error);
+      setSearchedCustomers([]);
+    } finally {
+      setIsSearchingCustomers(false);
+    }
+  };
+
+  // Use searched customers from API if available, otherwise use local list
+  const filteredCustomers = customerSearchQuery.trim().length >= 2 && searchedCustomers.length > 0
+    ? searchedCustomers
+    : customerSearchQuery.trim().length >= 2 && !isSearchingCustomers
+    ? []
+    : customerList.filter(customer =>
+        customer.name.toLowerCase().includes(customerSearchQuery.toLowerCase()) ||
+        customer.phone.includes(customerSearchQuery) ||
+        customer.email.toLowerCase().includes(customerSearchQuery.toLowerCase())
+      );
 
   // Handle customer selection
   const handleCustomerSelect = (customer) => {
@@ -174,7 +376,7 @@ const Orders = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSaveOrder = () => {
+  const handleSaveOrder = async () => {
     if (!validateForm()) {
       return;
     }
@@ -184,56 +386,127 @@ const Orders = () => {
       0
     );
 
-    // Determine worker assignment based on mode
-    let assignedWorker = null;
-    let workerName = null;
-    let itemsWithWorkers = orderItems;
-
-    if (assignmentMode === 'whole' && wholeOrderWorker) {
-      assignedWorker = wholeOrderWorker.id;
-      workerName = wholeOrderWorker.name;
-      // Assign the same worker to all items
-      itemsWithWorkers = orderItems.map(item => ({
-        ...item,
-        assignedWorker: wholeOrderWorker.id,
-        workerName: wholeOrderWorker.name
-      }));
+    // Get token
+    let token = localStorage.getItem('token');
+    if (!token) {
+      const userDataString = localStorage.getItem('user');
+      if (userDataString) {
+        try {
+          const userData = JSON.parse(userDataString);
+          token = userData.jwt || userData.token;
+        } catch (e) {
+          console.error('Error parsing user data:', e);
+        }
+      }
     }
 
-    const newOrder = {
-      id: `ORD${String(orders.length + 1).padStart(3, '0')}`,
+    if (!token) {
+      alert('Authentication error. Please log in again.');
+      return;
+    }
+
+    // Prepare order payload for API
+    const orderPayload = {
       customerId: selectedCustomer.id,
-      customerName: selectedCustomer.name,
-      orderDate: new Date().toISOString().split('T')[0],
-      deliveryDate,
-      status: 'pending',
-      priority: 'medium',
-      items: itemsWithWorkers.map(item => ({
-        id: `ITEM${item.id}`,
-        type: item.name,
-        fabric: item.fabricType || 'Standard',
+      deadline: deliveryDate,
+      totalPrice: totalAmount,
+      advancePayment: advancePayment ? Number(advancePayment) : 0,
+      additionalNotes: notes || '',
+      items: orderItems.map(item => ({
+        itemName: item.name,
         quantity: Number(item.quantity),
         price: Number(item.price),
-        assignedWorker: item.assignedWorker || null,
-        workerName: item.workerName || null
+        fabricType: item.fabricType || 'Standard'
       })),
-      totalAmount,
-      paidAmount: advancePayment ? Number(advancePayment) : 0,
-      balanceAmount: totalAmount - (advancePayment ? Number(advancePayment) : 0),
-      measurements,
-      notes,
-      assignedWorker,
-      workerName,
-      assignmentMode
+      tasks: []
     };
 
-    setOrders(prev => [newOrder, ...prev]);
-    setShowSuccess(true);
-    setTimeout(() => setShowSuccess(false), 3000);
+    // Add tasks based on worker assignment mode
+    if (assignmentMode === 'whole' && wholeOrderWorker) {
+      // Assign all items to one worker
+      orderPayload.tasks = orderItems.map(item => ({
+        workerId: wholeOrderWorker.id,
+        taskType: 'STITCHING' // Default task type
+      }));
+    } else if (assignmentMode === 'individual') {
+      // Assign items individually
+      orderPayload.tasks = orderItems
+        .filter(item => item.assignedWorker)
+        .map(item => ({
+          workerId: item.assignedWorker,
+          taskType: 'STITCHING' // Default task type
+        }));
+    }
 
-    // Reset form
-    resetForm();
-    setShowNewOrderModal(false);
+    console.log('Creating order with payload:', orderPayload);
+
+    try {
+      const result = await orderAPI.createOrder(orderPayload, token);
+
+      if (result.success) {
+        console.log('Order created successfully:', result.data);
+
+        // Determine worker assignment for local state
+        let assignedWorker = null;
+        let workerName = null;
+        let itemsWithWorkers = orderItems;
+
+        if (assignmentMode === 'whole' && wholeOrderWorker) {
+          assignedWorker = wholeOrderWorker.id;
+          workerName = wholeOrderWorker.name;
+          itemsWithWorkers = orderItems.map(item => ({
+            ...item,
+            assignedWorker: wholeOrderWorker.id,
+            workerName: wholeOrderWorker.name
+          }));
+        }
+
+        // Add to local state for immediate UI update
+        const newOrder = {
+          id: result.data.orderId || `ORD${String(orders.length + 1).padStart(3, '0')}`,
+          customerId: selectedCustomer.id,
+          customerName: selectedCustomer.name,
+          orderDate: new Date().toISOString().split('T')[0],
+          deliveryDate,
+          status: 'pending',
+          priority: 'medium',
+          items: itemsWithWorkers.map(item => ({
+            id: `ITEM${item.id}`,
+            type: item.name,
+            fabric: item.fabricType || 'Standard',
+            quantity: Number(item.quantity),
+            price: Number(item.price),
+            assignedWorker: item.assignedWorker || null,
+            workerName: item.workerName || null
+          })),
+          totalAmount,
+          paidAmount: advancePayment ? Number(advancePayment) : 0,
+          balanceAmount: totalAmount - (advancePayment ? Number(advancePayment) : 0),
+          measurements,
+          notes,
+          assignedWorker,
+          workerName,
+          assignmentMode
+        };
+
+        setOrders(prev => [newOrder, ...prev]);
+        setShowSuccess(true);
+        setTimeout(() => setShowSuccess(false), 5000);
+
+        // Refresh orders from API
+        fetchOrders();
+
+        // Reset form
+        resetForm();
+        setShowNewOrderModal(false);
+      } else {
+        console.error('Order creation failed:', result.error);
+        alert(`Failed to create order: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('Error creating order:', error);
+      alert('An error occurred while creating the order. Please try again.');
+    }
   };
 
   const resetForm = () => {
@@ -399,12 +672,20 @@ const Orders = () => {
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
-                className="mb-6 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-lg p-4 flex items-center gap-3"
+                className="mb-6 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-lg p-4 flex items-center justify-between"
               >
-                <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
-                <span className="text-green-800 dark:text-green-400 font-medium">
-                  Order created successfully!
-                </span>
+                <div className="flex items-center gap-3">
+                  <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+                  <span className="text-green-800 dark:text-green-400 font-medium">
+                    Order created successfully!
+                  </span>
+                </div>
+                <button
+                  onClick={() => setShowSuccess(false)}
+                  className="text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300"
+                >
+                  <X className="w-5 h-5" />
+                </button>
               </motion.div>
             )}
 
@@ -473,7 +754,29 @@ const Orders = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                    {filteredOrders.length === 0 ? (
+                    {isLoadingOrders ? (
+                      <tr>
+                        <td colSpan="7" className="px-6 py-12 text-center">
+                          <div className="flex flex-col items-center justify-center gap-3">
+                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+                            <p className="text-gray-600 dark:text-gray-400">Loading orders...</p>
+                          </div>
+                        </td>
+                      </tr>
+                    ) : ordersError ? (
+                      <tr>
+                        <td colSpan="7" className="px-6 py-12 text-center">
+                          <AlertCircle className="w-16 h-16 text-red-400 mx-auto mb-4" />
+                          <p className="text-red-600 dark:text-red-400 mb-3">{ordersError}</p>
+                          <button
+                            onClick={fetchOrders}
+                            className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
+                          >
+                            Retry
+                          </button>
+                        </td>
+                      </tr>
+                    ) : filteredOrders.length === 0 ? (
                       <tr>
                         <td colSpan="7" className="px-6 py-12 text-center">
                           <Package className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
@@ -587,7 +890,7 @@ const Orders = () => {
                           value={customerSearchQuery}
                           onChange={handleCustomerSearchChange}
                           onFocus={() => setShowCustomerDropdown(true)}
-                          placeholder="Search customer by name, phone, or email..."
+                          placeholder="Search customer by name"
                           className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 ${
                             errors.customer ? 'border-red-500 dark:border-red-700' : 'border-gray-300 dark:border-gray-600'
                           }`}
@@ -596,7 +899,14 @@ const Orders = () => {
                         {/* Customer Dropdown */}
                         {showCustomerDropdown && customerSearchQuery && (
                           <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                            {filteredCustomers.length > 0 ? (
+                            {isSearchingCustomers ? (
+                              <div className="px-4 py-3 text-center text-gray-500 dark:text-gray-400 text-sm">
+                                <div className="flex items-center justify-center gap-2">
+                                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-orange-500"></div>
+                                  Searching...
+                                </div>
+                              </div>
+                            ) : filteredCustomers.length > 0 ? (
                               filteredCustomers.map(customer => (
                                 <div
                                   key={customer.id}
@@ -799,9 +1109,12 @@ const Orders = () => {
                                     handleItemChange(item.id, 'assignedWorker', workerId || null);
                                     handleItemChange(item.id, 'workerName', worker ? worker.name : null);
                                   }}
-                                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                                  disabled={isLoadingWorkers}
+                                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
-                                  <option value="">-- Select Worker --</option>
+                                  <option value="">
+                                    {isLoadingWorkers ? 'Loading workers...' : '-- Select Worker --'}
+                                  </option>
                                   {workers.filter(w => w.status === 'active').map(worker => (
                                     <option key={worker.id} value={worker.id}>
                                       {worker.name} - {worker.specialization}
@@ -838,15 +1151,29 @@ const Orders = () => {
                             const worker = workers.find(w => w.id === workerId);
                             setWholeOrderWorker(worker || null);
                           }}
-                          className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                          disabled={isLoadingWorkers}
+                          className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          <option value="">-- Select a worker --</option>
+                          <option value="">
+                            {isLoadingWorkers ? 'Loading workers...' : '-- Select a worker --'}
+                          </option>
                           {workers.filter(w => w.status === 'active').map(worker => (
                             <option key={worker.id} value={worker.id}>
                               {worker.name} - {worker.specialization}
                             </option>
                           ))}
                         </select>
+                        {workersError && (
+                          <div className="mt-2 text-sm text-red-600 dark:text-red-400">
+                            {workersError}
+                            <button
+                              onClick={fetchWorkers}
+                              className="ml-2 underline hover:no-underline"
+                            >
+                              Retry
+                            </button>
+                          </div>
+                        )}
                         {wholeOrderWorker && (
                           <div className="mt-3 p-3 bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
                             <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -1153,7 +1480,14 @@ const Orders = () => {
                         {/* Customer Dropdown */}
                         {showCustomerDropdown && customerSearchQuery && (
                           <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                            {filteredCustomers.length > 0 ? (
+                            {isSearchingCustomers ? (
+                              <div className="px-4 py-3 text-center text-gray-500 dark:text-gray-400 text-sm">
+                                <div className="flex items-center justify-center gap-2">
+                                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-orange-500"></div>
+                                  Searching...
+                                </div>
+                              </div>
+                            ) : filteredCustomers.length > 0 ? (
                               filteredCustomers.map(customer => (
                                 <div
                                   key={customer.id}

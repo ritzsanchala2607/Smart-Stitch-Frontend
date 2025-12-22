@@ -526,5 +526,177 @@ export const customerAPI = {
                 error: error.message || 'Server error. Please try again later.'
             };
         }
+    },
+
+    /**
+     * Search customers by name
+     * @param {string} name - Customer name to search
+     * @param {string} token - JWT token for authentication
+     * @returns {Promise} Response with matching customers
+     */
+    searchCustomers: async (name, token) => {
+        try {
+            // Try with name parameter first
+            console.log('API Request - URL:', `${API_URL}/api/customers?name=${encodeURIComponent(name)}`);
+
+            const response = await fetch(`${API_URL}/api/customers?name=${encodeURIComponent(name)}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            const data = await response.json();
+            console.log('Customer search response:', data);
+
+            // If backend doesn't support name search, fall back to getting all customers
+            // and filter on frontend
+            if (!response.ok || (data.message && data.message.includes('unexpected error'))) {
+                console.log('Backend search not supported, fetching all customers for client-side filtering');
+
+                const allCustomersResponse = await fetch(`${API_URL}/api/customers`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                const allCustomersData = await allCustomersResponse.json();
+
+                if (!allCustomersResponse.ok) {
+                    throw new Error(allCustomersData.message || 'Failed to fetch customers');
+                }
+
+                // Filter customers by name on frontend
+                const customers = allCustomersData.data || allCustomersData;
+                const filtered = customers.filter(customer => {
+                    const customerName = (customer.user && customer.user.name) || customer.name || '';
+                    return customerName.toLowerCase().includes(name.toLowerCase());
+                });
+
+                return {
+                    success: true,
+                    data: filtered,
+                    message: 'Customers filtered successfully'
+                };
+            }
+
+            return {
+                success: true,
+                data: data.data || data,
+                message: data.message
+            };
+        } catch (error) {
+            console.error('Customer Search API Error:', error);
+            return {
+                success: false,
+                error: error.message || 'Server error. Please try again later.'
+            };
+        }
+    }
+};
+
+/**
+ * API Service for order management endpoints
+ * Handles all order-related requests to the backend
+ */
+export const orderAPI = {
+    /**
+     * Create a new order
+     * @param {Object} orderData - Order information
+     * @param {string} token - JWT token for authentication
+     * @returns {Promise} Response with created order data
+     */
+    createOrder: async (orderData, token) => {
+        try {
+            console.log('API Request - URL:', `${API_URL}/api/orders`);
+            console.log('API Request - Payload:', JSON.stringify(orderData, null, 2));
+
+            const response = await fetch(`${API_URL}/api/orders`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(orderData)
+            });
+
+            console.log('API Response - Status:', response.status, response.statusText);
+
+            const contentType = response.headers.get('content-type');
+            let data = null;
+
+            if (contentType && contentType.includes('application/json')) {
+                const text = await response.text();
+                console.log('API Response - Body (text):', text);
+                if (text) {
+                    data = JSON.parse(text);
+                }
+            } else {
+                const text = await response.text();
+                console.log('API Response - Body (non-JSON):', text);
+                if (!response.ok) {
+                    throw new Error(text || `Server error: ${response.status} ${response.statusText}`);
+                }
+                data = {
+                    message: text || 'Order created successfully'
+                };
+            }
+
+            if (!response.ok) {
+                throw new Error((data && data.message) || (data && data.error) || `Server error: ${response.status} ${response.statusText}`);
+            }
+
+            return {
+                success: true,
+                data: data.data || data,
+                message: (data && data.message) || 'Order created successfully'
+            };
+        } catch (error) {
+            console.error('Order API Error:', error);
+            return {
+                success: false,
+                error: error.message || 'Server error. Please try again later.'
+            };
+        }
+    },
+
+    /**
+     * Get all orders for the shop
+     * @param {string} token - JWT token for authentication
+     * @returns {Promise} Response with orders list
+     */
+    getOrders: async (token) => {
+        try {
+            console.log('API Request - URL:', `${API_URL}/api/orders`);
+
+            const response = await fetch(`${API_URL}/api/orders`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            console.log('API Response - Status:', response.status, response.statusText);
+
+            const data = await response.json();
+            console.log('API Response - Data:', data);
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to fetch orders');
+            }
+
+            return {
+                success: true,
+                data: data.data || data,
+                message: data.message
+            };
+        } catch (error) {
+            console.error('Order Fetch API Error:', error);
+            return {
+                success: false,
+                error: error.message || 'Server error. Please try again later.'
+            };
+        }
     }
 };
