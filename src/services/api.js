@@ -253,6 +253,40 @@ export const workerAPI = {
     },
 
     /**
+     * Search workers by name
+     * @param {string} name - Worker name to search
+     * @param {string} token - JWT token for authentication
+     * @returns {Promise} Response with matching workers
+     */
+    searchWorkers: async (name, token) => {
+        try {
+            const response = await fetch(`${API_URL}/api/workers?name=${encodeURIComponent(name)}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to search workers');
+            }
+
+            return {
+                success: true,
+                data: data.data || data,
+                message: data.message
+            };
+        } catch (error) {
+            return {
+                success: false,
+                error: error.message || 'Server error. Please try again later.'
+            };
+        }
+    },
+
+    /**
      * Get worker details by ID
      * @param {string} workerId - Worker ID
      * @param {string} token - JWT token for authentication
@@ -345,6 +379,107 @@ export const workerAPI = {
             return {
                 success: true,
                 message: 'Worker deleted successfully'
+            };
+        } catch (error) {
+            return {
+                success: false,
+                error: error.message || 'Server error. Please try again later.'
+            };
+        }
+    }
+};
+
+/**
+ * API Service for customer management endpoints
+ * Handles all customer-related requests to the backend
+ */
+export const customerAPI = {
+    /**
+     * Add a new customer
+     * @param {Object} customerData - Customer information
+     * @param {Object} customerData.user - User details (name, email, password, contactNumber, roleId)
+     * @param {Object} customerData.measurements - Customer measurements (chest, shoulder, shirtLength, waist, pantLength)
+     * @param {string} token - JWT token for authentication
+     * @returns {Promise} Response with created customer data
+     */
+    addCustomer: async (customerData, token) => {
+        try {
+            console.log('API Request - URL:', `${API_URL}/api/customers`);
+            console.log('API Request - Payload:', JSON.stringify(customerData, null, 2));
+
+            const response = await fetch(`${API_URL}/api/customers`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(customerData)
+            });
+
+            console.log('API Response - Status:', response.status, response.statusText);
+
+            // Check if response has content
+            const contentType = response.headers.get('content-type');
+            let data = null;
+
+            if (contentType && contentType.includes('application/json')) {
+                const text = await response.text();
+                console.log('API Response - Body (text):', text);
+                if (text) {
+                    data = JSON.parse(text);
+                }
+            } else {
+                const text = await response.text();
+                console.log('API Response - Body (non-JSON):', text);
+                if (!response.ok) {
+                    throw new Error(text || `Server error: ${response.status} ${response.statusText}`);
+                }
+                data = {
+                    message: text || 'Customer added successfully'
+                };
+            }
+
+            if (!response.ok) {
+                throw new Error((data && data.message) || (data && data.error) || `Server error: ${response.status} ${response.statusText}`);
+            }
+
+            return {
+                success: true,
+                data: data.data || data,
+                message: (data && data.message) || 'Customer added successfully'
+            };
+        } catch (error) {
+            console.error('Customer API Error:', error);
+            return {
+                success: false,
+                error: error.message || 'Server error. Please try again later.'
+            };
+        }
+    },
+
+    /**
+     * Get all customers for the shop
+     * @param {string} token - JWT token for authentication
+     * @returns {Promise} Response with customers list
+     */
+    getCustomers: async (token) => {
+        try {
+            const response = await fetch(`${API_URL}/api/customers`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to fetch customers');
+            }
+
+            return {
+                success: true,
+                data: data.data || data
             };
         } catch (error) {
             return {

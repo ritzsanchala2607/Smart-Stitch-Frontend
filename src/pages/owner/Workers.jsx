@@ -3,10 +3,10 @@ import Topbar from '../../components/common/Topbar';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Plus, X, Upload, CheckCircle, Mail, Phone, Calendar, 
-  Award, TrendingUp, User, Briefcase, DollarSign, Star, Package, Search
+  Award, TrendingUp, User, Briefcase, Star, Package, Search
 } from 'lucide-react';
-import { workers as initialWorkers, orders } from '../../data/dummyData';
-import { useState } from 'react';
+import { orders } from '../../data/dummyData';
+import { useState, useEffect } from 'react';
 import { validateWorkerForm } from '../../utils/validation';
 import WorkerCard from '../../components/common/WorkerCard';
 import { workerAPI } from '../../services/api';
@@ -22,7 +22,7 @@ const Workers = () => {
     { value: 'alteration', label: 'Alteration' }
   ];
 
-  const [workers, setWorkers] = useState(initialWorkers);
+  const [workers, setWorkers] = useState([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -31,6 +31,10 @@ const Workers = () => {
   const [editingWorker, setEditingWorker] = useState(null);
   const [assignedOrders, setAssignedOrders] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchResults, setSearchResults] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(null);
   
   const [workerForm, setWorkerForm] = useState({
     name: '',
@@ -48,6 +52,136 @@ const Workers = () => {
   const [currentRate, setCurrentRate] = useState('');
   const [errors, setErrors] = useState({});
   const [photoPreview, setPhotoPreview] = useState(null);
+
+  // Fetch workers on component mount
+  useEffect(() => {
+    fetchWorkers();
+  }, []);
+
+  // Fetch workers from API
+  const fetchWorkers = async () => {
+    setIsLoading(true);
+    setFetchError(null);
+
+    // Get token
+    let token = localStorage.getItem('token');
+    if (!token) {
+      const userDataString = localStorage.getItem('user');
+      if (userDataString) {
+        try {
+          const userData = JSON.parse(userDataString);
+          token = userData.jwt || userData.token;
+        } catch (e) {
+          console.error('Error parsing user data:', e);
+        }
+      }
+    }
+
+    if (!token) {
+      setFetchError('Authentication required. Please login again.');
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const result = await workerAPI.getWorkers(token);
+      
+      if (result.success) {
+        console.log('Workers fetched:', result.data);
+        
+        // Map API response to component format
+        const mappedWorkers = (result.data.data || result.data || []).map(worker => ({
+          id: worker.workerId || worker.id,
+          name: worker.name,
+          email: worker.email,
+          phone: worker.contactNumber,
+          primarySkill: worker.workType,
+          specialization: worker.workType,
+          experience: worker.experience,
+          joinDate: new Date().toISOString().split('T')[0], // Default to today
+          status: 'active',
+          assignedOrders: 0,
+          completedOrders: 0,
+          rating: worker.ratings || 0,
+          performance: 0,
+          garmentTypes: [],
+          avatar: `https://i.pravatar.cc/150?img=${worker.workerId || Math.floor(Math.random() * 70)}`
+        }));
+        
+        setWorkers(mappedWorkers);
+      } else {
+        console.error('Failed to fetch workers:', result.error);
+        setFetchError(result.error || 'Failed to load workers');
+      }
+    } catch (error) {
+      console.error('Error fetching workers:', error);
+      setFetchError('Failed to load workers. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Debounced search effect
+  useEffect(() => {
+    const delaySearch = setTimeout(() => {
+      if (searchQuery.trim()) {
+        handleSearch(searchQuery);
+      } else {
+        setSearchResults([]);
+        setIsSearching(false);
+      }
+    }, 500); // 500ms delay
+
+    return () => clearTimeout(delaySearch);
+  }, [searchQuery]);
+
+  // Handle search API call
+  const handleSearch = async (query) => {
+    if (!query.trim()) {
+      setSearchResults([]);
+      setIsSearching(false);
+      return;
+    }
+
+    setIsSearching(true);
+
+    // Get token
+    let token = localStorage.getItem('token');
+    if (!token) {
+      const userDataString = localStorage.getItem('user');
+      if (userDataString) {
+        try {
+          const userData = JSON.parse(userDataString);
+          token = userData.jwt || userData.token;
+        } catch (e) {
+          console.error('Error parsing user data:', e);
+        }
+      }
+    }
+
+    if (!token) {
+      console.error('No token found for search');
+      setIsSearching(false);
+      return;
+    }
+
+    try {
+      const result = await workerAPI.searchWorkers(query, token);
+      
+      if (result.success) {
+        console.log('Search results:', result.data);
+        setSearchResults(result.data || []);
+      } else {
+        console.error('Search failed:', result.error);
+        setSearchResults([]);
+      }
+    } catch (error) {
+      console.error('Search error:', error);
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
+    }
+  };
 
   const handleInputChange = (field, value) => {
     setWorkerForm(prev => ({
@@ -230,25 +364,9 @@ const Workers = () => {
 
       console.log('Worker created successfully:', result.data);
 
-      // Add to local state for display
-      const newWorker = {
-        id: `WORK${String(workers.length + 1).padStart(3, '0')}`,
-        name: workerForm.name,
-        email: workerForm.email,
-        phone: workerForm.mobile,
-        primarySkill: workerForm.primarySkill,
-        specialization: workerForm.specialization,
-        joinDate: new Date().toISOString().split('T')[0],
-        status: 'active',
-        assignedOrders: 0,
-        completedOrders: 0,
-        rating: 0,
-        performance: 0,
-        garmentTypes: workerForm.garmentTypes,
-        avatar: photoPreview || `https://i.pravatar.cc/150?img=${workers.length + 10}`
-      };
+      // Refresh the workers list from the backend
+      await fetchWorkers();
 
-      setWorkers(prev => [...prev, newWorker]);
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 5000);
 
@@ -355,13 +473,21 @@ const Workers = () => {
     }
   };
 
-  // Filter workers based on search query
-  const filteredWorkers = workers.filter(worker =>
-    worker.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    worker.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    worker.phone.includes(searchQuery) ||
-    worker.specialization.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Use search results if searching, otherwise show all workers
+  const filteredWorkers = searchQuery.trim() && searchResults.length > 0 
+    ? searchResults.map(result => {
+        // Map API response to worker format
+        return {
+          id: result.workerId,
+          name: result.name,
+          workType: result.workType,
+          // Add other fields from local workers if they exist
+          ...workers.find(w => w.id === result.workerId)
+        };
+      })
+    : searchQuery.trim() && !isSearching
+    ? [] // Show empty if search query exists but no results
+    : workers; // Show all workers when no search
 
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
@@ -430,12 +556,30 @@ const Workers = () => {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Search workers by name, email, phone, or specialization..."
+                  placeholder="Search workers by name..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                  className="w-full pl-10 pr-12 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                 />
+                {isSearching && (
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                      className="w-5 h-5 border-2 border-orange-500 border-t-transparent rounded-full"
+                    />
+                  </div>
+                )}
               </div>
+              {searchQuery.trim() && (
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                  {isSearching 
+                    ? 'Searching...' 
+                    : searchResults.length > 0 
+                    ? `Found ${searchResults.length} worker${searchResults.length !== 1 ? 's' : ''}`
+                    : 'No workers found matching your search'}
+                </p>
+              )}
             </div>
 
             {/* Worker Details Section */}
@@ -444,7 +588,30 @@ const Workers = () => {
                 Workers List ({filteredWorkers.length})
               </h2>
               
-              {filteredWorkers.length === 0 ? (
+              {/* Loading State */}
+              {isLoading ? (
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-12 text-center">
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    className="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full mx-auto mb-4"
+                  />
+                  <p className="text-gray-600 dark:text-gray-400">Loading workers...</p>
+                </div>
+              ) : fetchError ? (
+                /* Error State */
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-12 text-center">
+                  <X className="w-16 h-16 text-red-500 mx-auto mb-4" />
+                  <p className="text-red-600 dark:text-red-400 mb-4">{fetchError}</p>
+                  <button
+                    onClick={fetchWorkers}
+                    className="px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
+                  >
+                    Retry
+                  </button>
+                </div>
+              ) : filteredWorkers.length === 0 ? (
+                /* Empty State */
                 <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-12 text-center">
                   <User className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
                   <p className="text-gray-600 dark:text-gray-400">
@@ -452,6 +619,7 @@ const Workers = () => {
                   </p>
                 </div>
               ) : (
+                /* Workers Grid */
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {filteredWorkers.map((worker) => (
                     <WorkerCard

@@ -2,21 +2,24 @@ import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
 import { motion, AnimatePresence } from 'framer-motion';
 import { UserPlus, X, Upload, CheckCircle, Search } from 'lucide-react';
-import { customers as initialCustomers } from '../../data/dummyData';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { validateCustomerForm } from '../../utils/validation';
 import CustomerCard from '../../components/common/CustomerCard';
+import { customerAPI } from '../../services/api';
 
 const Customers = () => {
-  const [customers, setCustomers] = useState(initialCustomers);
+  const [customers, setCustomers] = useState([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(null);
   
   const [customerForm, setCustomerForm] = useState({
     name: '',
     mobile: '',
     email: '',
+    password: '',
     measurements: {
       shirt: { chest: '', waist: '', shoulder: '', length: '' },
       pant: { waist: '', length: '', hip: '' },
@@ -27,6 +30,88 @@ const Customers = () => {
 
   const [errors, setErrors] = useState({});
   const [photoPreview, setPhotoPreview] = useState(null);
+
+  // Fetch customers on component mount
+  useEffect(() => {
+    fetchCustomers();
+  }, []);
+
+  // Fetch customers from API
+  const fetchCustomers = async () => {
+    setIsLoading(true);
+    setFetchError(null);
+
+    // Get token
+    let token = localStorage.getItem('token');
+    if (!token) {
+      const userDataString = localStorage.getItem('user');
+      if (userDataString) {
+        try {
+          const userData = JSON.parse(userDataString);
+          token = userData.jwt || userData.token;
+        } catch (e) {
+          console.error('Error parsing user data:', e);
+        }
+      }
+    }
+
+    if (!token) {
+      setFetchError('Authentication required. Please login again.');
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const result = await customerAPI.getCustomers(token);
+      
+      if (result.success) {
+        console.log('Customers fetched:', result.data);
+        
+        // Map API response to component format
+        const mappedCustomers = (result.data || []).map(customer => ({
+          id: customer.customerId || customer.id,
+          name: customer.user?.name || customer.name,
+          email: customer.user?.email || customer.email,
+          phone: customer.user?.contactNumber || customer.phone,
+          address: '',
+          joinDate: customer.createdAt ? new Date(customer.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+          totalOrders: 0,
+          totalSpent: 0,
+          measurements: {
+            ...(customer.measurements?.chest && {
+              shirt: {
+                chest: customer.measurements.chest || 0,
+                waist: customer.measurements.waist || 0,
+                shoulder: customer.measurements.shoulder || 0,
+                length: customer.measurements.shirtLength || 0
+              }
+            }),
+            ...(customer.measurements?.waist && {
+              pant: {
+                waist: customer.measurements.waist || 0,
+                length: customer.measurements.pantLength || 0,
+                hip: customer.measurements.hip || 0
+              }
+            }),
+            ...(customer.measurements?.customMeasurements && {
+              custom: customer.measurements.customMeasurements
+            })
+          },
+          avatar: customer.user?.profilePicture || `https://i.pravatar.cc/150?img=${customer.customerId || Math.floor(Math.random() * 70)}`
+        }));
+        
+        setCustomers(mappedCustomers);
+      } else {
+        console.error('Failed to fetch customers:', result.error);
+        setFetchError(result.error || 'Failed to load customers');
+      }
+    } catch (error) {
+      console.error('Error fetching customers:', error);
+      setFetchError('Failed to load customers. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleInputChange = (field, value) => {
     setCustomerForm(prev => ({
@@ -100,7 +185,7 @@ const Customers = () => {
     setPhotoPreview(null);
   };
 
-  const handleAddCustomer = () => {
+  const handleAddCustomer = async () => {
     const validation = validateCustomerForm(customerForm);
     
     if (!validation.isValid) {
@@ -108,57 +193,85 @@ const Customers = () => {
       return;
     }
 
-    const newCustomer = {
-      id: `CUST${String(customers.length + 1).padStart(3, '0')}`,
-      name: customerForm.name,
-      email: customerForm.email,
-      phone: customerForm.mobile,
-      address: '',
-      joinDate: new Date().toISOString().split('T')[0],
-      totalOrders: 0,
-      totalSpent: 0,
-      measurements: {
-        ...(customerForm.measurements.shirt.chest && {
-          shirt: {
-            chest: parseFloat(customerForm.measurements.shirt.chest) || 0,
-            waist: parseFloat(customerForm.measurements.shirt.waist) || 0,
-            shoulder: parseFloat(customerForm.measurements.shirt.shoulder) || 0,
-            length: parseFloat(customerForm.measurements.shirt.length) || 0
-          }
-        }),
-        ...(customerForm.measurements.pant.waist && {
-          pant: {
-            waist: parseFloat(customerForm.measurements.pant.waist) || 0,
-            length: parseFloat(customerForm.measurements.pant.length) || 0,
-            hip: parseFloat(customerForm.measurements.pant.hip) || 0
-          }
-        }),
-        ...(customerForm.measurements.custom && {
-          custom: customerForm.measurements.custom
-        })
-      },
-      avatar: photoPreview || `https://i.pravatar.cc/150?img=${customers.length + 20}`
-    };
+    // Get JWT token
+    let token = localStorage.getItem('token');
+    if (!token) {
+      const userDataString = localStorage.getItem('user');
+      if (userDataString) {
+        try {
+          const userData = JSON.parse(userDataString);
+          token = userData.jwt || userData.token;
+        } catch (e) {
+          console.error('Error parsing user data:', e);
+        }
+      }
+    }
 
-    setCustomers(prev => [...prev, newCustomer]);
-    setShowSuccess(true);
-    setTimeout(() => setShowSuccess(false), 3000);
+    if (!token) {
+      setErrors({ api: 'User not authenticated. Please login again.' });
+      return;
+    }
 
-    // Reset form and close modal
-    setCustomerForm({
-      name: '',
-      mobile: '',
-      email: '',
-      measurements: {
-        shirt: { chest: '', waist: '', shoulder: '', length: '' },
-        pant: { waist: '', length: '', hip: '' },
-        custom: ''
-      },
-      photo: null
-    });
-    setPhotoPreview(null);
-    setErrors({});
-    setShowAddModal(false);
+    try {
+      // Prepare API payload
+      const payload = {
+        user: {
+          name: customerForm.name,
+          email: customerForm.email,
+          password: customerForm.password || 'Customer@123', // Default password if not provided
+          contactNumber: customerForm.mobile,
+          roleId: 3 // Customer role ID
+        },
+        measurements: {
+          chest: parseFloat(customerForm.measurements.shirt.chest) || 0,
+          shoulder: parseFloat(customerForm.measurements.shirt.shoulder) || 0,
+          shirtLength: parseFloat(customerForm.measurements.shirt.length) || 0,
+          waist: parseFloat(customerForm.measurements.pant.waist) || 0,
+          pantLength: parseFloat(customerForm.measurements.pant.length) || 0
+        }
+      };
+
+      console.log('Creating customer with payload:', payload);
+
+      const result = await customerAPI.addCustomer(payload, token);
+
+      console.log('API Result:', result);
+
+      if (!result.success) {
+        if (result.error.includes('403')) {
+          throw new Error('Access denied. Please ensure you are logged in as a shop owner.');
+        }
+        throw new Error(result.error);
+      }
+
+      console.log('Customer created successfully:', result.data);
+
+      // Refresh the customers list from the backend
+      await fetchCustomers();
+
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 5000);
+
+      // Reset form and close modal
+      setCustomerForm({
+        name: '',
+        mobile: '',
+        email: '',
+        password: '',
+        measurements: {
+          shirt: { chest: '', waist: '', shoulder: '', length: '' },
+          pant: { waist: '', length: '', hip: '' },
+          custom: ''
+        },
+        photo: null
+      });
+      setPhotoPreview(null);
+      setErrors({});
+      setShowAddModal(false);
+    } catch (error) {
+      console.error('Error creating customer:', error);
+      setErrors({ api: error.message || 'Failed to create customer' });
+    }
   };
 
   const [showViewModal, setShowViewModal] = useState(false);
@@ -284,19 +397,38 @@ const Customers = () => {
             className="max-w-7xl mx-auto"
           >
             {/* Success Message */}
-            {showSuccess && (
-              <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-                className="mb-6 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700 rounded-lg p-4 flex items-center gap-3"
-              >
-                <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
-                <span className="text-green-800 dark:text-green-300 font-medium">
-                  Customer added successfully!
-                </span>
-              </motion.div>
-            )}
+            <AnimatePresence>
+              {showSuccess && (
+                <motion.div
+                  initial={{ opacity: 0, y: -50, scale: 0.9 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -50, scale: 0.9 }}
+                  className="fixed top-6 right-6 z-50 bg-white dark:bg-gray-800 border-l-4 border-green-500 rounded-lg shadow-2xl p-6 max-w-md"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="flex-shrink-0">
+                      <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
+                        <CheckCircle className="w-7 h-7 text-green-600 dark:text-green-400" />
+                      </div>
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-1">
+                        Customer Added Successfully!
+                      </h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        The customer has been added and can now place orders.
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setShowSuccess(false)}
+                      className="flex-shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
@@ -335,7 +467,30 @@ const Customers = () => {
                 Customers List ({filteredCustomers.length})
               </h2>
               
-              {filteredCustomers.length === 0 ? (
+              {/* Loading State */}
+              {isLoading ? (
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-12 text-center">
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    className="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full mx-auto mb-4"
+                  />
+                  <p className="text-gray-600 dark:text-gray-400">Loading customers...</p>
+                </div>
+              ) : fetchError ? (
+                /* Error State */
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-12 text-center">
+                  <X className="w-16 h-16 text-red-500 mx-auto mb-4" />
+                  <p className="text-red-600 dark:text-red-400 mb-4">{fetchError}</p>
+                  <button
+                    onClick={fetchCustomers}
+                    className="px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
+                  >
+                    Retry
+                  </button>
+                </div>
+              ) : filteredCustomers.length === 0 ? (
+                /* Empty State */
                 <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-12 text-center">
                   <UserPlus className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
                   <p className="text-gray-600 dark:text-gray-400">
@@ -343,6 +498,7 @@ const Customers = () => {
                   </p>
                 </div>
               ) : (
+                /* Customers Grid */
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {filteredCustomers.map((customer) => (
                     <CustomerCard
@@ -826,6 +982,16 @@ const Customers = () => {
 
               {/* Modal Body */}
               <div className="p-6">
+                {/* API Error Message */}
+                {errors.api && (
+                  <div className="mb-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-lg p-4 flex items-center gap-3">
+                    <X className="w-5 h-5 text-red-600 dark:text-red-400" />
+                    <span className="text-red-800 dark:text-red-300 font-medium">
+                      {errors.api}
+                    </span>
+                  </div>
+                )}
+
                 {/* Basic Information */}
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Basic Information</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -884,6 +1050,28 @@ const Customers = () => {
                     {errors.email && (
                       <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.email}</p>
                     )}
+                  </div>
+
+                  {/* Password */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Password <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="password"
+                      value={customerForm.password}
+                      onChange={(e) => handleInputChange('password', e.target.value)}
+                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600 ${
+                        errors.password ? 'border-red-500 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'
+                      }`}
+                      placeholder="Enter password"
+                    />
+                    {errors.password && (
+                      <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.password}</p>
+                    )}
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      Customer will use this to login
+                    </p>
                   </div>
 
                   {/* Customer Photo */}

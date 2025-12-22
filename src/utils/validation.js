@@ -6,8 +6,8 @@
  * @returns {boolean} - True if valid email format
  */
 export const isValidEmail = (email) => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
 };
 
 /**
@@ -16,8 +16,8 @@ export const isValidEmail = (email) => {
  * @returns {boolean} - True if valid phone format
  */
 export const isValidPhone = (phone) => {
-  const phoneRegex = /^[+]?[\d\s-]{10,15}$/;
-  return phoneRegex.test(phone);
+    const phoneRegex = /^[+]?[\d\s-]{10,15}$/;
+    return phoneRegex.test(phone);
 };
 
 /**
@@ -26,7 +26,7 @@ export const isValidPhone = (phone) => {
  * @returns {boolean} - True if valid name
  */
 export const isValidName = (name) => {
-  return name && name.trim().length >= 2 && name.trim().length <= 50;
+    return name && name.trim().length >= 2 && name.trim().length <= 50;
 };
 
 /**
@@ -35,7 +35,7 @@ export const isValidName = (name) => {
  * @returns {boolean} - True if positive number
  */
 export const isPositiveNumber = (value) => {
-  return !isNaN(value) && parseFloat(value) > 0;
+    return !isNaN(value) && parseFloat(value) > 0;
 };
 
 /**
@@ -44,7 +44,7 @@ export const isPositiveNumber = (value) => {
  * @returns {boolean} - True if non-negative number
  */
 export const isNonNegativeNumber = (value) => {
-  return !isNaN(value) && parseFloat(value) >= 0;
+    return !isNaN(value) && parseFloat(value) >= 0;
 };
 
 /**
@@ -53,7 +53,7 @@ export const isNonNegativeNumber = (value) => {
  * @returns {boolean} - True if positive integer
  */
 export const isPositiveInteger = (value) => {
-  return Number.isInteger(Number(value)) && Number(value) > 0;
+    return Number.isInteger(Number(value)) && Number(value) > 0;
 };
 
 /**
@@ -62,10 +62,10 @@ export const isPositiveInteger = (value) => {
  * @returns {boolean} - True if date is in the future
  */
 export const isFutureDate = (dateString) => {
-  const date = new Date(dateString);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  return date >= today;
+    const date = new Date(dateString);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return date >= today;
 };
 
 /**
@@ -74,7 +74,7 @@ export const isFutureDate = (dateString) => {
  * @returns {boolean} - True if date is valid and in the future
  */
 export const isValidDate = (dateString) => {
-  return isFutureDate(dateString);
+    return isFutureDate(dateString);
 };
 
 /**
@@ -83,7 +83,7 @@ export const isValidDate = (dateString) => {
  * @returns {boolean} - True if valid amount
  */
 export const isValidAmount = (value) => {
-  return isNonNegativeNumber(value);
+    return isNonNegativeNumber(value);
 };
 
 /**
@@ -92,9 +92,9 @@ export const isValidAmount = (value) => {
  * @returns {boolean} - True if valid image file
  */
 export const isValidImageFile = (file) => {
-  if (!file) return false;
-  const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
-  return validTypes.includes(file.type);
+    if (!file) return false;
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+    return validTypes.includes(file.type);
 };
 
 /**
@@ -103,9 +103,9 @@ export const isValidImageFile = (file) => {
  * @returns {boolean} - True if file size is within limit
  */
 export const isValidFileSize = (file) => {
-  if (!file) return false;
-  const maxSize = 5 * 1024 * 1024; // 5MB
-  return file.size <= maxSize;
+    if (!file) return false;
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    return file.size <= maxSize;
 };
 
 /**
@@ -114,7 +114,7 @@ export const isValidFileSize = (file) => {
  * @returns {boolean} - True if valid shop name
  */
 export const isValidShopName = (shopName) => {
-  return shopName && shopName.trim().length >= 2 && shopName.trim().length <= 100;
+    return shopName && shopName.trim().length >= 2 && shopName.trim().length <= 100;
 };
 
 /**
@@ -123,7 +123,7 @@ export const isValidShopName = (shopName) => {
  * @returns {boolean} - True if valid address
  */
 export const isValidAddress = (address) => {
-  return address && address.trim().length >= 10 && address.trim().length <= 200;
+    return address && address.trim().length >= 10 && address.trim().length <= 200;
 };
 
 /**
@@ -132,7 +132,7 @@ export const isValidAddress = (address) => {
  * @returns {boolean} - True if valid tax rate
  */
 export const isValidTaxRate = (rate) => {
-  return !isNaN(rate) && parseFloat(rate) >= 0 && parseFloat(rate) <= 100;
+    return !isNaN(rate) && parseFloat(rate) >= 0 && parseFloat(rate) <= 100;
 };
 
 /**
@@ -141,10 +141,10 @@ export const isValidTaxRate = (rate) => {
  * @returns {boolean} - True if field has value
  */
 export const isRequired = (value) => {
-  if (typeof value === 'string') {
-    return value.trim().length > 0;
-  }
-  return value !== null && value !== undefined && value !== '';
+    if (typeof value === 'string') {
+        return value.trim().length > 0;
+    }
+    return value !== null && value !== undefined && value !== '';
 };
 
 /**
@@ -153,47 +153,47 @@ export const isRequired = (value) => {
  * @returns {Object} - Errors object (empty if valid)
  */
 export const validateWorkerForm = (formData) => {
-  const errors = {};
+    const errors = {};
 
-  if (!isValidName(formData.name)) {
-    errors.name = 'Name must be between 2 and 50 characters';
-  }
+    if (!isValidName(formData.name)) {
+        errors.name = 'Name must be between 2 and 50 characters';
+    }
 
-  if (!isValidEmail(formData.email)) {
-    errors.email = 'Please enter a valid email address';
-  }
+    if (!isValidEmail(formData.email)) {
+        errors.email = 'Please enter a valid email address';
+    }
 
-  if (!isRequired(formData.password)) {
-    errors.password = 'Password is required';
-  } else if (formData.password.length < 6) {
-    errors.password = 'Password must be at least 6 characters';
-  }
+    if (!isRequired(formData.password)) {
+        errors.password = 'Password is required';
+    } else if (formData.password.length < 6) {
+        errors.password = 'Password must be at least 6 characters';
+    }
 
-  if (!isValidPhone(formData.mobile)) {
-    errors.mobile = 'Please enter a valid phone number (10-15 digits)';
-  }
+    if (!isValidPhone(formData.mobile)) {
+        errors.mobile = 'Please enter a valid phone number (10-15 digits)';
+    }
 
-  if (!isRequired(formData.primarySkill)) {
-    errors.primarySkill = 'Please select a primary skill';
-  }
+    if (!isRequired(formData.primarySkill)) {
+        errors.primarySkill = 'Please select a primary skill';
+    }
 
-  if (!isRequired(formData.specialization)) {
-    errors.specialization = 'Please select a specialization';
-  }
+    if (!isRequired(formData.specialization)) {
+        errors.specialization = 'Please select a specialization';
+    }
 
-  if (!isNonNegativeNumber(formData.experience)) {
-    errors.experience = 'Experience must be a non-negative number';
-  }
+    if (!isNonNegativeNumber(formData.experience)) {
+        errors.experience = 'Experience must be a non-negative number';
+    }
 
-  if (formData.profilePhoto && !isValidImageFile(formData.profilePhoto)) {
-    errors.profilePhoto = 'Please upload a valid image file (jpg, png, gif)';
-  }
+    if (formData.profilePhoto && !isValidImageFile(formData.profilePhoto)) {
+        errors.profilePhoto = 'Please upload a valid image file (jpg, png, gif)';
+    }
 
-  if (formData.profilePhoto && !isValidFileSize(formData.profilePhoto)) {
-    errors.profilePhoto = 'File size must be less than 5MB';
-  }
+    if (formData.profilePhoto && !isValidFileSize(formData.profilePhoto)) {
+        errors.profilePhoto = 'File size must be less than 5MB';
+    }
 
-  return errors;
+    return errors;
 };
 
 /**
@@ -202,32 +202,38 @@ export const validateWorkerForm = (formData) => {
  * @returns {Object} - Object with isValid flag and errors object
  */
 export const validateCustomerForm = (formData) => {
-  const errors = {};
+    const errors = {};
 
-  if (!isValidName(formData.name)) {
-    errors.name = 'Name must be between 2 and 50 characters';
-  }
+    if (!isValidName(formData.name)) {
+        errors.name = 'Name must be between 2 and 50 characters';
+    }
 
-  if (!isValidPhone(formData.mobile)) {
-    errors.mobile = 'Please enter a valid phone number (10-15 digits)';
-  }
+    if (!isValidPhone(formData.mobile)) {
+        errors.mobile = 'Please enter a valid phone number (10-15 digits)';
+    }
 
-  if (!isValidEmail(formData.email)) {
-    errors.email = 'Please enter a valid email address';
-  }
+    if (!isValidEmail(formData.email)) {
+        errors.email = 'Please enter a valid email address';
+    }
 
-  if (formData.photo && !isValidImageFile(formData.photo)) {
-    errors.photo = 'Please upload a valid image file (jpg, png, gif)';
-  }
+    if (!isRequired(formData.password)) {
+        errors.password = 'Password is required';
+    } else if (formData.password.length < 6) {
+        errors.password = 'Password must be at least 6 characters';
+    }
 
-  if (formData.photo && !isValidFileSize(formData.photo)) {
-    errors.photo = 'File size must be less than 5MB';
-  }
+    if (formData.photo && !isValidImageFile(formData.photo)) {
+        errors.photo = 'Please upload a valid image file (jpg, png, gif)';
+    }
 
-  return {
-    isValid: Object.keys(errors).length === 0,
-    errors
-  };
+    if (formData.photo && !isValidFileSize(formData.photo)) {
+        errors.photo = 'File size must be less than 5MB';
+    }
+
+    return {
+        isValid: Object.keys(errors).length === 0,
+        errors
+    };
 };
 
 /**
@@ -236,37 +242,37 @@ export const validateCustomerForm = (formData) => {
  * @returns {Object} - Object with isValid flag and errors object
  */
 export const validateOrderForm = (formData) => {
-  const errors = {};
+    const errors = {};
 
-  if (!isRequired(formData.selectedCustomer)) {
-    errors.selectedCustomer = 'Please select a customer';
-  }
+    if (!isRequired(formData.selectedCustomer)) {
+        errors.selectedCustomer = 'Please select a customer';
+    }
 
-  if (!isFutureDate(formData.deliveryDate)) {
-    errors.deliveryDate = 'Delivery date must be today or in the future';
-  }
+    if (!isFutureDate(formData.deliveryDate)) {
+        errors.deliveryDate = 'Delivery date must be today or in the future';
+    }
 
-  if (!formData.orderItems || formData.orderItems.length === 0) {
-    errors.orderItems = 'Please add at least one order item';
-  } else {
-    formData.orderItems.forEach((item, index) => {
-      if (!isPositiveInteger(item.quantity)) {
-        errors[`item_${index}_quantity`] = 'Quantity must be a positive integer';
-      }
-      if (!isPositiveNumber(item.price)) {
-        errors[`item_${index}_price`] = 'Price must be a positive number';
-      }
-    });
-  }
+    if (!formData.orderItems || formData.orderItems.length === 0) {
+        errors.orderItems = 'Please add at least one order item';
+    } else {
+        formData.orderItems.forEach((item, index) => {
+            if (!isPositiveInteger(item.quantity)) {
+                errors[`item_${index}_quantity`] = 'Quantity must be a positive integer';
+            }
+            if (!isPositiveNumber(item.price)) {
+                errors[`item_${index}_price`] = 'Price must be a positive number';
+            }
+        });
+    }
 
-  if (!isNonNegativeNumber(formData.advancePayment)) {
-    errors.advancePayment = 'Advance payment must be a non-negative number';
-  }
+    if (!isNonNegativeNumber(formData.advancePayment)) {
+        errors.advancePayment = 'Advance payment must be a non-negative number';
+    }
 
-  return {
-    isValid: Object.keys(errors).length === 0,
-    errors
-  };
+    return {
+        isValid: Object.keys(errors).length === 0,
+        errors
+    };
 };
 
 /**
@@ -275,38 +281,38 @@ export const validateOrderForm = (formData) => {
  * @returns {Object} - Object with isValid flag and errors object
  */
 export const validateProfileForm = (formData) => {
-  const errors = {};
+    const errors = {};
 
-  if (!isValidName(formData.name)) {
-    errors.name = 'Name must be between 2 and 50 characters';
-  }
+    if (!isValidName(formData.name)) {
+        errors.name = 'Name must be between 2 and 50 characters';
+    }
 
-  if (!isValidEmail(formData.email)) {
-    errors.email = 'Please enter a valid email address';
-  }
+    if (!isValidEmail(formData.email)) {
+        errors.email = 'Please enter a valid email address';
+    }
 
-  if (!isValidPhone(formData.mobile)) {
-    errors.mobile = 'Please enter a valid phone number (10-15 digits)';
-  }
+    if (!isValidPhone(formData.mobile)) {
+        errors.mobile = 'Please enter a valid phone number (10-15 digits)';
+    }
 
-  if (!isValidShopName(formData.shopName)) {
-    errors.shopName = 'Shop name must be between 2 and 100 characters';
-  }
+    if (!isValidShopName(formData.shopName)) {
+        errors.shopName = 'Shop name must be between 2 and 100 characters';
+    }
 
-  if (!isValidAddress(formData.address)) {
-    errors.address = 'Address must be between 10 and 200 characters';
-  }
+    if (!isValidAddress(formData.address)) {
+        errors.address = 'Address must be between 10 and 200 characters';
+    }
 
-  if (formData.photo && !isValidImageFile(formData.photo)) {
-    errors.photo = 'Please upload a valid image file (jpg, png, gif)';
-  }
+    if (formData.photo && !isValidImageFile(formData.photo)) {
+        errors.photo = 'Please upload a valid image file (jpg, png, gif)';
+    }
 
-  if (formData.photo && !isValidFileSize(formData.photo)) {
-    errors.photo = 'File size must be less than 5MB';
-  }
+    if (formData.photo && !isValidFileSize(formData.photo)) {
+        errors.photo = 'File size must be less than 5MB';
+    }
 
-  return {
-    isValid: Object.keys(errors).length === 0,
-    errors
-  };
+    return {
+        isValid: Object.keys(errors).length === 0,
+        errors
+    };
 };
