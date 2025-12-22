@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
 import { motion, AnimatePresence } from 'framer-motion';
 import usePageTitle from '../../hooks/usePageTitle';
+import { customerAPI } from '../../services/api';
 import {
   User,
   Mail,
@@ -24,16 +25,17 @@ import {
 
 const Profile = () => {
   usePageTitle('Profile');
-  // Mock customer data
+  
   const [profileData, setProfileData] = useState({
-    name: 'Robert Johnson',
-    email: 'robert@email.com',
-    phone: '+1234567890',
-    address: '456 Main St, NY 10002',
-    joinDate: '2023-05-10',
+    name: '',
+    email: '',
+    phone: '',
+    address: '',
+    joinDate: '',
     avatar: 'https://i.pravatar.cc/150?img=8'
   });
 
+  const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [editedData, setEditedData] = useState(profileData);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -43,6 +45,75 @@ const Profile = () => {
     confirm: ''
   });
   const [successMessage, setSuccessMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+
+  // Fetch profile data on mount
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
+  const fetchProfile = async () => {
+    setIsLoading(true);
+    setErrorMessage('');
+
+    // Get token
+    let token = localStorage.getItem('token');
+    if (!token) {
+      const userDataString = localStorage.getItem('user');
+      if (userDataString) {
+        try {
+          const userData = JSON.parse(userDataString);
+          token = userData.jwt || userData.token;
+        } catch (e) {
+          console.error('Error parsing user data:', e);
+        }
+      }
+    }
+
+    console.log('Fetching profile with token:', token ? 'Token found' : 'No token');
+
+    if (!token) {
+      setErrorMessage('Authentication required. Please login again.');
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      console.log('Calling customerAPI.getCustomerProfile...');
+      const result = await customerAPI.getCustomerProfile(token);
+      
+      console.log('Profile API Result:', result);
+      
+      if (result.success) {
+        console.log('Profile data received:', result.data);
+        
+        const data = result.data;
+        const profile = {
+          name: data.user?.name || '',
+          email: data.user?.email || '',
+          phone: data.user?.contactNumber || '',
+          address: '', // Not in API response yet
+          joinDate: data.createdAt ? new Date(data.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+          avatar: data.user?.profilePicture || 'https://i.pravatar.cc/150?img=8',
+          customerId: data.customerId,
+          userId: data.user?.userId
+        };
+        
+        console.log('Mapped profile:', profile);
+        
+        setProfileData(profile);
+        setEditedData(profile);
+      } else {
+        console.error('Failed to fetch profile:', result.error);
+        setErrorMessage(result.error || 'Failed to load profile');
+      }
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+      setErrorMessage('Failed to load profile. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Customer stats
   const customerStats = {
@@ -134,6 +205,32 @@ const Profile = () => {
               )}
             </AnimatePresence>
 
+            {/* Error Message */}
+            <AnimatePresence>
+              {errorMessage && (
+                <motion.div
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className="flex items-center gap-2 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-lg"
+                >
+                  <X className="w-5 h-5 text-red-600 dark:text-red-400" />
+                  <span className="text-red-700 dark:text-red-300 font-medium">{errorMessage}</span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Loading State */}
+            {isLoading ? (
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-12 text-center">
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                  className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"
+                />
+                <p className="text-gray-600 dark:text-gray-400">Loading profile...</p>
+              </div>
+            ) : (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Left Column - Profile Card */}
               <div className="lg:col-span-1">
@@ -422,6 +519,7 @@ const Profile = () => {
                 </div>
               </div>
             </div>
+            )}
           </motion.div>
         </main>
       </div>

@@ -10,7 +10,7 @@ import { customerAPI } from '../../services/api';
 
 const Customers = () => {
   usePageTitle('Customers');
-  const [customers, setCustomers] = useState(initialCustomers);
+  const [customers, setCustomers] = useState([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');

@@ -487,5 +487,44 @@ export const customerAPI = {
                 error: error.message || 'Server error. Please try again later.'
             };
         }
+    },
+
+    /**
+     * Get customer profile (for logged-in customer)
+     * @param {string} token - JWT token for authentication
+     * @returns {Promise} Response with customer profile data
+     */
+    getCustomerProfile: async (token) => {
+        try {
+            console.log('API Request - URL:', `${API_URL}/api/customers/me`);
+            console.log('API Request - Token:', token ? `Bearer ${token.substring(0, 20)}...` : 'No token');
+
+            const response = await fetch(`${API_URL}/api/customers/me`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            console.log('API Response - Status:', response.status, response.statusText);
+
+            const data = await response.json();
+            console.log('API Response - Data:', data);
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to fetch profile');
+            }
+
+            return {
+                success: true,
+                data: data.data || data
+            };
+        } catch (error) {
+            console.error('Customer Profile API Error:', error);
+            return {
+                success: false,
+                error: error.message || 'Server error. Please try again later.'
+            };
+        }
     }
 };
