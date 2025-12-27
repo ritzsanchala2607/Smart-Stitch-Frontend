@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react';
 import { validateCustomerForm } from '../../utils/validation';
 import CustomerCard from '../../components/common/CustomerCard';
 import { customerAPI } from '../../services/api';
+import MeasurementInputs from '../../components/common/MeasurementInputs';
 
 const Customers = () => {
   usePageTitle('Customers');
@@ -24,8 +25,11 @@ const Customers = () => {
     email: '',
     password: '',
     measurements: {
-      shirt: { chest: '', waist: '', shoulder: '', length: '' },
-      pant: { waist: '', length: '', hip: '' },
+      pant: { length: '', waist: '', seatHip: '', thigh: '', knee: '', bottom: '', flyLength: '' },
+      shirt: { length: '', chest: '', waist: '', shoulder: '', sleeveLength: '', armhole: '', collar: '' },
+      coat: { length: '', chest: '', waist: '', shoulder: '', sleeveLength: '', armhole: '' },
+      kurta: { length: '', chest: '', waist: '', shoulder: '', sleeveLength: '', armhole: '' },
+      dhoti: { length: '', waist: '', hip: '', sideLength: '', foldLength: '' },
       custom: ''
     },
     photo: null
@@ -81,24 +85,48 @@ const Customers = () => {
           totalOrders: 0,
           totalSpent: 0,
           measurements: {
-            ...(customer.measurements?.chest && {
-              shirt: {
-                chest: customer.measurements.chest || 0,
-                waist: customer.measurements.waist || 0,
-                shoulder: customer.measurements.shoulder || 0,
-                length: customer.measurements.shirtLength || 0
-              }
-            }),
-            ...(customer.measurements?.waist && {
-              pant: {
-                waist: customer.measurements.waist || 0,
-                length: customer.measurements.pantLength || 0,
-                hip: customer.measurements.hip || 0
-              }
-            }),
-            ...(customer.measurements?.customMeasurements && {
-              custom: customer.measurements.customMeasurements
-            })
+            pant: {
+              length: customer.measurements?.pantLength || '',
+              waist: customer.measurements?.pantWaist || '',
+              seatHip: customer.measurements?.seatHip || '',
+              thigh: customer.measurements?.thigh || '',
+              knee: customer.measurements?.knee || '',
+              bottom: customer.measurements?.bottom || '',
+              flyLength: customer.measurements?.flyLength || ''
+            },
+            shirt: {
+              length: customer.measurements?.shirtLength || '',
+              chest: customer.measurements?.chest || '',
+              waist: customer.measurements?.shirtWaist || '',
+              shoulder: customer.measurements?.shoulder || '',
+              sleeveLength: customer.measurements?.sleeveLength || '',
+              armhole: customer.measurements?.armhole || '',
+              collar: customer.measurements?.collar || ''
+            },
+            coat: {
+              length: customer.measurements?.coatLength || '',
+              chest: customer.measurements?.coatChest || '',
+              waist: customer.measurements?.coatWaist || '',
+              shoulder: customer.measurements?.coatShoulder || '',
+              sleeveLength: customer.measurements?.coatSleeveLength || '',
+              armhole: customer.measurements?.coatArmhole || ''
+            },
+            kurta: {
+              length: customer.measurements?.kurtaLength || '',
+              chest: customer.measurements?.kurtaChest || '',
+              waist: customer.measurements?.kurtaWaist || '',
+              shoulder: customer.measurements?.kurtaShoulder || '',
+              sleeveLength: customer.measurements?.kurtaSleeveLength || '',
+              armhole: customer.measurements?.kurtaArmhole || ''
+            },
+            dhoti: {
+              length: customer.measurements?.dhotiLength || '',
+              waist: customer.measurements?.dhotiWaist || '',
+              hip: customer.measurements?.dhotiHip || '',
+              sideLength: customer.measurements?.sideLength || '',
+              foldLength: customer.measurements?.foldLength || ''
+            },
+            custom: customer.measurements?.customMeasurements || ''
           },
           avatar: customer.user?.profilePicture || `https://i.pravatar.cc/150?img=${customer.customerId || Math.floor(Math.random() * 70)}`
         }));
@@ -226,11 +254,44 @@ const Customers = () => {
           roleId: 3 // Customer role ID
         },
         measurements: {
-          chest: parseFloat(customerForm.measurements.shirt.chest) || 0,
-          shoulder: parseFloat(customerForm.measurements.shirt.shoulder) || 0,
+          // Pant measurements
+          pantLength: parseFloat(customerForm.measurements.pant.length) || 0,
+          pantWaist: parseFloat(customerForm.measurements.pant.waist) || 0,
+          seatHip: parseFloat(customerForm.measurements.pant.seatHip) || 0,
+          thigh: parseFloat(customerForm.measurements.pant.thigh) || 0,
+          knee: parseFloat(customerForm.measurements.pant.knee) || 0,
+          bottom: parseFloat(customerForm.measurements.pant.bottom) || 0,
+          flyLength: parseFloat(customerForm.measurements.pant.flyLength) || 0,
+          // Shirt measurements
           shirtLength: parseFloat(customerForm.measurements.shirt.length) || 0,
-          waist: parseFloat(customerForm.measurements.pant.waist) || 0,
-          pantLength: parseFloat(customerForm.measurements.pant.length) || 0
+          chest: parseFloat(customerForm.measurements.shirt.chest) || 0,
+          shirtWaist: parseFloat(customerForm.measurements.shirt.waist) || 0,
+          shoulder: parseFloat(customerForm.measurements.shirt.shoulder) || 0,
+          sleeveLength: parseFloat(customerForm.measurements.shirt.sleeveLength) || 0,
+          armhole: parseFloat(customerForm.measurements.shirt.armhole) || 0,
+          collar: parseFloat(customerForm.measurements.shirt.collar) || 0,
+          // Coat measurements
+          coatLength: parseFloat(customerForm.measurements.coat.length) || 0,
+          coatChest: parseFloat(customerForm.measurements.coat.chest) || 0,
+          coatWaist: parseFloat(customerForm.measurements.coat.waist) || 0,
+          coatShoulder: parseFloat(customerForm.measurements.coat.shoulder) || 0,
+          coatSleeveLength: parseFloat(customerForm.measurements.coat.sleeveLength) || 0,
+          coatArmhole: parseFloat(customerForm.measurements.coat.armhole) || 0,
+          // Kurta measurements
+          kurtaLength: parseFloat(customerForm.measurements.kurta.length) || 0,
+          kurtaChest: parseFloat(customerForm.measurements.kurta.chest) || 0,
+          kurtaWaist: parseFloat(customerForm.measurements.kurta.waist) || 0,
+          kurtaShoulder: parseFloat(customerForm.measurements.kurta.shoulder) || 0,
+          kurtaSleeveLength: parseFloat(customerForm.measurements.kurta.sleeveLength) || 0,
+          kurtaArmhole: parseFloat(customerForm.measurements.kurta.armhole) || 0,
+          // Dhoti measurements
+          dhotiLength: parseFloat(customerForm.measurements.dhoti.length) || 0,
+          dhotiWaist: parseFloat(customerForm.measurements.dhoti.waist) || 0,
+          dhotiHip: parseFloat(customerForm.measurements.dhoti.hip) || 0,
+          sideLength: parseFloat(customerForm.measurements.dhoti.sideLength) || 0,
+          foldLength: parseFloat(customerForm.measurements.dhoti.foldLength) || 0,
+          // Custom measurements
+          customMeasurements: customerForm.measurements.custom || ''
         }
       };
 
@@ -262,8 +323,11 @@ const Customers = () => {
         email: '',
         password: '',
         measurements: {
-          shirt: { chest: '', waist: '', shoulder: '', length: '' },
-          pant: { waist: '', length: '', hip: '' },
+          pant: { length: '', waist: '', seatHip: '', thigh: '', knee: '', bottom: '', flyLength: '' },
+          shirt: { length: '', chest: '', waist: '', shoulder: '', sleeveLength: '', armhole: '', collar: '' },
+          coat: { length: '', chest: '', waist: '', shoulder: '', sleeveLength: '', armhole: '' },
+          kurta: { length: '', chest: '', waist: '', shoulder: '', sleeveLength: '', armhole: '' },
+          dhoti: { length: '', waist: '', hip: '', sideLength: '', foldLength: '' },
           custom: ''
         },
         photo: null
@@ -298,8 +362,11 @@ const Customers = () => {
       mobile: customer.phone,
       email: customer.email,
       measurements: {
-        shirt: customer.measurements?.shirt || { chest: '', waist: '', shoulder: '', length: '' },
-        pant: customer.measurements?.pant || { waist: '', length: '', hip: '' },
+        pant: customer.measurements?.pant || { length: '', waist: '', seatHip: '', thigh: '', knee: '', bottom: '', flyLength: '' },
+        shirt: customer.measurements?.shirt || { length: '', chest: '', waist: '', shoulder: '', sleeveLength: '', armhole: '', collar: '' },
+        coat: customer.measurements?.coat || { length: '', chest: '', waist: '', shoulder: '', sleeveLength: '', armhole: '' },
+        kurta: customer.measurements?.kurta || { length: '', chest: '', waist: '', shoulder: '', sleeveLength: '', armhole: '' },
+        dhoti: customer.measurements?.dhoti || { length: '', waist: '', hip: '', sideLength: '', foldLength: '' },
         custom: customer.measurements?.custom || ''
       },
       photo: null
@@ -327,24 +394,48 @@ const Customers = () => {
       email: customerForm.email,
       phone: customerForm.mobile,
       measurements: {
-        ...(customerForm.measurements.shirt.chest && {
-          shirt: {
-            chest: parseFloat(customerForm.measurements.shirt.chest) || 0,
-            waist: parseFloat(customerForm.measurements.shirt.waist) || 0,
-            shoulder: parseFloat(customerForm.measurements.shirt.shoulder) || 0,
-            length: parseFloat(customerForm.measurements.shirt.length) || 0
-          }
-        }),
-        ...(customerForm.measurements.pant.waist && {
-          pant: {
-            waist: parseFloat(customerForm.measurements.pant.waist) || 0,
-            length: parseFloat(customerForm.measurements.pant.length) || 0,
-            hip: parseFloat(customerForm.measurements.pant.hip) || 0
-          }
-        }),
-        ...(customerForm.measurements.custom && {
-          custom: customerForm.measurements.custom
-        })
+        pant: {
+          length: parseFloat(customerForm.measurements.pant.length) || 0,
+          waist: parseFloat(customerForm.measurements.pant.waist) || 0,
+          seatHip: parseFloat(customerForm.measurements.pant.seatHip) || 0,
+          thigh: parseFloat(customerForm.measurements.pant.thigh) || 0,
+          knee: parseFloat(customerForm.measurements.pant.knee) || 0,
+          bottom: parseFloat(customerForm.measurements.pant.bottom) || 0,
+          flyLength: parseFloat(customerForm.measurements.pant.flyLength) || 0
+        },
+        shirt: {
+          length: parseFloat(customerForm.measurements.shirt.length) || 0,
+          chest: parseFloat(customerForm.measurements.shirt.chest) || 0,
+          waist: parseFloat(customerForm.measurements.shirt.waist) || 0,
+          shoulder: parseFloat(customerForm.measurements.shirt.shoulder) || 0,
+          sleeveLength: parseFloat(customerForm.measurements.shirt.sleeveLength) || 0,
+          armhole: parseFloat(customerForm.measurements.shirt.armhole) || 0,
+          collar: parseFloat(customerForm.measurements.shirt.collar) || 0
+        },
+        coat: {
+          length: parseFloat(customerForm.measurements.coat.length) || 0,
+          chest: parseFloat(customerForm.measurements.coat.chest) || 0,
+          waist: parseFloat(customerForm.measurements.coat.waist) || 0,
+          shoulder: parseFloat(customerForm.measurements.coat.shoulder) || 0,
+          sleeveLength: parseFloat(customerForm.measurements.coat.sleeveLength) || 0,
+          armhole: parseFloat(customerForm.measurements.coat.armhole) || 0
+        },
+        kurta: {
+          length: parseFloat(customerForm.measurements.kurta.length) || 0,
+          chest: parseFloat(customerForm.measurements.kurta.chest) || 0,
+          waist: parseFloat(customerForm.measurements.kurta.waist) || 0,
+          shoulder: parseFloat(customerForm.measurements.kurta.shoulder) || 0,
+          sleeveLength: parseFloat(customerForm.measurements.kurta.sleeveLength) || 0,
+          armhole: parseFloat(customerForm.measurements.kurta.armhole) || 0
+        },
+        dhoti: {
+          length: parseFloat(customerForm.measurements.dhoti.length) || 0,
+          waist: parseFloat(customerForm.measurements.dhoti.waist) || 0,
+          hip: parseFloat(customerForm.measurements.dhoti.hip) || 0,
+          sideLength: parseFloat(customerForm.measurements.dhoti.sideLength) || 0,
+          foldLength: parseFloat(customerForm.measurements.dhoti.foldLength) || 0
+        },
+        custom: customerForm.measurements.custom
       },
       avatar: photoPreview || editingCustomer.avatar
     };
@@ -359,8 +450,11 @@ const Customers = () => {
       mobile: '',
       email: '',
       measurements: {
-        shirt: { chest: '', waist: '', shoulder: '', length: '' },
-        pant: { waist: '', length: '', hip: '' },
+        pant: { length: '', waist: '', seatHip: '', thigh: '', knee: '', bottom: '', flyLength: '' },
+        shirt: { length: '', chest: '', waist: '', shoulder: '', sleeveLength: '', armhole: '', collar: '' },
+        coat: { length: '', chest: '', waist: '', shoulder: '', sleeveLength: '', armhole: '' },
+        kurta: { length: '', chest: '', waist: '', shoulder: '', sleeveLength: '', armhole: '' },
+        dhoti: { length: '', waist: '', hip: '', sideLength: '', foldLength: '' },
         custom: ''
       },
       photo: null
@@ -580,48 +674,243 @@ const Customers = () => {
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Measurements</h3>
                     
-                    {/* Shirt Measurements */}
-                    {selectedCustomerForView.measurements.shirt && (
+                    {/* Pant Measurements */}
+                    {selectedCustomerForView.measurements.pant && Object.values(selectedCustomerForView.measurements.pant).some(v => v) && (
                       <div className="mb-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                        <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-3">Shirt Measurements</h4>
+                        <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                          <span className="text-xl">👖</span> Pant Measurements
+                        </h4>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                          <div>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">Chest</p>
-                            <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.shirt.chest}"</p>
-                          </div>
-                          <div>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">Waist</p>
-                            <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.shirt.waist}"</p>
-                          </div>
-                          <div>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">Shoulder</p>
-                            <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.shirt.shoulder}"</p>
-                          </div>
-                          <div>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">Length</p>
-                            <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.shirt.length}"</p>
-                          </div>
+                          {selectedCustomerForView.measurements.pant.length && (
+                            <div>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">Length</p>
+                              <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.pant.length}"</p>
+                            </div>
+                          )}
+                          {selectedCustomerForView.measurements.pant.waist && (
+                            <div>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">Waist</p>
+                              <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.pant.waist}"</p>
+                            </div>
+                          )}
+                          {selectedCustomerForView.measurements.pant.seatHip && (
+                            <div>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">Seat/Hip</p>
+                              <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.pant.seatHip}"</p>
+                            </div>
+                          )}
+                          {selectedCustomerForView.measurements.pant.thigh && (
+                            <div>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">Thigh</p>
+                              <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.pant.thigh}"</p>
+                            </div>
+                          )}
+                          {selectedCustomerForView.measurements.pant.knee && (
+                            <div>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">Knee</p>
+                              <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.pant.knee}"</p>
+                            </div>
+                          )}
+                          {selectedCustomerForView.measurements.pant.bottom && (
+                            <div>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">Bottom</p>
+                              <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.pant.bottom}"</p>
+                            </div>
+                          )}
+                          {selectedCustomerForView.measurements.pant.flyLength && (
+                            <div>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">Fly Length</p>
+                              <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.pant.flyLength}"</p>
+                            </div>
+                          )}
                         </div>
                       </div>
                     )}
 
-                    {/* Pant Measurements */}
-                    {selectedCustomerForView.measurements.pant && (
+                    {/* Shirt Measurements */}
+                    {selectedCustomerForView.measurements.shirt && Object.values(selectedCustomerForView.measurements.shirt).some(v => v) && (
                       <div className="mb-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                        <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-3">Pant Measurements</h4>
+                        <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                          <span className="text-xl">👔</span> Shirt Measurements
+                        </h4>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                          {selectedCustomerForView.measurements.shirt.length && (
+                            <div>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">Length</p>
+                              <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.shirt.length}"</p>
+                            </div>
+                          )}
+                          {selectedCustomerForView.measurements.shirt.chest && (
+                            <div>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">Chest</p>
+                              <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.shirt.chest}"</p>
+                            </div>
+                          )}
+                          {selectedCustomerForView.measurements.shirt.waist && (
+                            <div>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">Waist</p>
+                              <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.shirt.waist}"</p>
+                            </div>
+                          )}
+                          {selectedCustomerForView.measurements.shirt.shoulder && (
+                            <div>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">Shoulder</p>
+                              <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.shirt.shoulder}"</p>
+                            </div>
+                          )}
+                          {selectedCustomerForView.measurements.shirt.sleeveLength && (
+                            <div>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">Sleeve Length</p>
+                              <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.shirt.sleeveLength}"</p>
+                            </div>
+                          )}
+                          {selectedCustomerForView.measurements.shirt.armhole && (
+                            <div>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">Armhole</p>
+                              <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.shirt.armhole}"</p>
+                            </div>
+                          )}
+                          {selectedCustomerForView.measurements.shirt.collar && (
+                            <div>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">Collar (Neck)</p>
+                              <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.shirt.collar}"</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Coat Measurements */}
+                    {selectedCustomerForView.measurements.coat && Object.values(selectedCustomerForView.measurements.coat).some(v => v) && (
+                      <div className="mb-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                        <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                          <span className="text-xl">🧥</span> Coat Measurements
+                        </h4>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                          <div>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">Waist</p>
-                            <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.pant.waist}"</p>
-                          </div>
-                          <div>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">Length</p>
-                            <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.pant.length}"</p>
-                          </div>
-                          <div>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">Hip</p>
-                            <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.pant.hip}"</p>
-                          </div>
+                          {selectedCustomerForView.measurements.coat.length && (
+                            <div>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">Length</p>
+                              <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.coat.length}"</p>
+                            </div>
+                          )}
+                          {selectedCustomerForView.measurements.coat.chest && (
+                            <div>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">Chest</p>
+                              <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.coat.chest}"</p>
+                            </div>
+                          )}
+                          {selectedCustomerForView.measurements.coat.waist && (
+                            <div>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">Waist</p>
+                              <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.coat.waist}"</p>
+                            </div>
+                          )}
+                          {selectedCustomerForView.measurements.coat.shoulder && (
+                            <div>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">Shoulder</p>
+                              <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.coat.shoulder}"</p>
+                            </div>
+                          )}
+                          {selectedCustomerForView.measurements.coat.sleeveLength && (
+                            <div>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">Sleeve Length</p>
+                              <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.coat.sleeveLength}"</p>
+                            </div>
+                          )}
+                          {selectedCustomerForView.measurements.coat.armhole && (
+                            <div>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">Armhole</p>
+                              <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.coat.armhole}"</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Kurta Measurements */}
+                    {selectedCustomerForView.measurements.kurta && Object.values(selectedCustomerForView.measurements.kurta).some(v => v) && (
+                      <div className="mb-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                        <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                          <span className="text-xl">🥻</span> Kurta Measurements
+                        </h4>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                          {selectedCustomerForView.measurements.kurta.length && (
+                            <div>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">Length</p>
+                              <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.kurta.length}"</p>
+                            </div>
+                          )}
+                          {selectedCustomerForView.measurements.kurta.chest && (
+                            <div>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">Chest</p>
+                              <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.kurta.chest}"</p>
+                            </div>
+                          )}
+                          {selectedCustomerForView.measurements.kurta.waist && (
+                            <div>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">Waist</p>
+                              <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.kurta.waist}"</p>
+                            </div>
+                          )}
+                          {selectedCustomerForView.measurements.kurta.shoulder && (
+                            <div>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">Shoulder</p>
+                              <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.kurta.shoulder}"</p>
+                            </div>
+                          )}
+                          {selectedCustomerForView.measurements.kurta.sleeveLength && (
+                            <div>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">Sleeve Length</p>
+                              <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.kurta.sleeveLength}"</p>
+                            </div>
+                          )}
+                          {selectedCustomerForView.measurements.kurta.armhole && (
+                            <div>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">Armhole</p>
+                              <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.kurta.armhole}"</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Dhoti Measurements */}
+                    {selectedCustomerForView.measurements.dhoti && Object.values(selectedCustomerForView.measurements.dhoti).some(v => v) && (
+                      <div className="mb-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                        <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                          <span className="text-xl">🎽</span> Dhoti Measurements
+                        </h4>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                          {selectedCustomerForView.measurements.dhoti.length && (
+                            <div>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">Length</p>
+                              <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.dhoti.length}"</p>
+                            </div>
+                          )}
+                          {selectedCustomerForView.measurements.dhoti.waist && (
+                            <div>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">Waist</p>
+                              <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.dhoti.waist}"</p>
+                            </div>
+                          )}
+                          {selectedCustomerForView.measurements.dhoti.hip && (
+                            <div>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">Hip</p>
+                              <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.dhoti.hip}"</p>
+                            </div>
+                          )}
+                          {selectedCustomerForView.measurements.dhoti.sideLength && (
+                            <div>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">Side Length</p>
+                              <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.dhoti.sideLength}"</p>
+                            </div>
+                          )}
+                          {selectedCustomerForView.measurements.dhoti.foldLength && (
+                            <div>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">Fold Length</p>
+                              <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.dhoti.foldLength}"</p>
+                            </div>
+                          )}
                         </div>
                       </div>
                     )}
@@ -629,13 +918,18 @@ const Customers = () => {
                     {/* Custom Measurements */}
                     {selectedCustomerForView.measurements.custom && (
                       <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                        <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-2">Custom Measurements</h4>
+                        <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                          <span className="text-xl">📏</span> Custom Measurements
+                        </h4>
                         <p className="text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.custom}</p>
                       </div>
                     )}
 
-                    {!selectedCustomerForView.measurements.shirt && 
-                     !selectedCustomerForView.measurements.pant && 
+                    {!selectedCustomerForView.measurements.pant && 
+                     !selectedCustomerForView.measurements.shirt && 
+                     !selectedCustomerForView.measurements.coat &&
+                     !selectedCustomerForView.measurements.kurta &&
+                     !selectedCustomerForView.measurements.dhoti &&
                      !selectedCustomerForView.measurements.custom && (
                       <p className="text-gray-500 dark:text-gray-400 text-center py-4">No measurements recorded</p>
                     )}
@@ -824,117 +1118,10 @@ const Customers = () => {
                 </div>
 
                 {/* Measurements Section */}
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 mt-6">Measurements (Optional)</h3>
-                
-                {/* Shirt Measurements */}
-                <div className="mb-6">
-                  <h4 className="text-md font-medium text-gray-700 dark:text-gray-300 mb-3">Shirt Measurements</h4>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div>
-                      <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Chest</label>
-                      <input
-                        type="number"
-                        value={customerForm.measurements.shirt.chest}
-                        onChange={(e) => handleMeasurementChange('shirt', 'chest', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
-                        placeholder="0"
-                        min="0"
-                        step="0.1"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Waist</label>
-                      <input
-                        type="number"
-                        value={customerForm.measurements.shirt.waist}
-                        onChange={(e) => handleMeasurementChange('shirt', 'waist', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
-                        placeholder="0"
-                        min="0"
-                        step="0.1"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Shoulder</label>
-                      <input
-                        type="number"
-                        value={customerForm.measurements.shirt.shoulder}
-                        onChange={(e) => handleMeasurementChange('shirt', 'shoulder', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
-                        placeholder="0"
-                        min="0"
-                        step="0.1"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Length</label>
-                      <input
-                        type="number"
-                        value={customerForm.measurements.shirt.length}
-                        onChange={(e) => handleMeasurementChange('shirt', 'length', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
-                        placeholder="0"
-                        min="0"
-                        step="0.1"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Pant Measurements */}
-                <div className="mb-6">
-                  <h4 className="text-md font-medium text-gray-700 dark:text-gray-300 mb-3">Pant Measurements</h4>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Waist</label>
-                      <input
-                        type="number"
-                        value={customerForm.measurements.pant.waist}
-                        onChange={(e) => handleMeasurementChange('pant', 'waist', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
-                        placeholder="0"
-                        min="0"
-                        step="0.1"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Length</label>
-                      <input
-                        type="number"
-                        value={customerForm.measurements.pant.length}
-                        onChange={(e) => handleMeasurementChange('pant', 'length', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
-                        placeholder="0"
-                        min="0"
-                        step="0.1"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Hip</label>
-                      <input
-                        type="number"
-                        value={customerForm.measurements.pant.hip}
-                        onChange={(e) => handleMeasurementChange('pant', 'hip', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
-                        placeholder="0"
-                        min="0"
-                        step="0.1"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Custom Measurements */}
-                <div>
-                  <h4 className="text-md font-medium text-gray-700 dark:text-gray-300 mb-3">Custom Measurements</h4>
-                  <textarea
-                    value={customerForm.measurements.custom}
-                    onChange={(e) => handleMeasurementChange('custom', null, e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
-                    placeholder="Enter any custom measurements or notes..."
-                    rows="3"
-                  />
-                </div>
+                <MeasurementInputs 
+                  measurements={customerForm.measurements} 
+                  onChange={handleMeasurementChange} 
+                />
 
                 {/* Modal Footer */}
                 <div className="flex gap-4 mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
@@ -1134,117 +1321,10 @@ const Customers = () => {
                 </div>
 
                 {/* Measurements Section */}
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 mt-6">Measurements (Optional)</h3>
-                
-                {/* Shirt Measurements */}
-                <div className="mb-6">
-                  <h4 className="text-md font-medium text-gray-700 dark:text-gray-300 mb-3">Shirt Measurements</h4>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div>
-                      <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Chest</label>
-                      <input
-                        type="number"
-                        value={customerForm.measurements.shirt.chest}
-                        onChange={(e) => handleMeasurementChange('shirt', 'chest', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
-                        placeholder="0"
-                        min="0"
-                        step="0.1"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Waist</label>
-                      <input
-                        type="number"
-                        value={customerForm.measurements.shirt.waist}
-                        onChange={(e) => handleMeasurementChange('shirt', 'waist', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
-                        placeholder="0"
-                        min="0"
-                        step="0.1"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Shoulder</label>
-                      <input
-                        type="number"
-                        value={customerForm.measurements.shirt.shoulder}
-                        onChange={(e) => handleMeasurementChange('shirt', 'shoulder', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
-                        placeholder="0"
-                        min="0"
-                        step="0.1"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Length</label>
-                      <input
-                        type="number"
-                        value={customerForm.measurements.shirt.length}
-                        onChange={(e) => handleMeasurementChange('shirt', 'length', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
-                        placeholder="0"
-                        min="0"
-                        step="0.1"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Pant Measurements */}
-                <div className="mb-6">
-                  <h4 className="text-md font-medium text-gray-700 dark:text-gray-300 mb-3">Pant Measurements</h4>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Waist</label>
-                      <input
-                        type="number"
-                        value={customerForm.measurements.pant.waist}
-                        onChange={(e) => handleMeasurementChange('pant', 'waist', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
-                        placeholder="0"
-                        min="0"
-                        step="0.1"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Length</label>
-                      <input
-                        type="number"
-                        value={customerForm.measurements.pant.length}
-                        onChange={(e) => handleMeasurementChange('pant', 'length', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
-                        placeholder="0"
-                        min="0"
-                        step="0.1"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Hip</label>
-                      <input
-                        type="number"
-                        value={customerForm.measurements.pant.hip}
-                        onChange={(e) => handleMeasurementChange('pant', 'hip', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
-                        placeholder="0"
-                        min="0"
-                        step="0.1"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Custom Measurements */}
-                <div>
-                  <h4 className="text-md font-medium text-gray-700 dark:text-gray-300 mb-3">Custom Measurements</h4>
-                  <textarea
-                    value={customerForm.measurements.custom}
-                    onChange={(e) => handleMeasurementChange('custom', null, e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
-                    placeholder="Enter any custom measurements or notes..."
-                    rows="3"
-                  />
-                </div>
+                <MeasurementInputs 
+                  measurements={customerForm.measurements} 
+                  onChange={handleMeasurementChange} 
+                />
 
                 {/* Modal Footer */}
                 <div className="flex gap-4 mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">

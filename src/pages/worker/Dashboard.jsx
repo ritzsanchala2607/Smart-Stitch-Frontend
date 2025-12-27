@@ -307,28 +307,28 @@ const WorkerDashboard = () => {
                   <div className="grid grid-cols-2 gap-3">
                     <button
                       onClick={() => navigate('/worker/tasks')}
-                      className="flex flex-col items-center justify-center p-4 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 rounded-lg transition-colors"
+                      className="flex flex-col items-center justify-center p-4 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 rounded-lg transition-colors border border-gray-200 dark:border-gray-600"
                     >
                       <ListTodo className="w-6 h-6 text-blue-600 dark:text-blue-400 mb-2" />
                       <span className="text-xs font-medium text-gray-700 dark:text-gray-300">My Tasks</span>
                     </button>
                     <button
                       onClick={() => navigate('/worker/progress')}
-                      className="flex flex-col items-center justify-center p-4 bg-green-50 dark:bg-green-900/30 hover:bg-green-100 dark:hover:bg-green-900/50 rounded-lg transition-colors"
+                      className="flex flex-col items-center justify-center p-4 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 rounded-lg transition-colors border border-gray-200 dark:border-gray-600"
                     >
                       <BarChart3 className="w-6 h-6 text-green-600 dark:text-green-400 mb-2" />
                       <span className="text-xs font-medium text-gray-700 dark:text-gray-300">Progress</span>
                     </button>
                     <button
                       onClick={() => navigate('/worker/chat')}
-                      className="flex flex-col items-center justify-center p-4 bg-purple-50 dark:bg-purple-900/30 hover:bg-purple-100 dark:hover:bg-purple-900/50 rounded-lg transition-colors"
+                      className="flex flex-col items-center justify-center p-4 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 rounded-lg transition-colors border border-gray-200 dark:border-gray-600"
                     >
                       <MessageSquare className="w-6 h-6 text-purple-600 dark:text-purple-400 mb-2" />
                       <span className="text-xs font-medium text-gray-700 dark:text-gray-300">Chat</span>
                     </button>
                     <button
                       onClick={() => navigate('/worker/statistics')}
-                      className="flex flex-col items-center justify-center p-4 bg-orange-50 dark:bg-orange-900/30 hover:bg-orange-100 dark:hover:bg-orange-900/50 rounded-lg transition-colors"
+                      className="flex flex-col items-center justify-center p-4 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 rounded-lg transition-colors border border-gray-200 dark:border-gray-600"
                     >
                       <Activity className="w-6 h-6 text-orange-600 dark:text-orange-400 mb-2" />
                       <span className="text-xs font-medium text-gray-700 dark:text-gray-300">Statistics</span>
@@ -346,7 +346,7 @@ const WorkerDashboard = () => {
                   <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4">Performance Overview</h2>
                   
                   {/* Today's Performance */}
-                  <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
+                  <div className="mb-4 p-4 bg-gray-100 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
                     <div className="flex items-center justify-between mb-2">
                       <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Today's Performance</h3>
                       <Award className="w-5 h-5 text-blue-600 dark:text-blue-400" />
@@ -368,7 +368,7 @@ const WorkerDashboard = () => {
                   </div>
 
                   {/* Monthly Summary */}
-                  <div className="p-4 bg-green-50 dark:bg-green-900/30 rounded-lg">
+                  <div className="p-4 bg-gray-100 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
                     <div className="flex items-center justify-between mb-2">
                       <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Monthly Summary</h3>
                       <TrendingUp className="w-5 h-5 text-green-600 dark:text-green-400" />
@@ -458,24 +458,24 @@ const WorkerDashboard = () => {
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.2 }}
-                  className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-md p-6 text-white"
+                  className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700"
                 >
                   <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-lg font-bold">Overall Performance</h2>
-                    <Activity className="w-6 h-6" />
+                    <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">Overall Performance</h2>
+                    <Activity className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                   </div>
                   <div className="text-center">
-                    <p className="text-5xl font-bold mb-2">{stats.performance}%</p>
-                    <p className="text-blue-100">Efficiency Score</p>
+                    <p className="text-5xl font-bold mb-2 text-gray-900 dark:text-gray-100">{stats.performance}%</p>
+                    <p className="text-gray-600 dark:text-gray-400">Efficiency Score</p>
                   </div>
-                  <div className="mt-6 pt-6 border-t border-blue-400">
+                  <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm text-blue-100">Avg Rating</span>
-                      <span className="text-lg font-bold">{stats.avgRating}/5</span>
+                      <span className="text-sm text-gray-600 dark:text-gray-400">Avg Rating</span>
+                      <span className="text-lg font-bold text-gray-900 dark:text-gray-100">{stats.avgRating}/5</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-blue-100">Completed</span>
-                      <span className="text-lg font-bold">{stats.completedTasks}</span>
+                      <span className="text-sm text-gray-600 dark:text-gray-400">Completed</span>
+                      <span className="text-lg font-bold text-gray-900 dark:text-gray-100">{stats.completedTasks}</span>
                     </div>
                   </div>
                 </motion.div>
@@ -521,15 +521,15 @@ const WorkerDashboard = () => {
                 >
                   <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4">Quick Stats</h2>
                   <div className="space-y-3">
-                    <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/30 rounded-lg">
+                    <div className="flex items-center justify-between p-3 bg-gray-100 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
                       <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Total Earnings</span>
                       <span className="text-lg font-bold text-green-600 dark:text-green-400">₹{stats.totalEarnings.toLocaleString()}</span>
                     </div>
-                    <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
+                    <div className="flex items-center justify-between p-3 bg-gray-100 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
                       <span className="text-sm font-medium text-gray-700 dark:text-gray-300">This Month</span>
                       <span className="text-lg font-bold text-blue-600 dark:text-blue-400">₹{stats.monthlyEarnings.toLocaleString()}</span>
                     </div>
-                    <div className="flex items-center justify-between p-3 bg-purple-50 dark:bg-purple-900/30 rounded-lg">
+                    <div className="flex items-center justify-between p-3 bg-gray-100 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
                       <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Assigned Tasks</span>
                       <span className="text-lg font-bold text-purple-600 dark:text-purple-400">{stats.assignedTasks}</span>
                     </div>
@@ -541,13 +541,13 @@ const WorkerDashboard = () => {
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.3 }}
-                  className="bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg shadow-md p-6 text-white"
+                  className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700"
                 >
                   <div className="flex items-center gap-2 mb-3">
-                    <Sparkles className="w-5 h-5" />
-                    <h3 className="text-sm font-bold">Daily Inspiration</h3>
+                    <Sparkles className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                    <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100">Daily Inspiration</h3>
                   </div>
-                  <p className="text-sm italic leading-relaxed">
+                  <p className="text-sm italic leading-relaxed text-gray-700 dark:text-gray-300">
                     "Small steps every day lead to mastery. Keep up the excellent work!"
                   </p>
                 </motion.div>
@@ -562,14 +562,18 @@ const WorkerDashboard = () => {
 
 // Stat Card Component
 const StatCard = ({ title, value, icon: Icon, color, subtitle }) => {
+  // Extract color name from the color class (e.g., "bg-blue-500" -> "blue")
+  const colorName = color.match(/bg-(\w+)-/)?.[1] || 'blue';
+  const iconColorClass = `text-${colorName}-600 dark:text-${colorName}-400`;
+  
   return (
     <motion.div
       whileHover={{ scale: 1.02, y: -5 }}
-      className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 cursor-pointer"
+      className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 cursor-pointer border border-gray-200 dark:border-gray-700"
     >
       <div className="flex items-center justify-between mb-4">
-        <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${color}`}>
-          <Icon className="w-6 h-6 text-white" />
+        <div className="w-12 h-12 rounded-lg flex items-center justify-center bg-gray-100 dark:bg-gray-700">
+          <Icon className={`w-6 h-6 ${iconColorClass}`} />
         </div>
       </div>
       <p className="text-gray-500 dark:text-gray-400 text-sm">{title}</p>

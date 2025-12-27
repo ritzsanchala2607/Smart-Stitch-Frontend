@@ -152,10 +152,12 @@ const AdminDashboard = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
               <motion.div
                 whileHover={{ scale: 1.02 }}
-                className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"
+                className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700"
               >
                 <div className="flex items-center justify-between mb-2">
-                  <Store className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+                  <div className="w-12 h-12 rounded-lg flex items-center justify-center bg-gray-100 dark:bg-gray-700">
+                    <Store className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+                  </div>
                   <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Total</span>
                 </div>
                 <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{kpiData.totalShops}</h3>
@@ -164,10 +166,12 @@ const AdminDashboard = () => {
 
               <motion.div
                 whileHover={{ scale: 1.02 }}
-                className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"
+                className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700"
               >
                 <div className="flex items-center justify-between mb-2">
-                  <Users className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+                  <div className="w-12 h-12 rounded-lg flex items-center justify-center bg-gray-100 dark:bg-gray-700">
+                    <Users className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+                  </div>
                   <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Total</span>
                 </div>
                 <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{kpiData.totalOwners}</h3>
@@ -176,10 +180,12 @@ const AdminDashboard = () => {
 
               <motion.div
                 whileHover={{ scale: 1.02 }}
-                className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"
+                className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700"
               >
                 <div className="flex items-center justify-between mb-2">
-                  <Scissors className="w-8 h-8 text-orange-600 dark:text-orange-400" />
+                  <div className="w-12 h-12 rounded-lg flex items-center justify-center bg-gray-100 dark:bg-gray-700">
+                    <Scissors className="w-8 h-8 text-orange-600 dark:text-orange-400" />
+                  </div>
                   <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Total</span>
                 </div>
                 <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{kpiData.totalWorkers}</h3>
@@ -188,10 +194,12 @@ const AdminDashboard = () => {
 
               <motion.div
                 whileHover={{ scale: 1.02 }}
-                className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"
+                className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700"
               >
                 <div className="flex items-center justify-between mb-2">
-                  <Package className="w-8 h-8 text-green-600 dark:text-green-400" />
+                  <div className="w-12 h-12 rounded-lg flex items-center justify-center bg-gray-100 dark:bg-gray-700">
+                    <Package className="w-8 h-8 text-green-600 dark:text-green-400" />
+                  </div>
                   <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Total</span>
                 </div>
                 <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{kpiData.totalOrders}</h3>
@@ -200,10 +208,12 @@ const AdminDashboard = () => {
 
               <motion.div
                 whileHover={{ scale: 1.02 }}
-                className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"
+                className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700"
               >
                 <div className="flex items-center justify-between mb-2">
-                  <Calendar className="w-8 h-8 text-indigo-600 dark:text-indigo-400" />
+                  <div className="w-12 h-12 rounded-lg flex items-center justify-center bg-gray-100 dark:bg-gray-700">
+                    <Calendar className="w-8 h-8 text-indigo-600 dark:text-indigo-400" />
+                  </div>
                   <span className="text-xs font-medium text-gray-500 dark:text-gray-400">This Month</span>
                 </div>
                 <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{kpiData.activeShops}</h3>
@@ -212,14 +222,16 @@ const AdminDashboard = () => {
 
               <motion.div
                 whileHover={{ scale: 1.02 }}
-                className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg shadow-md p-6"
+                className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700"
               >
                 <div className="flex items-center justify-between mb-2">
-                  <TrendingUp className="w-8 h-8 text-white" />
-                  <span className="text-xs font-medium text-white/80">Growth</span>
+                  <div className="w-12 h-12 rounded-lg flex items-center justify-center bg-gray-100 dark:bg-gray-700">
+                    <TrendingUp className="w-8 h-8 text-green-600 dark:text-green-400" />
+                  </div>
+                  <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Growth</span>
                 </div>
-                <h3 className="text-2xl font-bold text-white">+{kpiData.systemGrowth}%</h3>
-                <p className="text-sm text-white/90">System Growth</p>
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100">+{kpiData.systemGrowth}%</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">System Growth</p>
               </motion.div>
             </div>
 
@@ -334,10 +346,10 @@ const AdminDashboard = () => {
                 {recentActivities.map((activity) => {
                   const Icon = activity.icon;
                   const colorClasses = {
-                    green: 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400',
-                    blue: 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400',
-                    red: 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400',
-                    orange: 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400'
+                    green: 'bg-gray-100 dark:bg-gray-700 text-green-600 dark:text-green-400',
+                    blue: 'bg-gray-100 dark:bg-gray-700 text-blue-600 dark:text-blue-400',
+                    red: 'bg-gray-100 dark:bg-gray-700 text-red-600 dark:text-red-400',
+                    orange: 'bg-gray-100 dark:bg-gray-700 text-orange-600 dark:text-orange-400'
                   };
 
                   return (

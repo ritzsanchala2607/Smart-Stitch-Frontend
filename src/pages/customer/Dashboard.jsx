@@ -269,16 +269,16 @@ const Dashboard = () => {
               {/* Loyalty Points Card */}
               <motion.div
                 whileHover={{ scale: 1.05 }}
-                className="bg-gradient-to-br from-yellow-400 to-orange-500 dark:from-yellow-600 dark:to-orange-700 rounded-lg shadow-lg p-3 sm:p-4 text-white cursor-pointer w-full sm:w-auto"
+                className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-3 sm:p-4 cursor-pointer w-full sm:w-auto border border-gray-200 dark:border-gray-700"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-white/20 dark:bg-white/10 rounded-full flex items-center justify-center">
-                    <Award className="w-6 h-6" />
+                  <div className="w-12 h-12 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
+                    <Award className="w-6 h-6 text-orange-600 dark:text-orange-400" />
                   </div>
                   <div>
-                    <p className="text-sm opacity-90">Loyalty Points</p>
-                    <p className="text-2xl font-bold">{customerData.loyaltyPoints}</p>
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${getTierColor(customerData.tier)} bg-white/30 dark:bg-white/20`}>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Loyalty Points</p>
+                    <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{customerData.loyaltyPoints}</p>
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${getTierColor(customerData.tier)}`}>
                       {customerData.tier} Member
                     </span>
                   </div>
@@ -735,17 +735,17 @@ const Dashboard = () => {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.7 }}
-                  className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg shadow-md p-6 text-white"
+                  className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700"
                 >
                   <div className="flex items-center gap-2 mb-4">
-                    <Activity className="w-6 h-6" />
-                    <h2 className="text-lg font-bold">Today's Activity</h2>
+                    <Activity className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                    <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">Today's Activity</h2>
                   </div>
                   <div className="space-y-3">
                     {todayActivity.map((activity, idx) => (
                       <div key={idx} className="flex items-start gap-3">
-                        <div className="w-2 h-2 bg-white rounded-full mt-2" />
-                        <p className="text-sm">{activity}</p>
+                        <div className="w-2 h-2 bg-blue-600 dark:bg-blue-400 rounded-full mt-2" />
+                        <p className="text-sm text-gray-700 dark:text-gray-300">{activity}</p>
                       </div>
                     ))}
                   </div>
@@ -844,24 +844,24 @@ const Dashboard = () => {
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.15 }}
-                  className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg shadow-md p-6 text-white"
+                  className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700"
                 >
                   <div className="flex items-center gap-2 mb-4">
-                    <Wallet className="w-6 h-6" />
-                    <h2 className="text-lg font-bold">Payment Summary</h2>
+                    <Wallet className="w-6 h-6 text-green-600 dark:text-green-400" />
+                    <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">Payment Summary</h2>
                   </div>
                   <div className="space-y-3">
                     <div className="flex justify-between">
-                      <span className="text-sm opacity-90">Total Spent</span>
-                      <span className="font-bold">₹{customerData.totalSpent.toLocaleString()}</span>
+                      <span className="text-sm text-gray-600 dark:text-gray-400">Total Spent</span>
+                      <span className="font-bold text-gray-900 dark:text-gray-100">₹{customerData.totalSpent.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-sm opacity-90">Last Payment</span>
-                      <span className="font-bold">₹{customerData.lastPayment.toLocaleString()}</span>
+                      <span className="text-sm text-gray-600 dark:text-gray-400">Last Payment</span>
+                      <span className="font-bold text-gray-900 dark:text-gray-100">₹{customerData.lastPayment.toLocaleString()}</span>
                     </div>
-                    <div className="flex justify-between pt-3 border-t border-white/30">
-                      <span className="text-sm opacity-90">Pending</span>
-                      <span className="font-bold text-yellow-200">₹{customerData.paymentDue.toLocaleString()}</span>
+                    <div className="flex justify-between pt-3 border-t border-gray-200 dark:border-gray-700">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">Pending</span>
+                      <span className="font-bold text-orange-600 dark:text-orange-400">₹{customerData.paymentDue.toLocaleString()}</span>
                     </div>
                   </div>
                 </motion.div>
@@ -871,11 +871,11 @@ const Dashboard = () => {
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.2 }}
-                  className="bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg shadow-md p-6 text-white"
+                  className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700"
                 >
                   <div className="flex items-center gap-2 mb-4">
-                    <Gift className="w-6 h-6" />
-                    <h2 className="text-lg font-bold">Loyalty Rewards</h2>
+                    <Gift className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                    <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">Loyalty Rewards</h2>
                   </div>
 
                   <div className="space-y-3">
@@ -884,28 +884,28 @@ const Dashboard = () => {
                         key={idx}
                         className={`p-3 rounded-lg ${
                           reward.unlocked
-                            ? 'bg-white/20 border-2 border-white/40'
-                            : 'bg-white/10'
+                            ? 'bg-gray-100 dark:bg-gray-700 border-2 border-green-500 dark:border-green-400'
+                            : 'bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600'
                         }`}
                       >
                         <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm font-semibold">{reward.points} pts</span>
+                          <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">{reward.points} pts</span>
                           {reward.unlocked && (
-                            <CheckCircle className="w-4 h-4" />
+                            <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
                           )}
                         </div>
-                        <p className="text-sm">{reward.reward}</p>
+                        <p className="text-sm text-gray-700 dark:text-gray-300">{reward.reward}</p>
                         {!reward.unlocked && (
                           <div className="mt-2">
-                            <div className="h-1 bg-white/20 rounded-full overflow-hidden">
+                            <div className="h-1 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
                               <div
-                                className="h-full bg-white"
+                                className="h-full bg-purple-600 dark:bg-purple-400"
                                 style={{
                                   width: `${Math.min((customerData.loyaltyPoints / reward.points) * 100, 100)}%`
                                 }}
                               />
                             </div>
-                            <p className="text-xs mt-1 opacity-75">
+                            <p className="text-xs mt-1 text-gray-600 dark:text-gray-400">
                               {reward.points - customerData.loyaltyPoints} pts to unlock
                             </p>
                           </div>
@@ -926,28 +926,28 @@ const Dashboard = () => {
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       onClick={() => navigate('/customer/support')}
-                      className="flex flex-col items-center gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
+                      className="flex flex-col items-center gap-2 p-3 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 rounded-lg transition-colors border border-gray-200 dark:border-gray-600"
                     >
                       <MessageSquare className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                       <span className="text-xs font-medium text-gray-900 dark:text-gray-100">Chat</span>
                     </button>
                     <button
                       onClick={() => navigate('/customer/support')}
-                      className="flex flex-col items-center gap-2 p-3 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 rounded-lg transition-colors"
+                      className="flex flex-col items-center gap-2 p-3 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 rounded-lg transition-colors border border-gray-200 dark:border-gray-600"
                     >
                       <HelpCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
                       <span className="text-xs font-medium text-gray-900 dark:text-gray-100">Support</span>
                     </button>
                     <button
                       onClick={() => navigate('/customer/support')}
-                      className="flex flex-col items-center gap-2 p-3 bg-orange-50 dark:bg-orange-900/20 hover:bg-orange-100 dark:hover:bg-orange-900/30 rounded-lg transition-colors"
+                      className="flex flex-col items-center gap-2 p-3 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 rounded-lg transition-colors border border-gray-200 dark:border-gray-600"
                     >
                       <AlertCircle className="w-5 h-5 text-orange-600 dark:text-orange-400" />
                       <span className="text-xs font-medium text-gray-900 dark:text-gray-100">Ticket</span>
                     </button>
                     <button
                       onClick={() => navigate('/customer/support')}
-                      className="flex flex-col items-center gap-2 p-3 bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/30 rounded-lg transition-colors"
+                      className="flex flex-col items-center gap-2 p-3 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 rounded-lg transition-colors border border-gray-200 dark:border-gray-600"
                     >
                       <Phone className="w-5 h-5 text-purple-600 dark:text-purple-400" />
                       <span className="text-xs font-medium text-gray-900 dark:text-gray-100">Contact</span>
@@ -966,28 +966,28 @@ const Dashboard = () => {
                   <div className="space-y-2">
                     <button
                       onClick={() => navigate('/customer/catalogue')}
-                      className="w-full flex items-center gap-3 p-3 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
+                      className="w-full flex items-center gap-3 p-3 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 rounded-lg transition-colors border border-gray-200 dark:border-gray-600"
                     >
                       <Plus className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                       <span className="font-medium text-gray-900 dark:text-gray-100">Place New Order</span>
                     </button>
                     <button
                       onClick={() => navigate('/customer/measurements')}
-                      className="w-full flex items-center gap-3 p-3 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 rounded-lg transition-colors"
+                      className="w-full flex items-center gap-3 p-3 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 rounded-lg transition-colors border border-gray-200 dark:border-gray-600"
                     >
                       <Ruler className="w-5 h-5 text-green-600 dark:text-green-400" />
                       <span className="font-medium text-gray-900 dark:text-gray-100">Add Measurements</span>
                     </button>
                     <button
                       onClick={() => navigate('/customer/orders')}
-                      className="w-full flex items-center gap-3 p-3 bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/30 rounded-lg transition-colors"
+                      className="w-full flex items-center gap-3 p-3 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 rounded-lg transition-colors border border-gray-200 dark:border-gray-600"
                     >
                       <FileText className="w-5 h-5 text-purple-600 dark:text-purple-400" />
                       <span className="font-medium text-gray-900 dark:text-gray-100">View Invoices</span>
                     </button>
                     <button
                       onClick={() => navigate('/customer/catalogue')}
-                      className="w-full flex items-center gap-3 p-3 bg-orange-50 dark:bg-orange-900/20 hover:bg-orange-100 dark:hover:bg-orange-900/30 rounded-lg transition-colors"
+                      className="w-full flex items-center gap-3 p-3 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 rounded-lg transition-colors border border-gray-200 dark:border-gray-600"
                     >
                       <Scissors className="w-5 h-5 text-orange-600 dark:text-orange-400" />
                       <span className="font-medium text-gray-900 dark:text-gray-100">Browse Catalogue</span>
@@ -1094,15 +1094,19 @@ const Dashboard = () => {
 
 // Stat Card Component
 const StatCard = ({ title, value, icon: Icon, color, onClick }) => {
+  // Extract color name from the color class (e.g., "bg-blue-500" -> "blue")
+  const colorName = color.match(/bg-(\w+)-/)?.[1] || 'blue';
+  const iconColorClass = `text-${colorName}-600 dark:text-${colorName}-400`;
+  
   return (
     <motion.div
       whileHover={{ scale: 1.05, y: -5 }}
       onClick={onClick}
-      className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 sm:p-4 lg:p-6 cursor-pointer"
+      className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 sm:p-4 lg:p-6 cursor-pointer border border-gray-200 dark:border-gray-700"
     >
       <div className="flex items-center justify-between mb-2 sm:mb-4">
-        <div className={`w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded-lg flex items-center justify-center ${color}`}>
-          <Icon className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-white" />
+        <div className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded-lg flex items-center justify-center bg-gray-100 dark:bg-gray-700">
+          <Icon className={`w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 ${iconColorClass}`} />
         </div>
       </div>
       <p className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm">{title}</p>

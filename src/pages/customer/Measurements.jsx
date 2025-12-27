@@ -32,32 +32,48 @@ const Measurements = () => {
       createdAt: '2024-01-15',
       updatedAt: '2024-03-10',
       measurements: {
-        shirt: {
-          chest: '38',
-          shoulder: '16',
-          sleeveLength: '24',
-          neck: '15',
-          waist: '32',
-          shirtLength: '28'
-        },
         pant: {
+          length: '40',
           waist: '32',
-          hip: '38',
-          inseam: '30',
-          outseam: '40',
+          seatHip: '38',
           thigh: '22',
           knee: '16',
-          ankle: '14'
+          bottom: '14',
+          flyLength: '7'
         },
-        kurta: {
+        shirt: {
+          length: '28',
           chest: '38',
+          waist: '32',
           shoulder: '16',
           sleeveLength: '24',
-          kurtaLength: '42',
-          waist: '32'
+          armhole: '18',
+          collar: '15'
+        },
+        coat: {
+          length: '32',
+          chest: '40',
+          waist: '34',
+          shoulder: '17',
+          sleeveLength: '25',
+          armhole: '19'
+        },
+        kurta: {
+          length: '42',
+          chest: '38',
+          waist: '32',
+          shoulder: '16',
+          sleeveLength: '24',
+          armhole: '18'
+        },
+        dhoti: {
+          length: '45',
+          waist: '32',
+          hip: '38',
+          sideLength: '40',
+          foldLength: '12'
         },
         custom: [
-          { label: 'Arm Hole', value: '18' },
           { label: 'Cuff', value: '9' }
         ]
       }
@@ -148,9 +164,11 @@ const Measurements = () => {
       createdAt: new Date().toISOString().split('T')[0],
       updatedAt: new Date().toISOString().split('T')[0],
       measurements: {
-        shirt: { chest: '', shoulder: '', sleeveLength: '', neck: '', waist: '', shirtLength: '' },
-        pant: { waist: '', hip: '', inseam: '', outseam: '', thigh: '', knee: '', ankle: '' },
-        kurta: { chest: '', shoulder: '', sleeveLength: '', kurtaLength: '', waist: '' },
+        pant: { length: '', waist: '', seatHip: '', thigh: '', knee: '', bottom: '', flyLength: '' },
+        shirt: { length: '', chest: '', waist: '', shoulder: '', sleeveLength: '', armhole: '', collar: '' },
+        coat: { length: '', chest: '', waist: '', shoulder: '', sleeveLength: '', armhole: '' },
+        kurta: { length: '', chest: '', waist: '', shoulder: '', sleeveLength: '', armhole: '' },
+        dhoti: { length: '', waist: '', hip: '', sideLength: '', foldLength: '' },
         custom: []
       }
     };
@@ -183,40 +201,65 @@ const Measurements = () => {
 
   // Measurement categories configuration
   const categories = {
-    shirt: {
-      label: 'Shirt Measurements',
-      icon: '👔',
-      fields: [
-        { key: 'chest', label: 'Chest', unit: 'inches', placeholder: 'e.g., 38' },
-        { key: 'shoulder', label: 'Shoulder', unit: 'inches', placeholder: 'e.g., 16' },
-        { key: 'sleeveLength', label: 'Sleeve Length', unit: 'inches', placeholder: 'e.g., 24' },
-        { key: 'neck', label: 'Neck', unit: 'inches', placeholder: 'e.g., 15' },
-        { key: 'waist', label: 'Waist', unit: 'inches', placeholder: 'e.g., 32' },
-        { key: 'shirtLength', label: 'Shirt Length', unit: 'inches', placeholder: 'e.g., 28' }
-      ]
-    },
     pant: {
       label: 'Pant Measurements',
       icon: '👖',
       fields: [
+        { key: 'length', label: 'Length', unit: 'inches', placeholder: 'e.g., 40' },
         { key: 'waist', label: 'Waist', unit: 'inches', placeholder: 'e.g., 32' },
-        { key: 'hip', label: 'Hip', unit: 'inches', placeholder: 'e.g., 38' },
-        { key: 'inseam', label: 'Inseam', unit: 'inches', placeholder: 'e.g., 30' },
-        { key: 'outseam', label: 'Outseam', unit: 'inches', placeholder: 'e.g., 40' },
+        { key: 'seatHip', label: 'Seat/Hip', unit: 'inches', placeholder: 'e.g., 38' },
         { key: 'thigh', label: 'Thigh', unit: 'inches', placeholder: 'e.g., 22' },
         { key: 'knee', label: 'Knee', unit: 'inches', placeholder: 'e.g., 16' },
-        { key: 'ankle', label: 'Ankle', unit: 'inches', placeholder: 'e.g., 14' }
+        { key: 'bottom', label: 'Bottom', unit: 'inches', placeholder: 'e.g., 14' },
+        { key: 'flyLength', label: 'Fly Length', unit: 'inches', placeholder: 'e.g., 7' }
+      ]
+    },
+    shirt: {
+      label: 'Shirt Measurements',
+      icon: '👔',
+      fields: [
+        { key: 'length', label: 'Length', unit: 'inches', placeholder: 'e.g., 28' },
+        { key: 'chest', label: 'Chest', unit: 'inches', placeholder: 'e.g., 38' },
+        { key: 'waist', label: 'Waist', unit: 'inches', placeholder: 'e.g., 32' },
+        { key: 'shoulder', label: 'Shoulder', unit: 'inches', placeholder: 'e.g., 16' },
+        { key: 'sleeveLength', label: 'Sleeve Length', unit: 'inches', placeholder: 'e.g., 24' },
+        { key: 'armhole', label: 'Armhole', unit: 'inches', placeholder: 'e.g., 18' },
+        { key: 'collar', label: 'Collar (Neck)', unit: 'inches', placeholder: 'e.g., 15' }
+      ]
+    },
+    coat: {
+      label: 'Coat Measurements',
+      icon: '🧥',
+      fields: [
+        { key: 'length', label: 'Length', unit: 'inches', placeholder: 'e.g., 32' },
+        { key: 'chest', label: 'Chest', unit: 'inches', placeholder: 'e.g., 40' },
+        { key: 'waist', label: 'Waist', unit: 'inches', placeholder: 'e.g., 34' },
+        { key: 'shoulder', label: 'Shoulder', unit: 'inches', placeholder: 'e.g., 17' },
+        { key: 'sleeveLength', label: 'Sleeve Length', unit: 'inches', placeholder: 'e.g., 25' },
+        { key: 'armhole', label: 'Armhole', unit: 'inches', placeholder: 'e.g., 19' }
       ]
     },
     kurta: {
-      label: 'Kurta / Blouse Measurements',
+      label: 'Kurta Measurements',
       icon: '🥻',
       fields: [
+        { key: 'length', label: 'Length', unit: 'inches', placeholder: 'e.g., 42' },
         { key: 'chest', label: 'Chest', unit: 'inches', placeholder: 'e.g., 38' },
+        { key: 'waist', label: 'Waist', unit: 'inches', placeholder: 'e.g., 32' },
         { key: 'shoulder', label: 'Shoulder', unit: 'inches', placeholder: 'e.g., 16' },
         { key: 'sleeveLength', label: 'Sleeve Length', unit: 'inches', placeholder: 'e.g., 24' },
-        { key: 'kurtaLength', label: 'Kurta Length', unit: 'inches', placeholder: 'e.g., 42' },
-        { key: 'waist', label: 'Waist', unit: 'inches', placeholder: 'e.g., 32' }
+        { key: 'armhole', label: 'Armhole', unit: 'inches', placeholder: 'e.g., 18' }
+      ]
+    },
+    dhoti: {
+      label: 'Dhoti Measurements',
+      icon: '🎽',
+      fields: [
+        { key: 'length', label: 'Length', unit: 'inches', placeholder: 'e.g., 45' },
+        { key: 'waist', label: 'Waist', unit: 'inches', placeholder: 'e.g., 32' },
+        { key: 'hip', label: 'Hip', unit: 'inches', placeholder: 'e.g., 38' },
+        { key: 'sideLength', label: 'Side Length', unit: 'inches', placeholder: 'e.g., 40' },
+        { key: 'foldLength', label: 'Fold Length', unit: 'inches', placeholder: 'e.g., 12' }
       ]
     }
   };
