@@ -14,6 +14,7 @@ const Customers = () => {
   const [customers, setCustomers] = useState([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState({ title: '', description: '' });
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [fetchError, setFetchError] = useState(null);
@@ -313,6 +314,10 @@ const Customers = () => {
       // Refresh the customers list from the backend
       await fetchCustomers();
 
+      setSuccessMessage({
+        title: 'Customer Added Successfully!',
+        description: 'The customer has been added and can now place orders.'
+      });
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 5000);
 
@@ -380,7 +385,7 @@ const Customers = () => {
     setShowEditModal(true);
   };
 
-  const handleUpdateCustomer = () => {
+  const handleUpdateCustomer = async () => {
     const validation = validateCustomerForm(customerForm);
     
     if (!validation.isValid) {
@@ -388,81 +393,116 @@ const Customers = () => {
       return;
     }
 
-    const updatedCustomer = {
-      ...editingCustomer,
-      name: customerForm.name,
-      email: customerForm.email,
-      phone: customerForm.mobile,
-      measurements: {
-        pant: {
-          length: parseFloat(customerForm.measurements.pant.length) || 0,
-          waist: parseFloat(customerForm.measurements.pant.waist) || 0,
+    // Get JWT token
+    let token = localStorage.getItem('token');
+    if (!token) {
+      const userDataString = localStorage.getItem('user');
+      if (userDataString) {
+        try {
+          const userData = JSON.parse(userDataString);
+          token = userData.jwt || userData.token;
+        } catch (e) {
+          console.error('Error parsing user data:', e);
+        }
+      }
+    }
+
+    if (!token) {
+      setErrors({ api: 'User not authenticated. Please login again.' });
+      return;
+    }
+
+    try {
+      // Prepare API payload for update
+      const payload = {
+        measurements: {
+          // Pant measurements
+          pantLength: parseFloat(customerForm.measurements.pant.length) || 0,
+          pantWaist: parseFloat(customerForm.measurements.pant.waist) || 0,
           seatHip: parseFloat(customerForm.measurements.pant.seatHip) || 0,
           thigh: parseFloat(customerForm.measurements.pant.thigh) || 0,
           knee: parseFloat(customerForm.measurements.pant.knee) || 0,
           bottom: parseFloat(customerForm.measurements.pant.bottom) || 0,
-          flyLength: parseFloat(customerForm.measurements.pant.flyLength) || 0
-        },
-        shirt: {
-          length: parseFloat(customerForm.measurements.shirt.length) || 0,
+          flyLength: parseFloat(customerForm.measurements.pant.flyLength) || 0,
+          // Shirt measurements
+          shirtLength: parseFloat(customerForm.measurements.shirt.length) || 0,
           chest: parseFloat(customerForm.measurements.shirt.chest) || 0,
-          waist: parseFloat(customerForm.measurements.shirt.waist) || 0,
+          shirtWaist: parseFloat(customerForm.measurements.shirt.waist) || 0,
           shoulder: parseFloat(customerForm.measurements.shirt.shoulder) || 0,
           sleeveLength: parseFloat(customerForm.measurements.shirt.sleeveLength) || 0,
           armhole: parseFloat(customerForm.measurements.shirt.armhole) || 0,
-          collar: parseFloat(customerForm.measurements.shirt.collar) || 0
-        },
-        coat: {
-          length: parseFloat(customerForm.measurements.coat.length) || 0,
-          chest: parseFloat(customerForm.measurements.coat.chest) || 0,
-          waist: parseFloat(customerForm.measurements.coat.waist) || 0,
-          shoulder: parseFloat(customerForm.measurements.coat.shoulder) || 0,
-          sleeveLength: parseFloat(customerForm.measurements.coat.sleeveLength) || 0,
-          armhole: parseFloat(customerForm.measurements.coat.armhole) || 0
-        },
-        kurta: {
-          length: parseFloat(customerForm.measurements.kurta.length) || 0,
-          chest: parseFloat(customerForm.measurements.kurta.chest) || 0,
-          waist: parseFloat(customerForm.measurements.kurta.waist) || 0,
-          shoulder: parseFloat(customerForm.measurements.kurta.shoulder) || 0,
-          sleeveLength: parseFloat(customerForm.measurements.kurta.sleeveLength) || 0,
-          armhole: parseFloat(customerForm.measurements.kurta.armhole) || 0
-        },
-        dhoti: {
-          length: parseFloat(customerForm.measurements.dhoti.length) || 0,
-          waist: parseFloat(customerForm.measurements.dhoti.waist) || 0,
-          hip: parseFloat(customerForm.measurements.dhoti.hip) || 0,
+          collar: parseFloat(customerForm.measurements.shirt.collar) || 0,
+          // Coat measurements
+          coatLength: parseFloat(customerForm.measurements.coat.length) || 0,
+          coatChest: parseFloat(customerForm.measurements.coat.chest) || 0,
+          coatWaist: parseFloat(customerForm.measurements.coat.waist) || 0,
+          coatShoulder: parseFloat(customerForm.measurements.coat.shoulder) || 0,
+          coatSleeveLength: parseFloat(customerForm.measurements.coat.sleeveLength) || 0,
+          coatArmhole: parseFloat(customerForm.measurements.coat.armhole) || 0,
+          // Kurta measurements
+          kurtaLength: parseFloat(customerForm.measurements.kurta.length) || 0,
+          kurtaChest: parseFloat(customerForm.measurements.kurta.chest) || 0,
+          kurtaWaist: parseFloat(customerForm.measurements.kurta.waist) || 0,
+          kurtaShoulder: parseFloat(customerForm.measurements.kurta.shoulder) || 0,
+          kurtaSleeveLength: parseFloat(customerForm.measurements.kurta.sleeveLength) || 0,
+          kurtaArmhole: parseFloat(customerForm.measurements.kurta.armhole) || 0,
+          // Dhoti measurements
+          dhotiLength: parseFloat(customerForm.measurements.dhoti.length) || 0,
+          dhotiWaist: parseFloat(customerForm.measurements.dhoti.waist) || 0,
+          dhotiHip: parseFloat(customerForm.measurements.dhoti.hip) || 0,
           sideLength: parseFloat(customerForm.measurements.dhoti.sideLength) || 0,
-          foldLength: parseFloat(customerForm.measurements.dhoti.foldLength) || 0
+          foldLength: parseFloat(customerForm.measurements.dhoti.foldLength) || 0,
+          // Custom measurements
+          customMeasurements: customerForm.measurements.custom || ''
+        }
+      };
+
+      console.log('Updating customer with payload:', payload);
+
+      const result = await customerAPI.updateCustomer(editingCustomer.id, payload, token);
+
+      console.log('API Result:', result);
+
+      if (!result.success) {
+        throw new Error(result.error);
+      }
+
+      console.log('Customer updated successfully:', result.data);
+
+      // Refresh the customers list from the backend
+      await fetchCustomers();
+
+      setSuccessMessage({
+        title: 'Customer Updated Successfully!',
+        description: 'The customer information has been updated.'
+      });
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 5000);
+
+      // Reset form and close modal
+      setCustomerForm({
+        name: '',
+        mobile: '',
+        email: '',
+        password: '',
+        measurements: {
+          pant: { length: '', waist: '', seatHip: '', thigh: '', knee: '', bottom: '', flyLength: '' },
+          shirt: { length: '', chest: '', waist: '', shoulder: '', sleeveLength: '', armhole: '', collar: '' },
+          coat: { length: '', chest: '', waist: '', shoulder: '', sleeveLength: '', armhole: '' },
+          kurta: { length: '', chest: '', waist: '', shoulder: '', sleeveLength: '', armhole: '' },
+          dhoti: { length: '', waist: '', hip: '', sideLength: '', foldLength: '' },
+          custom: ''
         },
-        custom: customerForm.measurements.custom
-      },
-      avatar: photoPreview || editingCustomer.avatar
-    };
-
-    setCustomers(prev => prev.map(c => c.id === editingCustomer.id ? updatedCustomer : c));
-    setShowSuccess(true);
-    setTimeout(() => setShowSuccess(false), 3000);
-
-    // Reset form and close modal
-    setCustomerForm({
-      name: '',
-      mobile: '',
-      email: '',
-      measurements: {
-        pant: { length: '', waist: '', seatHip: '', thigh: '', knee: '', bottom: '', flyLength: '' },
-        shirt: { length: '', chest: '', waist: '', shoulder: '', sleeveLength: '', armhole: '', collar: '' },
-        coat: { length: '', chest: '', waist: '', shoulder: '', sleeveLength: '', armhole: '' },
-        kurta: { length: '', chest: '', waist: '', shoulder: '', sleeveLength: '', armhole: '' },
-        dhoti: { length: '', waist: '', hip: '', sideLength: '', foldLength: '' },
-        custom: ''
-      },
-      photo: null
-    });
-    setPhotoPreview(null);
-    setErrors({});
-    setEditingCustomer(null);
-    setShowEditModal(false);
+        photo: null
+      });
+      setPhotoPreview(null);
+      setErrors({});
+      setEditingCustomer(null);
+      setShowEditModal(false);
+    } catch (error) {
+      console.error('Error updating customer:', error);
+      setErrors({ api: error.message || 'Failed to update customer' });
+    }
   };
 
   const handleDelete = (customerId) => {
@@ -510,10 +550,10 @@ const Customers = () => {
                     </div>
                     <div className="flex-1">
                       <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-1">
-                        Customer Added Successfully!
+                        {successMessage.title || 'Customer Added Successfully!'}
                       </h3>
                       <p className="text-sm text-gray-600 dark:text-gray-400">
-                        The customer has been added and can now place orders.
+                        {successMessage.description || 'The customer has been added and can now place orders.'}
                       </p>
                     </div>
                     <button
