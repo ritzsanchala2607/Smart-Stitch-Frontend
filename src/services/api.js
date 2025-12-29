@@ -632,6 +632,244 @@ export const customerAPI = {
                 error: error.message || 'Server error. Please try again later.'
             };
         }
+    },
+
+    /**
+     * Delete customer
+     * @param {number} customerId - Customer ID to delete
+     * @param {string} token - JWT token for authentication
+     * @returns {Promise} Response with deletion status
+     */
+    deleteCustomer: async (customerId, token) => {
+        try {
+            console.log('API Request - URL:', `${API_URL}/api/customers/${customerId}`);
+            console.log('API Request - Method: DELETE');
+            console.log('API Request - Token:', token ? `Bearer ${token.substring(0, 20)}...` : 'No token');
+
+            const response = await fetch(`${API_URL}/api/customers/${customerId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            console.log('API Response - Status:', response.status, response.statusText);
+            console.log('API Response - Headers:', Object.fromEntries(response.headers.entries()));
+
+            // Check if response has content
+            const contentType = response.headers.get('content-type');
+            let data = null;
+
+            if (contentType && contentType.includes('application/json')) {
+                const text = await response.text();
+                console.log('API Response - Body (text):', text);
+                if (text) {
+                    try {
+                        data = JSON.parse(text);
+                    } catch (e) {
+                        console.error('Failed to parse JSON:', e);
+                        data = {
+                            message: text
+                        };
+                    }
+                }
+            } else {
+                const text = await response.text();
+                console.log('API Response - Body (non-JSON):', text);
+                if (!response.ok) {
+                    throw new Error(text || `Server error: ${response.status} ${response.statusText}`);
+                }
+                data = {
+                    message: text || 'Customer deleted successfully'
+                };
+            }
+
+            if (!response.ok) {
+                const errorMessage = (data && data.message) || (data && data.error) || `Server error: ${response.status} ${response.statusText}`;
+                console.error('Delete failed with error:', errorMessage);
+                throw new Error(errorMessage);
+            }
+
+            return {
+                success: true,
+                data: data.data || null,
+                message: (data && data.message) || 'Customer deleted successfully'
+            };
+        } catch (error) {
+            console.error('Delete Customer API Error:', error);
+            return {
+                success: false,
+                error: error.message || 'Server error. Please try again later.'
+            };
+        }
+    },
+
+    /**
+     * Create measurement profile for customer
+     * @param {Object} measurementData - Measurement profile data
+     * @param {number} measurementData.customerId - Customer ID
+     * @param {string} measurementData.dressType - Dress type (PANT, SHIRT, COAT, KURTA, DHOTI, CUSTOM)
+     * @param {string} measurementData.notes - Optional notes
+     * @param {Object} measurementData.measurements - Measurement values (varies by dress type)
+     * @param {string} token - JWT token for authentication
+     * @returns {Promise} Response with created measurement profile
+     */
+    createMeasurementProfile: async (measurementData, token) => {
+        try {
+            console.log('API Request - URL:', `${API_URL}/api/measurements`);
+            console.log('API Request - Payload:', JSON.stringify(measurementData, null, 2));
+
+            const response = await fetch(`${API_URL}/api/measurements`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(measurementData)
+            });
+
+            console.log('API Response - Status:', response.status, response.statusText);
+
+            const contentType = response.headers.get('content-type');
+            let data = null;
+
+            if (contentType && contentType.includes('application/json')) {
+                const text = await response.text();
+                console.log('API Response - Body (text):', text);
+                if (text) {
+                    data = JSON.parse(text);
+                }
+            } else {
+                const text = await response.text();
+                console.log('API Response - Body (non-JSON):', text);
+                if (!response.ok) {
+                    throw new Error(text || `Server error: ${response.status} ${response.statusText}`);
+                }
+                data = {
+                    message: text || 'Measurement profile created successfully'
+                };
+            }
+
+            if (!response.ok) {
+                throw new Error((data && data.message) || (data && data.error) || `Server error: ${response.status} ${response.statusText}`);
+            }
+
+            return {
+                success: true,
+                data: data.data || data,
+                message: (data && data.message) || 'Measurement profile created successfully'
+            };
+        } catch (error) {
+            console.error('Create Measurement Profile API Error:', error);
+            return {
+                success: false,
+                error: error.message || 'Server error. Please try again later.'
+            };
+        }
+    },
+
+    /**
+     * Get measurement profiles for a customer
+     * @param {number} customerId - Customer ID
+     * @param {string} token - JWT token for authentication
+     * @returns {Promise} Response with measurement profiles list
+     */
+    getMeasurementProfiles: async (customerId, token) => {
+        try {
+            console.log('API Request - URL:', `${API_URL}/api/measurements/customer/${customerId}`);
+
+            const response = await fetch(`${API_URL}/api/measurements/customer/${customerId}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            console.log('API Response - Status:', response.status, response.statusText);
+
+            const data = await response.json();
+            console.log('API Response - Data:', data);
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to fetch measurement profiles');
+            }
+
+            return {
+                success: true,
+                data: data.data || data,
+                message: data.message
+            };
+        } catch (error) {
+            console.error('Get Measurement Profiles API Error:', error);
+            return {
+                success: false,
+                error: error.message || 'Server error. Please try again later.'
+            };
+        }
+    },
+
+    /**
+     * Update measurement profile
+     * @param {number} profileId - Measurement profile ID
+     * @param {Object} updateData - Updated measurement data
+     * @param {string} updateData.notes - Optional notes
+     * @param {Object} updateData.measurements - Updated measurement values
+     * @param {string} token - JWT token for authentication
+     * @returns {Promise} Response with updated measurement profile
+     */
+    updateMeasurementProfile: async (profileId, updateData, token) => {
+        try {
+            console.log('API Request - URL:', `${API_URL}/api/measurements/${profileId}`);
+            console.log('API Request - Payload:', JSON.stringify(updateData, null, 2));
+
+            const response = await fetch(`${API_URL}/api/measurements/${profileId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(updateData)
+            });
+
+            console.log('API Response - Status:', response.status, response.statusText);
+
+            const contentType = response.headers.get('content-type');
+            let data = null;
+
+            if (contentType && contentType.includes('application/json')) {
+                const text = await response.text();
+                console.log('API Response - Body (text):', text);
+                if (text) {
+                    data = JSON.parse(text);
+                }
+            } else {
+                const text = await response.text();
+                console.log('API Response - Body (non-JSON):', text);
+                if (!response.ok) {
+                    throw new Error(text || `Server error: ${response.status} ${response.statusText}`);
+                }
+                data = {
+                    message: text || 'Measurement profile updated successfully'
+                };
+            }
+
+            if (!response.ok) {
+                throw new Error((data && data.message) || (data && data.error) || `Server error: ${response.status} ${response.statusText}`);
+            }
+
+            return {
+                success: true,
+                data: data.data || data,
+                message: (data && data.message) || 'Measurement profile updated successfully'
+            };
+        } catch (error) {
+            console.error('Update Measurement Profile API Error:', error);
+            return {
+                success: false,
+                error: error.message || 'Server error. Please try again later.'
+            };
+        }
     }
 };
 

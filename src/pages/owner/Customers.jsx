@@ -2,7 +2,7 @@ import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
 import { motion, AnimatePresence } from 'framer-motion';
 import usePageTitle from '../../hooks/usePageTitle';
-import { UserPlus, X, Upload, CheckCircle, Search, Eye, EyeOff } from 'lucide-react';
+import { UserPlus, X, Upload, CheckCircle, Search, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { validateCustomerForm } from '../../utils/validation';
 import CustomerCard from '../../components/common/CustomerCard';
@@ -19,6 +19,11 @@ const Customers = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [fetchError, setFetchError] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [customerToDelete, setCustomerToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [measurementProfiles, setMeasurementProfiles] = useState([]);
+  const [isLoadingMeasurements, setIsLoadingMeasurements] = useState(false);
   
   const [customerForm, setCustomerForm] = useState({
     name: '',
@@ -245,78 +250,181 @@ const Customers = () => {
     }
 
     try {
-      // Prepare API payload
-      const payload = {
+      // Step 1: Create customer WITHOUT measurements (new API approach)
+      const customerPayload = {
         user: {
           name: customerForm.name,
           email: customerForm.email,
-          password: customerForm.password || 'Customer@123', // Default password if not provided
+          password: customerForm.password || 'Customer@123',
           contactNumber: customerForm.mobile,
-          roleId: 3 // Customer role ID
-        },
-        measurements: {
-          // Pant measurements
-          pantLength: parseFloat(customerForm.measurements.pant.length) || 0,
-          pantWaist: parseFloat(customerForm.measurements.pant.waist) || 0,
-          seatHip: parseFloat(customerForm.measurements.pant.seatHip) || 0,
-          thigh: parseFloat(customerForm.measurements.pant.thigh) || 0,
-          knee: parseFloat(customerForm.measurements.pant.knee) || 0,
-          bottom: parseFloat(customerForm.measurements.pant.bottom) || 0,
-          flyLength: parseFloat(customerForm.measurements.pant.flyLength) || 0,
-          // Shirt measurements
-          shirtLength: parseFloat(customerForm.measurements.shirt.length) || 0,
-          chest: parseFloat(customerForm.measurements.shirt.chest) || 0,
-          shirtWaist: parseFloat(customerForm.measurements.shirt.waist) || 0,
-          shoulder: parseFloat(customerForm.measurements.shirt.shoulder) || 0,
-          sleeveLength: parseFloat(customerForm.measurements.shirt.sleeveLength) || 0,
-          armhole: parseFloat(customerForm.measurements.shirt.armhole) || 0,
-          collar: parseFloat(customerForm.measurements.shirt.collar) || 0,
-          // Coat measurements
-          coatLength: parseFloat(customerForm.measurements.coat.length) || 0,
-          coatChest: parseFloat(customerForm.measurements.coat.chest) || 0,
-          coatWaist: parseFloat(customerForm.measurements.coat.waist) || 0,
-          coatShoulder: parseFloat(customerForm.measurements.coat.shoulder) || 0,
-          coatSleeveLength: parseFloat(customerForm.measurements.coat.sleeveLength) || 0,
-          coatArmhole: parseFloat(customerForm.measurements.coat.armhole) || 0,
-          // Kurta measurements
-          kurtaLength: parseFloat(customerForm.measurements.kurta.length) || 0,
-          kurtaChest: parseFloat(customerForm.measurements.kurta.chest) || 0,
-          kurtaWaist: parseFloat(customerForm.measurements.kurta.waist) || 0,
-          kurtaShoulder: parseFloat(customerForm.measurements.kurta.shoulder) || 0,
-          kurtaSleeveLength: parseFloat(customerForm.measurements.kurta.sleeveLength) || 0,
-          kurtaArmhole: parseFloat(customerForm.measurements.kurta.armhole) || 0,
-          // Dhoti measurements
-          dhotiLength: parseFloat(customerForm.measurements.dhoti.length) || 0,
-          dhotiWaist: parseFloat(customerForm.measurements.dhoti.waist) || 0,
-          dhotiHip: parseFloat(customerForm.measurements.dhoti.hip) || 0,
-          sideLength: parseFloat(customerForm.measurements.dhoti.sideLength) || 0,
-          foldLength: parseFloat(customerForm.measurements.dhoti.foldLength) || 0,
-          // Custom measurements
-          customMeasurements: customerForm.measurements.custom || ''
+          roleId: 3
         }
+        // Note: measurements field removed - will be created separately
       };
 
-      console.log('Creating customer with payload:', payload);
+      console.log('Step 1: Creating customer without measurements:', customerPayload);
 
-      const result = await customerAPI.addCustomer(payload, token);
+      const customerResult = await customerAPI.addCustomer(customerPayload, token);
 
-      console.log('API Result:', result);
+      console.log('Customer API Result:', customerResult);
 
-      if (!result.success) {
-        if (result.error.includes('403')) {
+      if (!customerResult.success) {
+        if (customerResult.error.includes('403')) {
           throw new Error('Access denied. Please ensure you are logged in as a shop owner.');
         }
-        throw new Error(result.error);
+        throw new Error(customerResult.error);
       }
 
-      console.log('Customer created successfully:', result.data);
+      console.log('Customer created successfully:', customerResult.data);
+
+      // Get the created customer ID
+      const customerId = customerResult.data.customerId || customerResult.data.id;
+
+      if (!customerId) {
+        console.error('Customer ID not found in response:', customerResult.data);
+        throw new Error('Customer created but ID not returned from server');
+      }
+
+      console.log('Customer ID:', customerId);
+
+      // Step 2: Create measurement profiles for each dress type that has data
+      const measurementProfiles = [];
+      let successfulProfiles = 0;
+      let failedProfiles = 0;
+
+      // Pant measurements
+      if (Object.values(customerForm.measurements.pant).some(v => v)) {
+        const pantMeasurements = {
+          customerId: customerId,
+          dressType: 'PANT',
+          notes: 'Initial measurements',
+          measurements: {}
+        };
+        
+        if (customerForm.measurements.pant.waist) pantMeasurements.measurements.waist = parseFloat(customerForm.measurements.pant.waist);
+        if (customerForm.measurements.pant.length) pantMeasurements.measurements.length = parseFloat(customerForm.measurements.pant.length);
+        if (customerForm.measurements.pant.seatHip) pantMeasurements.measurements.hip = parseFloat(customerForm.measurements.pant.seatHip);
+        if (customerForm.measurements.pant.thigh) pantMeasurements.measurements.thigh = parseFloat(customerForm.measurements.pant.thigh);
+        if (customerForm.measurements.pant.knee) pantMeasurements.measurements.knee = parseFloat(customerForm.measurements.pant.knee);
+        if (customerForm.measurements.pant.bottom) pantMeasurements.measurements.bottom = parseFloat(customerForm.measurements.pant.bottom);
+        if (customerForm.measurements.pant.flyLength) pantMeasurements.measurements.flyLength = parseFloat(customerForm.measurements.pant.flyLength);
+        
+        measurementProfiles.push(pantMeasurements);
+      }
+
+      // Shirt measurements
+      if (Object.values(customerForm.measurements.shirt).some(v => v)) {
+        const shirtMeasurements = {
+          customerId: customerId,
+          dressType: 'SHIRT',
+          notes: 'Initial measurements',
+          measurements: {}
+        };
+        
+        if (customerForm.measurements.shirt.chest) shirtMeasurements.measurements.chest = parseFloat(customerForm.measurements.shirt.chest);
+        if (customerForm.measurements.shirt.shoulder) shirtMeasurements.measurements.shoulder = parseFloat(customerForm.measurements.shirt.shoulder);
+        if (customerForm.measurements.shirt.length) shirtMeasurements.measurements.length = parseFloat(customerForm.measurements.shirt.length);
+        if (customerForm.measurements.shirt.sleeveLength) shirtMeasurements.measurements.sleeve = parseFloat(customerForm.measurements.shirt.sleeveLength);
+        if (customerForm.measurements.shirt.waist) shirtMeasurements.measurements.waist = parseFloat(customerForm.measurements.shirt.waist);
+        if (customerForm.measurements.shirt.armhole) shirtMeasurements.measurements.armhole = parseFloat(customerForm.measurements.shirt.armhole);
+        if (customerForm.measurements.shirt.collar) shirtMeasurements.measurements.collar = parseFloat(customerForm.measurements.shirt.collar);
+        
+        measurementProfiles.push(shirtMeasurements);
+      }
+
+      // Coat measurements
+      if (Object.values(customerForm.measurements.coat).some(v => v)) {
+        const coatMeasurements = {
+          customerId: customerId,
+          dressType: 'COAT',
+          notes: 'Initial measurements',
+          measurements: {}
+        };
+        
+        if (customerForm.measurements.coat.chest) coatMeasurements.measurements.chest = parseFloat(customerForm.measurements.coat.chest);
+        if (customerForm.measurements.coat.shoulder) coatMeasurements.measurements.shoulder = parseFloat(customerForm.measurements.coat.shoulder);
+        if (customerForm.measurements.coat.length) coatMeasurements.measurements.length = parseFloat(customerForm.measurements.coat.length);
+        if (customerForm.measurements.coat.sleeveLength) coatMeasurements.measurements.sleeve = parseFloat(customerForm.measurements.coat.sleeveLength);
+        if (customerForm.measurements.coat.waist) coatMeasurements.measurements.waist = parseFloat(customerForm.measurements.coat.waist);
+        if (customerForm.measurements.coat.armhole) coatMeasurements.measurements.armhole = parseFloat(customerForm.measurements.coat.armhole);
+        
+        measurementProfiles.push(coatMeasurements);
+      }
+
+      // Kurta measurements
+      if (Object.values(customerForm.measurements.kurta).some(v => v)) {
+        const kurtaMeasurements = {
+          customerId: customerId,
+          dressType: 'KURTA',
+          notes: 'Initial measurements',
+          measurements: {}
+        };
+        
+        if (customerForm.measurements.kurta.chest) kurtaMeasurements.measurements.chest = parseFloat(customerForm.measurements.kurta.chest);
+        if (customerForm.measurements.kurta.shoulder) kurtaMeasurements.measurements.shoulder = parseFloat(customerForm.measurements.kurta.shoulder);
+        if (customerForm.measurements.kurta.length) kurtaMeasurements.measurements.length = parseFloat(customerForm.measurements.kurta.length);
+        if (customerForm.measurements.kurta.sleeveLength) kurtaMeasurements.measurements.sleeve = parseFloat(customerForm.measurements.kurta.sleeveLength);
+        if (customerForm.measurements.kurta.waist) kurtaMeasurements.measurements.waist = parseFloat(customerForm.measurements.kurta.waist);
+        if (customerForm.measurements.kurta.armhole) kurtaMeasurements.measurements.armhole = parseFloat(customerForm.measurements.kurta.armhole);
+        
+        measurementProfiles.push(kurtaMeasurements);
+      }
+
+      // Dhoti measurements
+      if (Object.values(customerForm.measurements.dhoti).some(v => v)) {
+        const dhotiMeasurements = {
+          customerId: customerId,
+          dressType: 'DHOTI',
+          notes: 'Initial measurements',
+          measurements: {}
+        };
+        
+        if (customerForm.measurements.dhoti.waist) dhotiMeasurements.measurements.waist = parseFloat(customerForm.measurements.dhoti.waist);
+        if (customerForm.measurements.dhoti.length) dhotiMeasurements.measurements.length = parseFloat(customerForm.measurements.dhoti.length);
+        if (customerForm.measurements.dhoti.hip) dhotiMeasurements.measurements.hip = parseFloat(customerForm.measurements.dhoti.hip);
+        if (customerForm.measurements.dhoti.sideLength) dhotiMeasurements.measurements.sideLength = parseFloat(customerForm.measurements.dhoti.sideLength);
+        if (customerForm.measurements.dhoti.foldLength) dhotiMeasurements.measurements.foldLength = parseFloat(customerForm.measurements.dhoti.foldLength);
+        
+        measurementProfiles.push(dhotiMeasurements);
+      }
+
+      // Custom measurements
+      if (customerForm.measurements.custom) {
+        const customMeasurements = {
+          customerId: customerId,
+          dressType: 'CUSTOM',
+          notes: customerForm.measurements.custom,
+          measurements: {}
+        };
+        measurementProfiles.push(customMeasurements);
+      }
+
+      // Step 3: Create all measurement profiles
+      console.log(`Step 2: Creating ${measurementProfiles.length} measurement profiles...`);
+      
+      for (const profile of measurementProfiles) {
+        console.log(`Creating ${profile.dressType} profile:`, profile);
+        const measurementResult = await customerAPI.createMeasurementProfile(profile, token);
+        
+        if (!measurementResult.success) {
+          console.error(`Failed to create ${profile.dressType} measurement profile:`, measurementResult.error);
+          failedProfiles++;
+        } else {
+          console.log(`${profile.dressType} measurement profile created successfully`);
+          successfulProfiles++;
+        }
+      }
 
       // Refresh the customers list from the backend
       await fetchCustomers();
 
+      const profileMessage = measurementProfiles.length > 0 
+        ? `Customer created with ${successfulProfiles} measurement profile(s).${failedProfiles > 0 ? ` (${failedProfiles} failed)` : ''}`
+        : 'Customer created successfully.';
+
       setSuccessMessage({
         title: 'Customer Added Successfully!',
-        description: 'The customer has been added and can now place orders.'
+        description: profileMessage
       });
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 5000);
@@ -330,7 +438,6 @@ const Customers = () => {
         measurements: {
           pant: { length: '', waist: '', seatHip: '', thigh: '', knee: '', bottom: '', flyLength: '' },
           shirt: { length: '', chest: '', waist: '', shoulder: '', sleeveLength: '', armhole: '', collar: '' },
-          coat: { length: '', chest: '', waist: '', shoulder: '', sleeveLength: '', armhole: '' },
           kurta: { length: '', chest: '', waist: '', shoulder: '', sleeveLength: '', armhole: '' },
           dhoti: { length: '', waist: '', hip: '', sideLength: '', foldLength: '' },
           custom: ''
@@ -351,28 +458,66 @@ const Customers = () => {
   const [selectedCustomerForView, setSelectedCustomerForView] = useState(null);
   const [editingCustomer, setEditingCustomer] = useState(null);
 
-  const handleView = (customerId) => {
+  const handleView = async (customerId) => {
     const customer = customers.find(c => c.id === customerId);
     setSelectedCustomerForView(customer);
     setShowViewModal(true);
+    
+    // Fetch measurement profiles for this customer
+    setIsLoadingMeasurements(true);
+    setMeasurementProfiles([]);
+    
+    // Get token
+    let token = localStorage.getItem('token');
+    if (!token) {
+      const userDataString = localStorage.getItem('user');
+      if (userDataString) {
+        try {
+          const userData = JSON.parse(userDataString);
+          token = userData.jwt || userData.token;
+        } catch (e) {
+          console.error('Error parsing user data:', e);
+        }
+      }
+    }
+
+    if (token && customerId) {
+      try {
+        const result = await customerAPI.getMeasurementProfiles(customerId, token);
+        
+        if (result.success) {
+          console.log('Measurement profiles fetched:', result.data);
+          setMeasurementProfiles(result.data || []);
+        } else {
+          console.error('Failed to fetch measurement profiles:', result.error);
+          setMeasurementProfiles([]);
+        }
+      } catch (error) {
+        console.error('Error fetching measurement profiles:', error);
+        setMeasurementProfiles([]);
+      }
+    }
+    
+    setIsLoadingMeasurements(false);
   };
 
-  const handleEdit = (customerId) => {
+  const handleEdit = async (customerId) => {
     const customer = customers.find(c => c.id === customerId);
     setEditingCustomer(customer);
     
-    // Pre-fill form with customer data
+    // Pre-fill form with customer basic data
     setCustomerForm({
       name: customer.name,
       mobile: customer.phone,
       email: customer.email,
+      password: '', // Don't pre-fill password
       measurements: {
-        pant: customer.measurements?.pant || { length: '', waist: '', seatHip: '', thigh: '', knee: '', bottom: '', flyLength: '' },
-        shirt: customer.measurements?.shirt || { length: '', chest: '', waist: '', shoulder: '', sleeveLength: '', armhole: '', collar: '' },
-        coat: customer.measurements?.coat || { length: '', chest: '', waist: '', shoulder: '', sleeveLength: '', armhole: '' },
-        kurta: customer.measurements?.kurta || { length: '', chest: '', waist: '', shoulder: '', sleeveLength: '', armhole: '' },
-        dhoti: customer.measurements?.dhoti || { length: '', waist: '', hip: '', sideLength: '', foldLength: '' },
-        custom: customer.measurements?.custom || ''
+        pant: { length: '', waist: '', seatHip: '', thigh: '', knee: '', bottom: '', flyLength: '' },
+        shirt: { length: '', chest: '', waist: '', shoulder: '', sleeveLength: '', armhole: '', collar: '' },
+        coat: { length: '', chest: '', waist: '', shoulder: '', sleeveLength: '', armhole: '' },
+        kurta: { length: '', chest: '', waist: '', shoulder: '', sleeveLength: '', armhole: '' },
+        dhoti: { length: '', waist: '', hip: '', sideLength: '', foldLength: '' },
+        custom: ''
       },
       photo: null
     });
@@ -383,15 +528,122 @@ const Customers = () => {
     }
     
     setShowEditModal(true);
+    
+    // Fetch measurement profiles for this customer
+    setIsLoadingMeasurements(true);
+    setMeasurementProfiles([]);
+    
+    // Get token
+    let token = localStorage.getItem('token');
+    if (!token) {
+      const userDataString = localStorage.getItem('user');
+      if (userDataString) {
+        try {
+          const userData = JSON.parse(userDataString);
+          token = userData.jwt || userData.token;
+        } catch (e) {
+          console.error('Error parsing user data:', e);
+        }
+      }
+    }
+
+    if (token && customerId) {
+      try {
+        const result = await customerAPI.getMeasurementProfiles(customerId, token);
+        
+        if (result.success) {
+          console.log('Measurement profiles fetched for editing:', result.data);
+          setMeasurementProfiles(result.data || []);
+          
+          // Pre-fill form with existing measurements
+          const profiles = result.data || [];
+          const updatedMeasurements = { ...customerForm.measurements };
+          
+          profiles.forEach(profile => {
+            const measurements = profile.measurements || {};
+            
+            switch (profile.dressType) {
+              case 'PANT':
+                updatedMeasurements.pant = {
+                  length: measurements.length || '',
+                  waist: measurements.waist || '',
+                  seatHip: measurements.hip || '',
+                  thigh: measurements.thigh || '',
+                  knee: measurements.knee || '',
+                  bottom: measurements.bottom || '',
+                  flyLength: measurements.flyLength || ''
+                };
+                break;
+              case 'SHIRT':
+                updatedMeasurements.shirt = {
+                  length: measurements.length || '',
+                  chest: measurements.chest || '',
+                  waist: measurements.waist || '',
+                  shoulder: measurements.shoulder || '',
+                  sleeveLength: measurements.sleeve || '',
+                  armhole: measurements.armhole || '',
+                  collar: measurements.collar || ''
+                };
+                break;
+              case 'COAT':
+                updatedMeasurements.coat = {
+                  length: measurements.length || '',
+                  chest: measurements.chest || '',
+                  waist: measurements.waist || '',
+                  shoulder: measurements.shoulder || '',
+                  sleeveLength: measurements.sleeve || '',
+                  armhole: measurements.armhole || ''
+                };
+                break;
+              case 'KURTA':
+                updatedMeasurements.kurta = {
+                  length: measurements.length || '',
+                  chest: measurements.chest || '',
+                  waist: measurements.waist || '',
+                  shoulder: measurements.shoulder || '',
+                  sleeveLength: measurements.sleeve || '',
+                  armhole: measurements.armhole || ''
+                };
+                break;
+              case 'DHOTI':
+                updatedMeasurements.dhoti = {
+                  length: measurements.length || '',
+                  waist: measurements.waist || '',
+                  hip: measurements.hip || '',
+                  sideLength: measurements.sideLength || '',
+                  foldLength: measurements.foldLength || ''
+                };
+                break;
+              case 'CUSTOM':
+                updatedMeasurements.custom = profile.notes || '';
+                break;
+            }
+          });
+          
+          setCustomerForm(prev => ({
+            ...prev,
+            measurements: updatedMeasurements
+          }));
+        } else {
+          console.error('Failed to fetch measurement profiles:', result.error);
+          setMeasurementProfiles([]);
+        }
+      } catch (error) {
+        console.error('Error fetching measurement profiles:', error);
+        setMeasurementProfiles([]);
+      }
+    }
+    
+    setIsLoadingMeasurements(false);
   };
 
   const handleUpdateCustomer = async () => {
-    const validation = validateCustomerForm(customerForm);
-    
-    if (!validation.isValid) {
-      setErrors(validation.errors);
-      return;
-    }
+    // Skip validation for now - we're only updating measurements
+    // const validation = validateCustomerForm(customerForm);
+    // if (!validation.isValid) {
+    //   setErrors(validation.errors);
+    //   return;
+    // }
 
     // Get JWT token
     let token = localStorage.getItem('token');
@@ -413,68 +665,179 @@ const Customers = () => {
     }
 
     try {
-      // Prepare API payload for update
-      const payload = {
-        measurements: {
-          // Pant measurements
-          pantLength: parseFloat(customerForm.measurements.pant.length) || 0,
-          pantWaist: parseFloat(customerForm.measurements.pant.waist) || 0,
-          seatHip: parseFloat(customerForm.measurements.pant.seatHip) || 0,
-          thigh: parseFloat(customerForm.measurements.pant.thigh) || 0,
-          knee: parseFloat(customerForm.measurements.pant.knee) || 0,
-          bottom: parseFloat(customerForm.measurements.pant.bottom) || 0,
-          flyLength: parseFloat(customerForm.measurements.pant.flyLength) || 0,
-          // Shirt measurements
-          shirtLength: parseFloat(customerForm.measurements.shirt.length) || 0,
-          chest: parseFloat(customerForm.measurements.shirt.chest) || 0,
-          shirtWaist: parseFloat(customerForm.measurements.shirt.waist) || 0,
-          shoulder: parseFloat(customerForm.measurements.shirt.shoulder) || 0,
-          sleeveLength: parseFloat(customerForm.measurements.shirt.sleeveLength) || 0,
-          armhole: parseFloat(customerForm.measurements.shirt.armhole) || 0,
-          collar: parseFloat(customerForm.measurements.shirt.collar) || 0,
-          // Coat measurements
-          coatLength: parseFloat(customerForm.measurements.coat.length) || 0,
-          coatChest: parseFloat(customerForm.measurements.coat.chest) || 0,
-          coatWaist: parseFloat(customerForm.measurements.coat.waist) || 0,
-          coatShoulder: parseFloat(customerForm.measurements.coat.shoulder) || 0,
-          coatSleeveLength: parseFloat(customerForm.measurements.coat.sleeveLength) || 0,
-          coatArmhole: parseFloat(customerForm.measurements.coat.armhole) || 0,
-          // Kurta measurements
-          kurtaLength: parseFloat(customerForm.measurements.kurta.length) || 0,
-          kurtaChest: parseFloat(customerForm.measurements.kurta.chest) || 0,
-          kurtaWaist: parseFloat(customerForm.measurements.kurta.waist) || 0,
-          kurtaShoulder: parseFloat(customerForm.measurements.kurta.shoulder) || 0,
-          kurtaSleeveLength: parseFloat(customerForm.measurements.kurta.sleeveLength) || 0,
-          kurtaArmhole: parseFloat(customerForm.measurements.kurta.armhole) || 0,
-          // Dhoti measurements
-          dhotiLength: parseFloat(customerForm.measurements.dhoti.length) || 0,
-          dhotiWaist: parseFloat(customerForm.measurements.dhoti.waist) || 0,
-          dhotiHip: parseFloat(customerForm.measurements.dhoti.hip) || 0,
-          sideLength: parseFloat(customerForm.measurements.dhoti.sideLength) || 0,
-          foldLength: parseFloat(customerForm.measurements.dhoti.foldLength) || 0,
-          // Custom measurements
-          customMeasurements: customerForm.measurements.custom || ''
-        }
+      console.log('Updating measurement profiles for customer:', editingCustomer.id);
+      
+      let updatedProfiles = 0;
+      let createdProfiles = 0;
+      let failedProfiles = 0;
+
+      // Helper function to check if measurements exist for a dress type
+      const hasMeasurements = (measurements) => {
+        return Object.values(measurements).some(v => v !== '' && v !== null && v !== undefined);
       };
 
-      console.log('Updating customer with payload:', payload);
+      // Update or create measurement profiles for each dress type
+      const dressTypes = [
+        {
+          type: 'PANT',
+          formData: customerForm.measurements.pant,
+          apiData: {
+            waist: parseFloat(customerForm.measurements.pant.waist) || undefined,
+            length: parseFloat(customerForm.measurements.pant.length) || undefined,
+            hip: parseFloat(customerForm.measurements.pant.seatHip) || undefined,
+            thigh: parseFloat(customerForm.measurements.pant.thigh) || undefined,
+            knee: parseFloat(customerForm.measurements.pant.knee) || undefined,
+            bottom: parseFloat(customerForm.measurements.pant.bottom) || undefined,
+            flyLength: parseFloat(customerForm.measurements.pant.flyLength) || undefined
+          }
+        },
+        {
+          type: 'SHIRT',
+          formData: customerForm.measurements.shirt,
+          apiData: {
+            chest: parseFloat(customerForm.measurements.shirt.chest) || undefined,
+            shoulder: parseFloat(customerForm.measurements.shirt.shoulder) || undefined,
+            length: parseFloat(customerForm.measurements.shirt.length) || undefined,
+            sleeve: parseFloat(customerForm.measurements.shirt.sleeveLength) || undefined,
+            waist: parseFloat(customerForm.measurements.shirt.waist) || undefined,
+            armhole: parseFloat(customerForm.measurements.shirt.armhole) || undefined,
+            collar: parseFloat(customerForm.measurements.shirt.collar) || undefined
+          }
+        },
+        {
+          type: 'COAT',
+          formData: customerForm.measurements.coat,
+          apiData: {
+            chest: parseFloat(customerForm.measurements.coat.chest) || undefined,
+            shoulder: parseFloat(customerForm.measurements.coat.shoulder) || undefined,
+            length: parseFloat(customerForm.measurements.coat.length) || undefined,
+            sleeve: parseFloat(customerForm.measurements.coat.sleeveLength) || undefined,
+            waist: parseFloat(customerForm.measurements.coat.waist) || undefined,
+            armhole: parseFloat(customerForm.measurements.coat.armhole) || undefined
+          }
+        },
+        {
+          type: 'KURTA',
+          formData: customerForm.measurements.kurta,
+          apiData: {
+            chest: parseFloat(customerForm.measurements.kurta.chest) || undefined,
+            shoulder: parseFloat(customerForm.measurements.kurta.shoulder) || undefined,
+            length: parseFloat(customerForm.measurements.kurta.length) || undefined,
+            sleeve: parseFloat(customerForm.measurements.kurta.sleeveLength) || undefined,
+            waist: parseFloat(customerForm.measurements.kurta.waist) || undefined,
+            armhole: parseFloat(customerForm.measurements.kurta.armhole) || undefined
+          }
+        },
+        {
+          type: 'DHOTI',
+          formData: customerForm.measurements.dhoti,
+          apiData: {
+            waist: parseFloat(customerForm.measurements.dhoti.waist) || undefined,
+            length: parseFloat(customerForm.measurements.dhoti.length) || undefined,
+            hip: parseFloat(customerForm.measurements.dhoti.hip) || undefined,
+            sideLength: parseFloat(customerForm.measurements.dhoti.sideLength) || undefined,
+            foldLength: parseFloat(customerForm.measurements.dhoti.foldLength) || undefined
+          }
+        }
+      ];
 
-      const result = await customerAPI.updateCustomer(editingCustomer.id, payload, token);
+      // Process each dress type
+      for (const dressType of dressTypes) {
+        if (!hasMeasurements(dressType.formData)) {
+          continue; // Skip if no measurements
+        }
 
-      console.log('API Result:', result);
+        // Remove undefined values from apiData
+        const cleanedData = Object.fromEntries(
+          Object.entries(dressType.apiData).filter(([_, v]) => v !== undefined)
+        );
 
-      if (!result.success) {
-        throw new Error(result.error);
+        // Find existing profile for this dress type
+        const existingProfile = measurementProfiles.find(p => p.dressType === dressType.type);
+
+        if (existingProfile) {
+          // Update existing profile - API requires customerId and dressType
+          const updatePayload = {
+            customerId: editingCustomer.id,
+            dressType: dressType.type,
+            notes: 'Updated measurements',
+            measurements: cleanedData
+          };
+
+          console.log(`Updating ${dressType.type} profile (ID: ${existingProfile.profileId}):`, updatePayload);
+
+          const result = await customerAPI.updateMeasurementProfile(existingProfile.profileId, updatePayload, token);
+
+          if (result.success) {
+            console.log(`${dressType.type} profile updated successfully`);
+            updatedProfiles++;
+          } else {
+            console.error(`Failed to update ${dressType.type} profile:`, result.error);
+            failedProfiles++;
+          }
+        } else {
+          // Create new profile
+          const createPayload = {
+            customerId: editingCustomer.id,
+            dressType: dressType.type,
+            notes: 'Initial measurements',
+            measurements: cleanedData
+          };
+
+          console.log(`Creating new ${dressType.type} profile:`, createPayload);
+
+          const result = await customerAPI.createMeasurementProfile(createPayload, token);
+
+          if (result.success) {
+            console.log(`${dressType.type} profile created successfully`);
+            createdProfiles++;
+          } else {
+            console.error(`Failed to create ${dressType.type} profile:`, result.error);
+            failedProfiles++;
+          }
+        }
       }
 
-      console.log('Customer updated successfully:', result.data);
+      // Handle custom measurements
+      if (customerForm.measurements.custom) {
+        const existingCustomProfile = measurementProfiles.find(p => p.dressType === 'CUSTOM');
+
+        if (existingCustomProfile) {
+          const result = await customerAPI.updateMeasurementProfile(
+            existingCustomProfile.profileId,
+            { 
+              customerId: editingCustomer.id,
+              dressType: 'CUSTOM',
+              notes: customerForm.measurements.custom, 
+              measurements: {} 
+            },
+            token
+          );
+          if (result.success) updatedProfiles++;
+          else failedProfiles++;
+        } else {
+          const result = await customerAPI.createMeasurementProfile(
+            {
+              customerId: editingCustomer.id,
+              dressType: 'CUSTOM',
+              notes: customerForm.measurements.custom,
+              measurements: {}
+            },
+            token
+          );
+          if (result.success) createdProfiles++;
+          else failedProfiles++;
+        }
+      }
 
       // Refresh the customers list from the backend
       await fetchCustomers();
 
+      const message = `Updated ${updatedProfiles} profile(s), created ${createdProfiles} new profile(s).${failedProfiles > 0 ? ` (${failedProfiles} failed)` : ''}`;
+
       setSuccessMessage({
-        title: 'Customer Updated Successfully!',
-        description: 'The customer information has been updated.'
+        title: 'Customer Measurements Updated!',
+        description: message
       });
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 5000);
@@ -498,19 +861,94 @@ const Customers = () => {
       setPhotoPreview(null);
       setErrors({});
       setEditingCustomer(null);
+      setMeasurementProfiles([]);
       setShowEditModal(false);
     } catch (error) {
-      console.error('Error updating customer:', error);
-      setErrors({ api: error.message || 'Failed to update customer' });
+      console.error('Error updating customer measurements:', error);
+      setErrors({ api: error.message || 'Failed to update customer measurements' });
     }
   };
 
   const handleDelete = (customerId) => {
-    if (window.confirm('Are you sure you want to delete this customer? This action cannot be undone.')) {
-      setCustomers(prev => prev.filter(c => c.id !== customerId));
-      setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 3000);
+    const customer = customers.find(c => c.id === customerId);
+    setCustomerToDelete(customer);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!customerToDelete) return;
+
+    setIsDeleting(true);
+
+    // Get JWT token
+    let token = localStorage.getItem('token');
+    if (!token) {
+      const userDataString = localStorage.getItem('user');
+      if (userDataString) {
+        try {
+          const userData = JSON.parse(userDataString);
+          token = userData.jwt || userData.token;
+        } catch (e) {
+          console.error('Error parsing user data:', e);
+        }
+      }
     }
+
+    if (!token) {
+      setErrors({ api: 'Authentication error. Please login again.' });
+      setIsDeleting(false);
+      setShowDeleteModal(false);
+      return;
+    }
+
+    try {
+      console.log('Deleting customer with ID:', customerToDelete.id);
+
+      const result = await customerAPI.deleteCustomer(customerToDelete.id, token);
+
+      console.log('Delete API Result:', result);
+
+      if (result.success) {
+        // Remove from local state
+        setCustomers(prev => prev.filter(c => c.id !== customerToDelete.id));
+        
+        // Show success message
+        setSuccessMessage({
+          title: 'Customer Deleted Successfully!',
+          description: 'The customer and all associated data have been permanently deleted.'
+        });
+        setShowSuccess(true);
+        setTimeout(() => setShowSuccess(false), 5000);
+
+        // Close modal
+        setShowDeleteModal(false);
+        setCustomerToDelete(null);
+
+        // Refresh the customers list from backend
+        await fetchCustomers();
+      } else {
+        console.error('Failed to delete customer:', result.error);
+        
+        // Check if it's a "method not supported" error
+        if (result.error.includes('DELETE') && result.error.includes('not supported')) {
+          setErrors({ 
+            api: `Backend Error: The DELETE endpoint is not implemented yet.\n\n${result.error}\n\nPlease contact the backend team.` 
+          });
+        } else {
+          setErrors({ api: result.error });
+        }
+      }
+    } catch (error) {
+      console.error('Error deleting customer:', error);
+      setErrors({ api: 'An error occurred while deleting the customer. Please try again.' });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteModal(false);
+    setCustomerToDelete(null);
   };
 
   // Filter customers based on search query
@@ -653,6 +1091,90 @@ const Customers = () => {
         </main>
       </div>
 
+      {/* Delete Confirmation Modal */}
+      <AnimatePresence>
+        {showDeleteModal && customerToDelete && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+            onClick={cancelDelete}
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full"
+            >
+              {/* Modal Header */}
+              <div className="bg-red-50 dark:bg-red-900/20 px-6 py-4 rounded-t-2xl border-b border-red-200 dark:border-red-800">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
+                    <AlertCircle className="w-6 h-6 text-red-600 dark:text-red-400" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-red-900 dark:text-red-100">Delete Customer</h2>
+                    <p className="text-sm text-red-700 dark:text-red-300">This action cannot be undone</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Modal Body */}
+              <div className="p-6">
+                <p className="text-gray-700 dark:text-gray-300 mb-4">
+                  Are you sure you want to delete <span className="font-semibold text-gray-900 dark:text-gray-100">{customerToDelete.name}</span>?
+                </p>
+                
+                <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 mb-4">
+                  <p className="text-sm text-yellow-800 dark:text-yellow-200 font-medium mb-2">
+                    ⚠️ This will permanently delete:
+                  </p>
+                  <ul className="text-sm text-yellow-700 dark:text-yellow-300 space-y-1 ml-4">
+                    <li>• Customer profile and account</li>
+                    <li>• All orders and order items</li>
+                    <li>• All measurements and profiles</li>
+                    <li>• All associated data</li>
+                  </ul>
+                </div>
+
+                {errors.api && (
+                  <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-4">
+                    <p className="text-sm text-red-800 dark:text-red-200">{errors.api}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Modal Footer */}
+              <div className="flex gap-3 px-6 pb-6">
+                <button
+                  onClick={cancelDelete}
+                  disabled={isDeleting}
+                  className="flex-1 py-3 rounded-lg font-semibold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  No, Cancel
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  disabled={isDeleting}
+                  className="flex-1 py-3 rounded-lg font-semibold text-white bg-red-600 hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {isDeleting ? (
+                    <>
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                      Deleting...
+                    </>
+                  ) : (
+                    'Yes, Delete'
+                  )}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* View Customer Modal */}
       <AnimatePresence>
         {showViewModal && selectedCustomerForView && (
@@ -709,272 +1231,74 @@ const Customers = () => {
                   </div>
                 </div>
 
-                {/* Measurements */}
-                {selectedCustomerForView.measurements && (
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Measurements</h3>
-                    
-                    {/* Pant Measurements */}
-                    {selectedCustomerForView.measurements.pant && Object.values(selectedCustomerForView.measurements.pant).some(v => v) && (
-                      <div className="mb-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                        <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
-                          <span className="text-xl">👖</span> Pant Measurements
-                        </h4>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                          {selectedCustomerForView.measurements.pant.length && (
-                            <div>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">Length</p>
-                              <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.pant.length}"</p>
+                {/* Measurements from API */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Measurement Profiles</h3>
+                  
+                  {isLoadingMeasurements ? (
+                    <div className="text-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mx-auto mb-2"></div>
+                      <p className="text-gray-600 dark:text-gray-400 text-sm">Loading measurements...</p>
+                    </div>
+                  ) : measurementProfiles.length > 0 ? (
+                    <div className="space-y-4">
+                      {measurementProfiles.map((profile) => (
+                        <div key={profile.profileId} className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
+                          <div className="flex items-center justify-between mb-3">
+                            <h4 className="font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                              <span className="text-xl">
+                                {profile.dressType === 'PANT' && '👖'}
+                                {profile.dressType === 'SHIRT' && '👔'}
+                                {profile.dressType === 'COAT' && '🧥'}
+                                {profile.dressType === 'KURTA' && '🥻'}
+                                {profile.dressType === 'DHOTI' && '🎽'}
+                                {profile.dressType === 'CUSTOM' && '📏'}
+                              </span>
+                              {profile.dressType} Measurements
+                            </h4>
+                            {profile.notes && (
+                              <span className="text-xs text-gray-500 dark:text-gray-400 italic">
+                                {profile.notes}
+                              </span>
+                            )}
+                          </div>
+                          
+                          {profile.measurements && Object.keys(profile.measurements).length > 0 ? (
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                              {Object.entries(profile.measurements).map(([key, value]) => (
+                                <div key={key}>
+                                  <p className="text-sm text-gray-600 dark:text-gray-400 capitalize">
+                                    {key.replace(/([A-Z])/g, ' $1').trim()}
+                                  </p>
+                                  <p className="font-semibold text-gray-900 dark:text-gray-100">
+                                    {value}{typeof value === 'number' ? '"' : ''}
+                                  </p>
+                                </div>
+                              ))}
                             </div>
+                          ) : (
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                              {profile.notes || 'No measurements recorded'}
+                            </p>
                           )}
-                          {selectedCustomerForView.measurements.pant.waist && (
-                            <div>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">Waist</p>
-                              <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.pant.waist}"</p>
-                            </div>
-                          )}
-                          {selectedCustomerForView.measurements.pant.seatHip && (
-                            <div>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">Seat/Hip</p>
-                              <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.pant.seatHip}"</p>
-                            </div>
-                          )}
-                          {selectedCustomerForView.measurements.pant.thigh && (
-                            <div>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">Thigh</p>
-                              <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.pant.thigh}"</p>
-                            </div>
-                          )}
-                          {selectedCustomerForView.measurements.pant.knee && (
-                            <div>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">Knee</p>
-                              <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.pant.knee}"</p>
-                            </div>
-                          )}
-                          {selectedCustomerForView.measurements.pant.bottom && (
-                            <div>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">Bottom</p>
-                              <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.pant.bottom}"</p>
-                            </div>
-                          )}
-                          {selectedCustomerForView.measurements.pant.flyLength && (
-                            <div>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">Fly Length</p>
-                              <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.pant.flyLength}"</p>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Shirt Measurements */}
-                    {selectedCustomerForView.measurements.shirt && Object.values(selectedCustomerForView.measurements.shirt).some(v => v) && (
-                      <div className="mb-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                        <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
-                          <span className="text-xl">👔</span> Shirt Measurements
-                        </h4>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                          {selectedCustomerForView.measurements.shirt.length && (
-                            <div>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">Length</p>
-                              <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.shirt.length}"</p>
-                            </div>
-                          )}
-                          {selectedCustomerForView.measurements.shirt.chest && (
-                            <div>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">Chest</p>
-                              <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.shirt.chest}"</p>
-                            </div>
-                          )}
-                          {selectedCustomerForView.measurements.shirt.waist && (
-                            <div>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">Waist</p>
-                              <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.shirt.waist}"</p>
-                            </div>
-                          )}
-                          {selectedCustomerForView.measurements.shirt.shoulder && (
-                            <div>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">Shoulder</p>
-                              <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.shirt.shoulder}"</p>
-                            </div>
-                          )}
-                          {selectedCustomerForView.measurements.shirt.sleeveLength && (
-                            <div>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">Sleeve Length</p>
-                              <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.shirt.sleeveLength}"</p>
-                            </div>
-                          )}
-                          {selectedCustomerForView.measurements.shirt.armhole && (
-                            <div>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">Armhole</p>
-                              <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.shirt.armhole}"</p>
-                            </div>
-                          )}
-                          {selectedCustomerForView.measurements.shirt.collar && (
-                            <div>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">Collar (Neck)</p>
-                              <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.shirt.collar}"</p>
-                            </div>
+                          
+                          {profile.updatedAt && (
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-3">
+                              Last updated: {new Date(profile.updatedAt).toLocaleDateString()}
+                            </p>
                           )}
                         </div>
-                      </div>
-                    )}
-
-                    {/* Coat Measurements */}
-                    {selectedCustomerForView.measurements.coat && Object.values(selectedCustomerForView.measurements.coat).some(v => v) && (
-                      <div className="mb-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                        <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
-                          <span className="text-xl">🧥</span> Coat Measurements
-                        </h4>
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                          {selectedCustomerForView.measurements.coat.length && (
-                            <div>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">Length</p>
-                              <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.coat.length}"</p>
-                            </div>
-                          )}
-                          {selectedCustomerForView.measurements.coat.chest && (
-                            <div>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">Chest</p>
-                              <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.coat.chest}"</p>
-                            </div>
-                          )}
-                          {selectedCustomerForView.measurements.coat.waist && (
-                            <div>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">Waist</p>
-                              <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.coat.waist}"</p>
-                            </div>
-                          )}
-                          {selectedCustomerForView.measurements.coat.shoulder && (
-                            <div>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">Shoulder</p>
-                              <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.coat.shoulder}"</p>
-                            </div>
-                          )}
-                          {selectedCustomerForView.measurements.coat.sleeveLength && (
-                            <div>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">Sleeve Length</p>
-                              <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.coat.sleeveLength}"</p>
-                            </div>
-                          )}
-                          {selectedCustomerForView.measurements.coat.armhole && (
-                            <div>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">Armhole</p>
-                              <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.coat.armhole}"</p>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Kurta Measurements */}
-                    {selectedCustomerForView.measurements.kurta && Object.values(selectedCustomerForView.measurements.kurta).some(v => v) && (
-                      <div className="mb-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                        <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
-                          <span className="text-xl">🥻</span> Kurta Measurements
-                        </h4>
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                          {selectedCustomerForView.measurements.kurta.length && (
-                            <div>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">Length</p>
-                              <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.kurta.length}"</p>
-                            </div>
-                          )}
-                          {selectedCustomerForView.measurements.kurta.chest && (
-                            <div>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">Chest</p>
-                              <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.kurta.chest}"</p>
-                            </div>
-                          )}
-                          {selectedCustomerForView.measurements.kurta.waist && (
-                            <div>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">Waist</p>
-                              <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.kurta.waist}"</p>
-                            </div>
-                          )}
-                          {selectedCustomerForView.measurements.kurta.shoulder && (
-                            <div>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">Shoulder</p>
-                              <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.kurta.shoulder}"</p>
-                            </div>
-                          )}
-                          {selectedCustomerForView.measurements.kurta.sleeveLength && (
-                            <div>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">Sleeve Length</p>
-                              <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.kurta.sleeveLength}"</p>
-                            </div>
-                          )}
-                          {selectedCustomerForView.measurements.kurta.armhole && (
-                            <div>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">Armhole</p>
-                              <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.kurta.armhole}"</p>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Dhoti Measurements */}
-                    {selectedCustomerForView.measurements.dhoti && Object.values(selectedCustomerForView.measurements.dhoti).some(v => v) && (
-                      <div className="mb-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                        <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
-                          <span className="text-xl">🎽</span> Dhoti Measurements
-                        </h4>
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                          {selectedCustomerForView.measurements.dhoti.length && (
-                            <div>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">Length</p>
-                              <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.dhoti.length}"</p>
-                            </div>
-                          )}
-                          {selectedCustomerForView.measurements.dhoti.waist && (
-                            <div>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">Waist</p>
-                              <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.dhoti.waist}"</p>
-                            </div>
-                          )}
-                          {selectedCustomerForView.measurements.dhoti.hip && (
-                            <div>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">Hip</p>
-                              <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.dhoti.hip}"</p>
-                            </div>
-                          )}
-                          {selectedCustomerForView.measurements.dhoti.sideLength && (
-                            <div>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">Side Length</p>
-                              <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.dhoti.sideLength}"</p>
-                            </div>
-                          )}
-                          {selectedCustomerForView.measurements.dhoti.foldLength && (
-                            <div>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">Fold Length</p>
-                              <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.dhoti.foldLength}"</p>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Custom Measurements */}
-                    {selectedCustomerForView.measurements.custom && (
-                      <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                        <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
-                          <span className="text-xl">📏</span> Custom Measurements
-                        </h4>
-                        <p className="text-gray-900 dark:text-gray-100">{selectedCustomerForView.measurements.custom}</p>
-                      </div>
-                    )}
-
-                    {!selectedCustomerForView.measurements.pant && 
-                     !selectedCustomerForView.measurements.shirt && 
-                     !selectedCustomerForView.measurements.coat &&
-                     !selectedCustomerForView.measurements.kurta &&
-                     !selectedCustomerForView.measurements.dhoti &&
-                     !selectedCustomerForView.measurements.custom && (
-                      <p className="text-gray-500 dark:text-gray-400 text-center py-4">No measurements recorded</p>
-                    )}
-                  </div>
-                )}
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                      <p className="text-gray-500 dark:text-gray-400">No measurement profiles found</p>
+                      <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
+                        Measurements can be added when creating or editing the customer
+                      </p>
+                    </div>
+                  )}
+                </div>
 
                 {/* Additional Info */}
                 <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
