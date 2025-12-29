@@ -37,10 +37,11 @@ const WorkerTasks = () => {
   const [garmentFilter, setGarmentFilter] = useState('all');
   const [sortBy, setSortBy] = useState('deadline');
   const [selectedTask, setSelectedTask] = useState(null);
-  const [editingTask, setEditingTask] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
   const [workNotes, setWorkNotes] = useState('');
   const [uploadedPhoto, setUploadedPhoto] = useState(null);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
 
   // Fetch tasks on mount
   useEffect(() => {
@@ -88,12 +89,12 @@ const WorkerTasks = () => {
           priority: 'medium', // Default priority
           orderDate: task.order?.createdAt ? new Date(task.order.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
           deliveryDate: task.order?.deadline || task.deliveryDate || 'N/A',
-          notes: task.order?.notes || task.notes || 'No special instructions',
+          notes: task.order?.additionalNotes || task.order?.notes || task.notes || 'No special instructions',
           items: [{ type: task.taskType || 'Task', fabric: 'Standard', color: 'N/A', quantity: 1 }],
           measurements: {},
           totalAmount: task.order?.totalPrice || 0,
-          paidAmount: task.order?.paidAmount || 0,
-          balanceAmount: (task.order?.totalPrice || 0) - (task.order?.paidAmount || 0),
+          paidAmount: task.order?.advancePayment || task.order?.paidAmount || 0,
+          balanceAmount: (task.order?.totalPrice || 0) - (task.order?.advancePayment || task.order?.paidAmount || 0),
           assignedAt: task.assignedAt,
           startedAt: task.startedAt,
           completedAt: task.completedAt
@@ -141,11 +142,94 @@ const WorkerTasks = () => {
     return 0;
   });
 
-  // Status update handler
-  const handleStatusUpdate = (taskId, newStatus) => {
-    console.log(`Updating task ${taskId} to status: ${newStatus}`);
-    // In real app, this would update the backend
-    alert(`Task ${taskId} status updated to ${newStatus}`);
+  // Status update handler - Start Task
+  const handleStartTask = async (taskId) => {
+    // Get token
+    let token = localStorage.getItem('token');
+    if (!token) {
+      const userDataString = localStorage.getItem('user');
+      if (userDataString) {
+        try {
+          const userData = JSON.parse(userDataString);
+          token = userData.jwt || userData.token;
+        } catch (e) {
+          console.error('Error parsing user data:', e);
+        }
+      }
+    }
+
+    if (!token) {
+      setSuccessMessage('Authentication error. Please log in again.');
+      setShowSuccessPopup(true);
+      setTimeout(() => setShowSuccessPopup(false), 5000);
+      return;
+    }
+
+    try {
+      const result = await workerAPI.startTask(taskId, token);
+      
+      if (result.success) {
+        setSuccessMessage('Task started successfully! 🎉');
+        setShowSuccessPopup(true);
+        setTimeout(() => setShowSuccessPopup(false), 5000);
+        // Refresh tasks list
+        fetchMyTasks();
+      } else {
+        setSuccessMessage(`Failed to start task: ${result.error}`);
+        setShowSuccessPopup(true);
+        setTimeout(() => setShowSuccessPopup(false), 5000);
+      }
+    } catch (error) {
+      console.error('Error starting task:', error);
+      setSuccessMessage('Failed to start task. Please try again.');
+      setShowSuccessPopup(true);
+      setTimeout(() => setShowSuccessPopup(false), 5000);
+    }
+  };
+
+  // Status update handler - Complete Task
+  const handleCompleteTask = async (taskId) => {
+    // Get token
+    let token = localStorage.getItem('token');
+    if (!token) {
+      const userDataString = localStorage.getItem('user');
+      if (userDataString) {
+        try {
+          const userData = JSON.parse(userDataString);
+          token = userData.jwt || userData.token;
+        } catch (e) {
+          console.error('Error parsing user data:', e);
+        }
+      }
+    }
+
+    if (!token) {
+      setSuccessMessage('Authentication error. Please log in again.');
+      setShowSuccessPopup(true);
+      setTimeout(() => setShowSuccessPopup(false), 5000);
+      return;
+    }
+
+    try {
+      const result = await workerAPI.completeTask(taskId, token);
+      
+      if (result.success) {
+        setSuccessMessage('Task completed successfully! ✅');
+        setShowSuccessPopup(true);
+        setTimeout(() => setShowSuccessPopup(false), 5000);
+        // Refresh tasks list
+        fetchMyTasks();
+      } else {
+        setSuccessMessage(`Failed to complete task: ${result.error}`);
+        setShowSuccessPopup(true);
+        setTimeout(() => setShowSuccessPopup(false), 5000);
+      }
+    } catch (error) {
+      console.error('Error completing task:', error);
+      setSuccessMessage('Failed to complete task. Please try again.');
+      setShowSuccessPopup(true);
+      setTimeout(() => setShowSuccessPopup(false), 5000);
+    }
   };
 
   // Work notes handler
@@ -223,6 +307,33 @@ const WorkerTasks = () => {
                 </div>
               </div>
             </div>
+
+            {/* Success Popup */}
+            <AnimatePresence>
+              {showSuccessPopup && (
+                <motion.div
+                  initial={{ opacity: 0, y: -50, x: '-50%' }}
+                  animate={{ opacity: 1, y: 0, x: '-50%' }}
+                  exit={{ opacity: 0, y: -50, x: '-50%' }}
+                  className="fixed top-6 left-1/2 z-50 max-w-md w-full"
+                >
+                  <div className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl border-2 border-green-500 dark:border-green-400 p-4 flex items-center gap-3">
+                    <div className="flex-shrink-0 w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
+                      <CheckCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{successMessage}</p>
+                    </div>
+                    <button
+                      onClick={() => setShowSuccessPopup(false)}
+                      className="flex-shrink-0 p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                    >
+                      <X className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {/* Search and Filters */}
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
@@ -401,13 +512,22 @@ const WorkerTasks = () => {
                               >
                                 <Eye className="w-4 h-4" />
                               </button>
-                              {task.status !== 'ready' && task.status !== 'completed' && (
+                              {task.status === 'pending' && (
                                 <button
-                                  onClick={() => setEditingTask(task)}
-                                  className="p-2 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-lg transition-colors"
-                                  title="Edit Task"
+                                  onClick={() => handleStartTask(task.taskId)}
+                                  className="px-3 py-1 text-xs font-semibold text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors"
+                                  title="Start Task"
                                 >
-                                  <Edit className="w-4 h-4" />
+                                  Start
+                                </button>
+                              )}
+                              {task.status === 'in_progress' && (
+                                <button
+                                  onClick={() => handleCompleteTask(task.taskId)}
+                                  className="px-3 py-1 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+                                  title="Complete Task"
+                                >
+                                  Complete
                                 </button>
                               )}
                             </div>
@@ -440,9 +560,8 @@ const WorkerTasks = () => {
               setWorkNotes('');
               setUploadedPhoto(null);
             }}
-            onStatusUpdate={handleStatusUpdate}
-            getNextStatus={getNextStatus}
-            getStatusLabel={getStatusLabel}
+            onStartTask={handleStartTask}
+            onCompleteTask={handleCompleteTask}
             workNotes={workNotes}
             setWorkNotes={setWorkNotes}
             handleAddWorkNote={handleAddWorkNote}
@@ -452,205 +571,8 @@ const WorkerTasks = () => {
         )}
       </AnimatePresence>
 
-      {/* Edit Task Modal */}
-      <AnimatePresence>
-        {editingTask && (
-          <EditTaskModal
-            task={editingTask}
-            onClose={() => {
-              setEditingTask(null);
-              setWorkNotes('');
-              setUploadedPhoto(null);
-            }}
-            onSave={(updatedTask) => {
-              handleStatusUpdate(updatedTask.id, updatedTask.status);
-              setEditingTask(null);
-              setWorkNotes('');
-              setUploadedPhoto(null);
-            }}
-            workNotes={workNotes}
-            setWorkNotes={setWorkNotes}
-            uploadedPhoto={uploadedPhoto}
-            handlePhotoUpload={handlePhotoUpload}
-          />
-        )}
-      </AnimatePresence>
+
     </div>
-  );
-};
-
-// Edit Task Modal Component
-const EditTaskModal = ({
-  task,
-  onClose,
-  onSave,
-  workNotes,
-  setWorkNotes,
-  uploadedPhoto,
-  handlePhotoUpload
-}) => {
-  const [editedStatus, setEditedStatus] = useState(task.status);
-  const [editedNotes, setEditedNotes] = useState(workNotes);
-  const [hasChanges, setHasChanges] = useState(false);
-
-  const handleSave = () => {
-    onSave({
-      ...task,
-      status: editedStatus,
-      notes: editedNotes
-    });
-  };
-
-  const handleStatusChange = (newStatus) => {
-    setEditedStatus(newStatus);
-    setHasChanges(true);
-  };
-
-  const handleNotesChange = (value) => {
-    setEditedNotes(value);
-    setWorkNotes(value);
-    setHasChanges(true);
-  };
-
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-      onClick={onClose}
-    >
-      <motion.div
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.9, opacity: 0 }}
-        onClick={(e) => e.stopPropagation()}
-        className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-3xl w-full flex flex-col"
-      >
-        {/* Modal Header */}
-        <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3 flex items-center justify-between">
-          <div>
-            <h2 className="text-base font-bold text-gray-900 dark:text-gray-100">Edit Task - {task.id}</h2>
-            <p className="text-xs text-gray-600 dark:text-gray-400">{task.customerName}</p>
-          </div>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors text-gray-900 dark:text-gray-100"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        {/* Modal Content - Single Column, No Scroll */}
-        <div className="p-4 space-y-3">
-          {/* Status & Basic Info Row */}
-          <div className="grid grid-cols-2 gap-3">
-            {/* Status Editor */}
-            <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-              <label className="block text-xs font-bold text-gray-900 dark:text-gray-100 mb-1.5">Update Status</label>
-              <select
-                value={editedStatus}
-                onChange={(e) => handleStatusChange(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-gray-100"
-              >
-                <option value="pending">Pending</option>
-                <option value="cutting">Cutting</option>
-                <option value="stitching">Stitching</option>
-                <option value="fitting">Fitting</option>
-                <option value="ready">Ready</option>
-              </select>
-            </div>
-
-            {/* Task Info */}
-            <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-              <h3 className="text-xs font-bold text-gray-900 dark:text-gray-100 mb-1.5">Task Info</h3>
-              <div className="space-y-1 text-xs">
-                <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Type:</span>
-                  <span className="font-medium text-gray-900 dark:text-gray-100">{task.items[0]?.type}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Deadline:</span>
-                  <span className="font-medium text-gray-900 dark:text-gray-100">{task.deliveryDate}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Instructions (if any) */}
-          {task.notes && task.notes !== 'No special instructions' && (
-            <div className="p-2.5 bg-yellow-50 dark:bg-yellow-900/30 rounded-lg border border-yellow-200 dark:border-yellow-800">
-              <div className="flex items-start gap-2">
-                <FileText className="w-3.5 h-3.5 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" />
-                <div className="flex-1">
-                  <p className="text-xs font-semibold text-gray-900 dark:text-gray-100 mb-0.5">Instructions:</p>
-                  <p className="text-xs text-gray-700 dark:text-gray-300">{task.notes}</p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Work Notes Editor */}
-          <div>
-            <label className="block text-xs font-bold text-gray-900 dark:text-gray-100 mb-1.5">Work Notes</label>
-            <textarea
-              value={editedNotes}
-              onChange={(e) => handleNotesChange(e.target.value)}
-              placeholder="Add notes: material needed, issues found, progress updates..."
-              className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none dark:bg-gray-800 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
-              rows="2"
-            />
-          </div>
-
-          {/* Photo Upload */}
-          <div>
-            <label className="block text-xs font-bold text-gray-900 dark:text-gray-100 mb-1.5">Upload Work Photo</label>
-            <div className="flex items-center gap-3">
-              <label className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white text-xs rounded-lg hover:bg-blue-700 cursor-pointer transition-colors">
-                <Upload className="w-3.5 h-3.5" />
-                Choose Photo
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handlePhotoUpload}
-                  className="hidden"
-                />
-              </label>
-              {uploadedPhoto && (
-                <span className="text-xs text-green-600 dark:text-green-400 font-medium">✓ Photo uploaded</span>
-              )}
-            </div>
-            {uploadedPhoto && (
-              <div className="mt-2">
-                <img
-                  src={uploadedPhoto}
-                  alt="Work preview"
-                  className="w-32 h-32 object-cover rounded-lg border border-gray-300 dark:border-gray-600"
-                />
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Modal Footer */}
-        <div className="border-t border-gray-200 dark:border-gray-700 px-4 py-3 flex items-center justify-end gap-3">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleSave}
-            disabled={!hasChanges && !editedNotes.trim()}
-            className="flex items-center gap-2 px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 dark:disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors font-semibold"
-          >
-            <Save className="w-4 h-4" />
-            Save Changes
-          </button>
-        </div>
-      </motion.div>
-    </motion.div>
   );
 };
 
@@ -658,9 +580,8 @@ const EditTaskModal = ({
 const TaskDetailsModal = ({
   task,
   onClose,
-  onStatusUpdate,
-  getNextStatus,
-  getStatusLabel,
+  onStartTask,
+  onCompleteTask,
   workNotes,
   setWorkNotes,
   handleAddWorkNote,
@@ -872,21 +793,39 @@ const TaskDetailsModal = ({
             </div>
           )}
 
-          {/* Status Update Button */}
-          {task.status !== 'ready' && (
-            <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+          {/* Status Update Buttons */}
+          <div className="pt-4 border-t border-gray-200 dark:border-gray-700 flex gap-3">
+            {task.status === 'pending' && (
               <button
                 onClick={() => {
-                  onStatusUpdate(task.id, getNextStatus(task.status));
+                  onStartTask(task.taskId);
                   onClose();
                 }}
-                className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold"
+                className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold"
+              >
+                <Clock className="w-5 h-5" />
+                Start Task
+              </button>
+            )}
+            {task.status === 'in_progress' && (
+              <button
+                onClick={() => {
+                  onCompleteTask(task.taskId);
+                  onClose();
+                }}
+                className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold"
               >
                 <CheckCircle className="w-5 h-5" />
-                {getStatusLabel(task.status)}
+                Complete Task
               </button>
-            </div>
-          )}
+            )}
+            {task.status === 'completed' && (
+              <div className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-lg font-semibold">
+                <CheckCircle className="w-5 h-5" />
+                Task Completed
+              </div>
+            )}
+          </div>
         </div>
       </motion.div>
     </motion.div>
@@ -922,6 +861,8 @@ const PriorityBadge = ({ priority }) => {
 const StatusBadge = ({ status }) => {
   const config = {
     pending: { bg: 'bg-gray-100 dark:bg-gray-900/30', text: 'text-gray-700 dark:text-gray-400', label: 'Pending', icon: Clock },
+    in_progress: { bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-700 dark:text-blue-400', label: 'In Progress', icon: Scissors },
+    completed: { bg: 'bg-green-100 dark:bg-green-900/30', text: 'text-green-700 dark:text-green-400', label: 'Completed', icon: CheckCircle },
     cutting: { bg: 'bg-purple-100 dark:bg-purple-900/30', text: 'text-purple-700 dark:text-purple-400', label: 'Cutting', icon: Scissors },
     stitching: { bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-700 dark:text-blue-400', label: 'Stitching', icon: Scissors },
     fitting: { bg: 'bg-orange-100 dark:bg-orange-900/30', text: 'text-orange-700 dark:text-orange-400', label: 'Fitting', icon: AlertCircle },

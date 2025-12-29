@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -22,19 +22,18 @@ import {
   Ruler,
   FileText,
   Image as ImageIcon,
-  ChevronRight
+  ChevronRight,
+  Activity
 } from 'lucide-react';
-import { orders } from '../../data/dummyData';
+import { customerAPI } from '../../services/api';
 
 const Orders = () => {
   usePageTitle('My Orders');
-  // Mock customer ID (in real app, this would come from auth context)
-  const currentCustomerId = 'CUST001';
-
-  // Get customer's orders
-  const customerOrders = orders.filter(o => o.customerId === currentCustomerId);
 
   // State management
+  const [orders, setOrders] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [dateFilter, setDateFilter] = useState('all');
@@ -44,8 +43,108 @@ const Orders = () => {
   const [alterationRequest, setAlterationRequest] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
+  // Fetch orders on mount
+  useEffect(() => {
+    fetchMyOrders();
+  }, []);
+
+  const fetchMyOrders = async () => {
+    setIsLoading(true);
+    setError(null);
+
+    // Get token
+    let token = localStorage.getItem('token');
+    if (!token) {
+      const userDataString = localStorage.getItem('user');
+      if (userDataString) {
+        try {
+          const userData = JSON.parse(userDataString);
+          token = userData.jwt || userData.token;
+        } catch (e) {
+          console.error('Error parsing user data:', e);
+        }
+      }
+    }
+
+    if (!token) {
+      console.error('No token found for fetching orders');
+      setError('Authentication error. Please log in again.');
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const result = await customerAPI.getMyOrders(token);
+
+      if (result.success) {
+        console.log('Orders fetched successfully:', result.data);
+        // Map API response to component format
+        const mappedOrders = (result.data || []).map(order => {
+          // Parse task statuses to determine overall status and items
+          const taskStatuses = order.taskStatuses || [];
+          const hasInProgress = taskStatuses.some(status => status.includes('IN_PROGRESS'));
+          const allCompleted = taskStatuses.length > 0 && taskStatuses.every(status => status.includes('COMPLETED'));
+          
+          // Determine order status based on task statuses
+          let orderStatus = order.orderStatus?.toLowerCase() || 'pending';
+          if (allCompleted) {
+            orderStatus = 'ready';
+          } else if (hasInProgress) {
+            orderStatus = orderStatus;
+          }
+
+          // Extract task types from task statuses
+          const items = taskStatuses.map((taskStatus, idx) => {
+            const taskType = taskStatus.split('_')[0]; // e.g., "CUTTING_IN_PROGRESS" -> "CUTTING"
+            return {
+              type: taskType.charAt(0) + taskType.slice(1).toLowerCase(), // Capitalize first letter
+              fabric: 'Standard',
+              color: 'N/A',
+              quantity: 1
+            };
+          });
+
+          return {
+            id: `ORD${String(order.orderId).padStart(3, '0')}`,
+            orderId: order.orderId,
+            customerId: null,
+            customerName: order.customerName || 'Unknown',
+            orderDate: order.createdAt ? new Date(order.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+            deliveryDate: order.deadline || 'N/A',
+            status: orderStatus,
+            items: items.length > 0 ? items : [{ type: 'Order Item', fabric: 'Standard', color: 'N/A', quantity: 1 }],
+            tasks: taskStatuses.map((taskStatus, idx) => {
+              const [taskType, status] = taskStatus.split('_');
+              return {
+                taskType: taskType,
+                status: status || 'PENDING'
+              };
+            }),
+            totalAmount: 0, // Not provided in this endpoint
+            paidAmount: 0, // Not provided in this endpoint
+            balanceAmount: 0, // Not provided in this endpoint
+            notes: 'No special instructions',
+            paymentStatus: 'UNKNOWN',
+            measurements: {}
+          };
+        });
+        setOrders(mappedOrders);
+      } else {
+        console.error('Failed to fetch orders:', result.error);
+        setError(result.error || 'Failed to load orders. Please try again.');
+        setOrders([]);
+      }
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+      setError('Unable to load orders. The feature may not be available yet. Please try again later.');
+      setOrders([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Filter orders
-  const filteredOrders = customerOrders.filter(order => {
+  const filteredOrders = orders.filter(order => {
     const matchesSearch = 
       order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.items.some(item => item.type.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -123,8 +222,17 @@ const Orders = () => {
                 </div>
               </div>
               <div className="flex items-center gap-3">
+                <button
+                  onClick={fetchMyOrders}
+                  disabled={isLoading}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 transition-colors"
+                  title="Refresh Orders"
+                >
+                  <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+                  Refresh
+                </button>
                 <span className="text-sm text-gray-600 dark:text-gray-400">
-                  Total Orders: <span className="font-bold text-gray-900 dark:text-gray-100">{customerOrders.length}</span>
+                  Total Orders: <span className="font-bold text-gray-900 dark:text-gray-100">{orders.length}</span>
                 </span>
               </div>
             </div>
@@ -218,7 +326,34 @@ const Orders = () => {
 
             {/* Orders List */}
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
-              {filteredOrders.length > 0 ? (
+              {isLoading ? (
+                <div className="text-center py-12">
+                  <div className="flex flex-col items-center justify-center gap-3">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+                    <p className="text-gray-600 dark:text-gray-400">Loading orders...</p>
+                  </div>
+                </div>
+              ) : error ? (
+                <div className="text-center py-12">
+                  <AlertCircle className="w-12 h-12 mx-auto mb-3 text-orange-400" />
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Orders Not Available</h3>
+                  <p className="text-gray-600 dark:text-gray-400 mb-4 max-w-md mx-auto">{error}</p>
+                  <div className="flex gap-3 justify-center">
+                    <button
+                      onClick={fetchMyOrders}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      Retry
+                    </button>
+                    <button
+                      onClick={() => window.location.href = '/customer/dashboard'}
+                      className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                    >
+                      Go to Dashboard
+                    </button>
+                  </div>
+                </div>
+              ) : filteredOrders.length > 0 ? (
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead className="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
@@ -228,14 +363,12 @@ const Orders = () => {
                         <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400">Fabrics</th>
                         <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400">Status</th>
                         <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400">Delivery Date</th>
-                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400">Payment</th>
                         <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                       {filteredOrders.map((order) => {
                         const statusConfig = getStatusConfig(order.status);
-                        const paymentStatus = getPaymentStatus(order);
                         const StatusIcon = statusConfig.icon;
 
                         return (
@@ -277,12 +410,6 @@ const Orders = () => {
                                 <Calendar className="w-4 h-4 text-gray-400" />
                                 <span className="text-sm text-gray-900 dark:text-gray-100">{order.deliveryDate}</span>
                               </div>
-                            </td>
-                            <td className="px-6 py-4">
-                              <span className={`inline-flex px-3 py-1 rounded-full text-xs font-semibold ${paymentStatus.bg} dark:${paymentStatus.bg.replace('50', '900/30')} ${paymentStatus.color} dark:${paymentStatus.color.replace('600', '400')}`}>
-                                {paymentStatus.label}
-                              </span>
-                              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">₹{order.totalAmount.toLocaleString()}</p>
                             </td>
                             <td className="px-6 py-4">
                               <div className="flex items-center gap-2">
@@ -353,36 +480,73 @@ const Orders = () => {
 
               {/* Modal Content */}
               <div className="p-6 max-h-[70vh] overflow-y-auto space-y-6">
-                {/* Order Status Timeline */}
-                <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
+                {/* Order Status & Task Progress */}
+                <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg p-6 border border-blue-200 dark:border-blue-800">
                   <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
-                    <Clock className="w-5 h-5 text-gray-900 dark:text-gray-100" />
-                    Order Timeline
+                    <Activity className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                    Order Progress
                   </h3>
-                  <div className="space-y-3">
-                    {selectedOrder.timeline.map((event, idx) => {
-                      const statusConfig = getStatusConfig(event.status);
-                      const StatusIcon = statusConfig.icon;
-                      const isLast = idx === selectedOrder.timeline.length - 1;
-
-                      return (
-                        <div key={idx} className="flex items-start gap-3">
-                          <div className="relative">
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${statusConfig.bg} dark:${statusConfig.bg.replace('100', '900/30')}`}>
-                              <StatusIcon className={`w-4 h-4 ${statusConfig.text} dark:${statusConfig.text.replace('700', '400')}`} />
-                            </div>
-                            {!isLast && (
-                              <div className="absolute left-1/2 top-8 w-0.5 h-6 bg-gray-300 dark:bg-gray-600 transform -translate-x-1/2"></div>
-                            )}
-                          </div>
-                          <div className="flex-1">
-                            <p className="font-medium text-gray-900 dark:text-gray-100 capitalize">{event.status}</p>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">{event.date} at {event.time}</p>
-                          </div>
-                        </div>
-                      );
-                    })}
+                  
+                  {/* Current Status */}
+                  <div className="mb-4">
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Current Status</p>
+                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                      {(() => {
+                        const statusConfig = getStatusConfig(selectedOrder.status);
+                        const StatusIcon = statusConfig.icon;
+                        return (
+                          <>
+                            <StatusIcon className={`w-5 h-5 ${statusConfig.text} dark:${statusConfig.text.replace('700', '400')}`} />
+                            <span className={`font-semibold ${statusConfig.text} dark:${statusConfig.text.replace('700', '400')}`}>
+                              {statusConfig.label}
+                            </span>
+                          </>
+                        );
+                      })()}
+                    </div>
                   </div>
+
+                  {/* Task Progress */}
+                  {selectedOrder.tasks && selectedOrder.tasks.length > 0 && (
+                    <div>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">Task Progress</p>
+                      <div className="space-y-2">
+                        {selectedOrder.tasks.map((task, idx) => {
+                          const isCompleted = task.status === 'COMPLETED';
+                          const isInProgress = task.status === 'IN_PROGRESS';
+                          const isPending = task.status === 'PENDING';
+                          
+                          return (
+                            <div key={idx} className="flex items-center gap-3 p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                                isCompleted ? 'bg-green-100 dark:bg-green-900/30' :
+                                isInProgress ? 'bg-blue-100 dark:bg-blue-900/30' :
+                                'bg-gray-100 dark:bg-gray-700'
+                              }`}>
+                                {isCompleted ? (
+                                  <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+                                ) : isInProgress ? (
+                                  <Clock className="w-5 h-5 text-blue-600 dark:text-blue-400 animate-pulse" />
+                                ) : (
+                                  <Clock className="w-5 h-5 text-gray-400" />
+                                )}
+                              </div>
+                              <div className="flex-1">
+                                <p className="font-medium text-gray-900 dark:text-gray-100">{task.taskType}</p>
+                                <p className={`text-xs ${
+                                  isCompleted ? 'text-green-600 dark:text-green-400' :
+                                  isInProgress ? 'text-blue-600 dark:text-blue-400' :
+                                  'text-gray-500 dark:text-gray-400'
+                                }`}>
+                                  {isCompleted ? 'Completed' : isInProgress ? 'In Progress' : 'Pending'}
+                                </p>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Items in Order */}
@@ -392,19 +556,20 @@ const Orders = () => {
                     Items in Order
                   </h3>
                   <div className="space-y-3">
-                    {selectedOrder.items.map((item) => (
-                      <div key={item.id} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                    {selectedOrder.items.map((item, idx) => (
+                      <div key={idx} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
                         <div className="flex items-center gap-4">
                           <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
                             <Scissors className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                           </div>
                           <div>
                             <p className="font-medium text-gray-900 dark:text-gray-100">{item.type}</p>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">{item.fabric} - {item.color}</p>
-                            <p className="text-xs text-gray-500 dark:text-gray-500">Quantity: {item.quantity}</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">{item.fabric}</p>
+                            {item.quantity > 1 && (
+                              <p className="text-xs text-gray-500 dark:text-gray-500">Quantity: {item.quantity}</p>
+                            )}
                           </div>
                         </div>
-                        <p className="font-bold text-gray-900 dark:text-gray-100">₹{item.price.toLocaleString()}</p>
                       </div>
                     ))}
                   </div>
@@ -439,27 +604,8 @@ const Orders = () => {
                   </div>
                 )}
 
-                {/* Tailor Assigned */}
-                {selectedOrder.workerName && (
-                  <div>
-                    <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
-                      <User className="w-5 h-5 text-gray-900 dark:text-gray-100" />
-                      Assigned Tailor
-                    </h3>
-                    <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
-                      <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
-                        <User className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-                      </div>
-                      <div>
-                        <p className="font-medium text-gray-900 dark:text-gray-100">{selectedOrder.workerName}</p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">ID: {selectedOrder.assignedWorker}</p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
                 {/* Notes from Owner */}
-                {selectedOrder.notes && (
+                {selectedOrder.notes && selectedOrder.notes !== 'No special instructions' && (
                   <div>
                     <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
                       <FileText className="w-5 h-5 text-gray-900 dark:text-gray-100" />
@@ -471,28 +617,6 @@ const Orders = () => {
                   </div>
                 )}
 
-                {/* Payment Breakdown */}
-                <div>
-                  <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
-                    <DollarSign className="w-5 h-5 text-gray-900 dark:text-gray-100" />
-                    Payment Details
-                  </h3>
-                  <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Total Amount:</span>
-                      <span className="font-semibold text-gray-900 dark:text-gray-100">₹{selectedOrder.totalAmount.toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Paid Amount:</span>
-                      <span className="font-semibold text-green-600 dark:text-green-400">₹{selectedOrder.paidAmount.toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between pt-2 border-t border-gray-300 dark:border-gray-600">
-                      <span className="text-gray-900 dark:text-gray-100 font-semibold">Balance Due:</span>
-                      <span className="font-bold text-red-600 dark:text-red-400">₹{selectedOrder.balanceAmount.toLocaleString()}</span>
-                    </div>
-                  </div>
-                </div>
-
                 {/* Delivery Information */}
                 <div>
                   <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
@@ -500,11 +624,11 @@ const Orders = () => {
                     Delivery Information
                   </h3>
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                    <div className="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
                       <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Order Date</p>
                       <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedOrder.orderDate}</p>
                     </div>
-                    <div className="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                    <div className="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
                       <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Expected Delivery</p>
                       <p className="font-semibold text-gray-900 dark:text-gray-100">{selectedOrder.deliveryDate}</p>
                     </div>
@@ -513,35 +637,12 @@ const Orders = () => {
               </div>
 
               {/* Modal Footer - Action Buttons */}
-              <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex flex-wrap gap-3">
+              <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex justify-end">
                 <button
-                  onClick={() => {
-                    setShowAlterationModal(true);
-                    setSelectedOrder(null);
-                  }}
-                  className="flex items-center gap-2 px-4 py-2 bg-orange-600 hover:bg-orange-700 dark:bg-orange-600 dark:hover:bg-orange-700 text-white rounded-lg transition-colors"
+                  className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 text-white rounded-lg transition-colors font-medium"
                 >
-                  <AlertCircle className="w-4 h-4" />
-                  Request Alteration
-                </button>
-                <button
-                  onClick={() => handleReorder(selectedOrder)}
-                  className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-700 text-white rounded-lg transition-colors"
-                >
-                  <RefreshCw className="w-4 h-4" />
-                  Re-order
-                </button>
-                <button
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 text-white rounded-lg transition-colors"
-                >
-                  <Download className="w-4 h-4" />
+                  <Download className="w-5 h-5" />
                   Download Invoice
-                </button>
-                <button
-                  className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-700 text-white rounded-lg transition-colors"
-                >
-                  <MessageSquare className="w-4 h-4" />
-                  Contact Support
                 </button>
               </div>
             </motion.div>

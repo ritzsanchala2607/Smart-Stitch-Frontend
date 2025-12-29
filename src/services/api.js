@@ -425,6 +425,86 @@ export const workerAPI = {
                 error: error.message || 'Server error. Please try again later.'
             };
         }
+    },
+
+    /**
+     * Start a task (change status from PENDING to IN_PROGRESS)
+     * @param {number} taskId - Task ID
+     * @param {string} token - JWT token for authentication
+     * @returns {Promise} Response with updated task data
+     */
+    startTask: async (taskId, token) => {
+        try {
+            console.log('API Request - URL:', `${API_URL}/api/tasks/${taskId}/start`);
+
+            const response = await fetch(`${API_URL}/api/tasks/${taskId}/start`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            console.log('API Response - Status:', response.status, response.statusText);
+
+            const data = await response.json();
+            console.log('API Response - Data:', data);
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to start task');
+            }
+
+            return {
+                success: true,
+                data: data.data || data,
+                message: data.message || 'Task started successfully'
+            };
+        } catch (error) {
+            console.error('Start Task API Error:', error);
+            return {
+                success: false,
+                error: error.message || 'Server error. Please try again later.'
+            };
+        }
+    },
+
+    /**
+     * Complete a task (change status from IN_PROGRESS to COMPLETED)
+     * @param {number} taskId - Task ID
+     * @param {string} token - JWT token for authentication
+     * @returns {Promise} Response with updated task data
+     */
+    completeTask: async (taskId, token) => {
+        try {
+            console.log('API Request - URL:', `${API_URL}/api/tasks/${taskId}/complete`);
+
+            const response = await fetch(`${API_URL}/api/tasks/${taskId}/complete`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            console.log('API Response - Status:', response.status, response.statusText);
+
+            const data = await response.json();
+            console.log('API Response - Data:', data);
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to complete task');
+            }
+
+            return {
+                success: true,
+                data: data.data || data,
+                message: data.message || 'Task completed successfully'
+            };
+        } catch (error) {
+            console.error('Complete Task API Error:', error);
+            return {
+                success: false,
+                error: error.message || 'Server error. Please try again later.'
+            };
+        }
     }
 };
 
@@ -865,6 +945,45 @@ export const customerAPI = {
             };
         } catch (error) {
             console.error('Update Measurement Profile API Error:', error);
+            return {
+                success: false,
+                error: error.message || 'Server error. Please try again later.'
+            };
+        }
+    },
+
+    /**
+     * Get customer's own orders (for logged-in customer)
+     * @param {string} token - JWT token for authentication
+     * @returns {Promise} Response with customer's orders
+     */
+    getMyOrders: async (token) => {
+        try {
+            console.log('API Request - URL:', `${API_URL}/api/orders/status`);
+
+            const response = await fetch(`${API_URL}/api/orders/status`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            console.log('API Response - Status:', response.status, response.statusText);
+
+            const data = await response.json();
+            console.log('API Response - Data:', data);
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to fetch orders');
+            }
+
+            return {
+                success: true,
+                data: Array.isArray(data) ? data : (data.data || []),
+                message: data.message || 'Orders fetched successfully'
+            };
+        } catch (error) {
+            console.error('Customer Orders API Error:', error);
             return {
                 success: false,
                 error: error.message || 'Server error. Please try again later.'
