@@ -572,34 +572,94 @@ const Orders = () => {
   };
 
   // Handle Edit Order
-  const handleEditOrder = (orderId) => {
+  const handleEditOrder = async (orderId) => {
     const order = orders.find(o => o.id === orderId);
-    setEditingOrder(order);
-    
-    // Pre-fill form with order data
-    const customer = customerList.find(c => c.id === order.customerId);
-    setSelectedCustomer(customer);
-    setDeliveryDate(order.deliveryDate);
-    setAdvancePayment(order.paidAmount.toString());
-    setNotes(order.notes || '');
-    setMeasurements(order.measurements || {
-      shirt: { chest: '', waist: '', shoulder: '', length: '' },
-      pant: { waist: '', length: '', hip: '' },
-      custom: ''
-    });
-    setOrderItems(order.items.map(item => ({
-      id: Date.now() + Math.random(),
-      name: item.type,
-      quantity: item.quantity.toString(),
-      price: item.price.toString(),
-      fabricType: item.fabric
-    })));
-    
-    setShowEditModal(true);
+    if (!order) return;
+
+    // Get token
+    let token = localStorage.getItem('token');
+    if (!token) {
+      const userDataString = localStorage.getItem('user');
+      if (userDataString) {
+        try {
+          const userData = JSON.parse(userDataString);
+          token = userData.jwt || userData.token;
+        } catch (e) {
+          console.error('Error parsing user data:', e);
+        }
+      }
+    }
+
+    if (!token) {
+      setSuccessMessage('Authentication error. Please log in again.');
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 5000);
+      return;
+    }
+
+    try {
+      // Fetch full order details from API
+      const result = await orderAPI.getOrderById(order.orderId, token);
+      
+      if (result.success) {
+        const orderDetails = result.data;
+        
+        // Set editing order with full details
+        setEditingOrder({
+          ...order,
+          customerId: orderDetails.customer?.customerId || order.customerId,
+          customerName: orderDetails.customer?.name || order.customerName
+        });
+        
+        // Set customer info (read-only in edit mode)
+        const customer = {
+          id: orderDetails.customer?.customerId || order.customerId,
+          name: orderDetails.customer?.name || order.customerName,
+          email: orderDetails.customer?.email || '',
+          phone: orderDetails.customer?.contactNumber || ''
+        };
+        setSelectedCustomer(customer);
+        
+        // Pre-fill editable fields with order data from API
+        setDeliveryDate(orderDetails.deadline || order.deliveryDate);
+        setAdvancePayment((orderDetails.advancePayment || order.paidAmount || 0).toString());
+        setNotes(orderDetails.additionalNotes || order.notes || '');
+        
+        // Set items from API
+        if (orderDetails.items && orderDetails.items.length > 0) {
+          setOrderItems(orderDetails.items.map(item => ({
+            id: item.itemId || Date.now() + Math.random(),
+            name: item.itemName || item.itemType || item.type || '',
+            quantity: (item.quantity || 1).toString(),
+            price: (item.price || 0).toString(),
+            fabricType: item.fabricType || item.fabric || ''
+          })));
+        } else {
+          setOrderItems(order.items.map(item => ({
+            id: Date.now() + Math.random(),
+            name: item.type,
+            quantity: item.quantity.toString(),
+            price: item.price.toString(),
+            fabricType: item.fabric
+          })));
+        }
+        
+        setShowEditModal(true);
+      } else {
+        setSuccessMessage(`Failed to fetch order details: ${result.error}`);
+        setShowSuccess(true);
+        setTimeout(() => setShowSuccess(false), 5000);
+      }
+    } catch (error) {
+      console.error('Error fetching order details:', error);
+      setSuccessMessage('Failed to load order details. Please try again.');
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 5000);
+    }
   };
 
   // Handle Update Order
-  const handleUpdateOrder = () => {
+  const handleUpdateOrder = async () => {
     if (!validateForm()) {
       return;
     }
@@ -609,34 +669,73 @@ const Orders = () => {
       0
     );
 
-    const updatedOrder = {
-      ...editingOrder,
-      customerId: selectedCustomer.id,
-      customerName: selectedCustomer.name,
-      deliveryDate,
+    // Get token
+    let token = localStorage.getItem('token');
+    if (!token) {
+      const userDataString = localStorage.getItem('user');
+      if (userDataString) {
+        try {
+          const userData = JSON.parse(userDataString);
+          token = userData.jwt || userData.token;
+        } catch (e) {
+          console.error('Error parsing user data:', e);
+        }
+      }
+    }
+
+    if (!token) {
+      setSuccessMessage('Authentication error. Please log in again.');
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 5000);
+      return;
+    }
+
+    // Prepare order payload for API - use existing customer ID
+    const orderPayload = {
+      customerId: editingOrder.customerId, // Keep the original customer
+      deadline: deliveryDate,
+      totalPrice: totalAmount,
+      advancePayment: advancePayment ? Number(advancePayment) : 0,
+      additionalNotes: notes || '',
       items: orderItems.map(item => ({
-        id: `ITEM${item.id}`,
-        type: item.name,
-        fabric: item.fabricType || 'Standard',
+        itemName: item.name,
         quantity: Number(item.quantity),
-        price: Number(item.price)
-      })),
-      totalAmount,
-      paidAmount: advancePayment ? Number(advancePayment) : 0,
-      balanceAmount: totalAmount - (advancePayment ? Number(advancePayment) : 0),
-      measurements,
-      notes
+        price: Number(item.price),
+        fabricType: item.fabricType || 'Standard'
+      }))
     };
 
-    setOrders(prev => prev.map(o => o.id === editingOrder.id ? updatedOrder : o));
-    setSuccessMessage('Order updated successfully! ✅');
-    setShowSuccess(true);
-    setTimeout(() => setShowSuccess(false), 3000);
+    console.log('Updating order with payload:', orderPayload);
 
-    // Reset form
-    resetForm();
-    setEditingOrder(null);
-    setShowEditModal(false);
+    try {
+      const result = await orderAPI.updateOrder(editingOrder.orderId, orderPayload, token);
+
+      if (result.success) {
+        console.log('Order updated successfully:', result.data);
+
+        setSuccessMessage('Order updated successfully! ✅');
+        setShowSuccess(true);
+        setTimeout(() => setShowSuccess(false), 5000);
+
+        // Refresh orders from API
+        fetchOrders();
+
+        // Reset form
+        resetForm();
+        setEditingOrder(null);
+        setShowEditModal(false);
+      } else {
+        console.error('Order update failed:', result.error);
+        setSuccessMessage(`Failed to update order: ${result.error}`);
+        setShowSuccess(true);
+        setTimeout(() => setShowSuccess(false), 5000);
+      }
+    } catch (error) {
+      console.error('Error updating order:', error);
+      setSuccessMessage('An error occurred while updating the order. Please try again.');
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 5000);
+    }
   };
 
   // Handle Delete Order
@@ -1573,66 +1672,29 @@ const Orders = () => {
 
               {/* Modal Body - Scrollable */}
               <div className="p-4 space-y-3 overflow-y-auto flex-1">
-                {/* Customer Selection - Compact */}
+                {/* Customer Info - Read Only */}
                 <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
                   <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-1.5">
                     <User className="w-4 h-4 text-orange-500" />
                     CUSTOMER
                   </h3>
                   
-                  <div className="flex gap-2">
-                    <div className="flex-1 relative">
-                      <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                      <input
-                        type="text"
-                        value={customerSearchQuery}
-                        onChange={handleCustomerSearchChange}
-                        onFocus={() => setShowCustomerDropdown(true)}
-                        placeholder="Search customer..."
-                        className={`w-full pl-8 pr-2 py-2.5 text-sm border rounded-lg focus:outline-none focus:ring-1 focus:ring-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
-                          errors.customer ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                        }`}
-                      />
-                      
-                      {showCustomerDropdown && customerSearchQuery && (
-                        <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-h-40 overflow-y-auto">
-                          {isSearchingCustomers ? (
-                            <div className="px-3 py-2 text-center text-sm text-gray-500">
-                              <div className="flex items-center justify-center gap-2">
-                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-orange-500"></div>
-                                Searching...
-                              </div>
-                            </div>
-                          ) : filteredCustomers.length > 0 ? (
-                            filteredCustomers.map(customer => (
-                              <div
-                                key={customer.id}
-                                onClick={() => handleCustomerSelect(customer)}
-                                className="px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-600 cursor-pointer border-b border-gray-100 dark:border-gray-600 last:border-b-0"
-                              >
-                                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{customer.name}</p>
-                                <p className="text-sm text-gray-600 dark:text-gray-400">{customer.phone}</p>
-                              </div>
-                            ))
-                          ) : (
-                            <div className="px-3 py-2 text-sm text-gray-500">No customers found</div>
-                          )}
-                        </div>
-                      )}
+                  <div className="flex items-center gap-3 p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600">
+                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
+                      <User className="w-5 h-5 text-orange-600 dark:text-orange-400" />
                     </div>
-                    
-                    <button
-                      type="button"
-                      onClick={() => setShowCustomerModal(true)}
-                      className="px-3.5 py-2.5 text-sm bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors flex items-center gap-1"
-                    >
-                      <Plus className="w-3 h-3" />
-                      Add
-                    </button>
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                        {selectedCustomer?.name || editingOrder.customerName}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        {selectedCustomer?.phone || selectedCustomer?.email || 'Customer details'}
+                      </p>
+                    </div>
+                    <div className="text-xs text-gray-400 dark:text-gray-500 italic">
+                      (Read-only)
+                    </div>
                   </div>
-                  {errors.customer && (
-                    <p className="text-red-500 text-xs mt-1">{errors.customer}</p>
-                  )}
                 </div>
 
                 {/* Order Items */}

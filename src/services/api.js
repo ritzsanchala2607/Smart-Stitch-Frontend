@@ -1213,5 +1213,89 @@ export const orderAPI = {
                 error: error.message || 'Server error. Please try again later.'
             };
         }
+    },
+
+    /**
+     * Get order by ID
+     * @param {number} orderId - Order ID
+     * @param {string} token - JWT token for authentication
+     * @returns {Promise} Response with order details
+     */
+    getOrderById: async (orderId, token) => {
+        try {
+            console.log('API Request - URL:', `${API_URL}/api/orders/${orderId}`);
+
+            const response = await fetch(`${API_URL}/api/orders/${orderId}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            console.log('API Response - Status:', response.status, response.statusText);
+
+            const data = await response.json();
+            console.log('API Response - Data:', data);
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to fetch order details');
+            }
+
+            return {
+                success: true,
+                data: data.data || data,
+                message: data.message || 'Order fetched successfully'
+            };
+        } catch (error) {
+            console.error('Get Order API Error:', error);
+            return {
+                success: false,
+                error: error.message || 'Server error. Please try again later.'
+            };
+        }
+    },
+
+    /**
+     * Update order
+     * @param {number} orderId - Order ID
+     * @param {Object} orderData - Updated order data
+     * @param {string} token - JWT token for authentication
+     * @returns {Promise} Response with updated order data
+     */
+    updateOrder: async (orderId, orderData, token) => {
+        try {
+            console.log('API Request - URL:', `${API_URL}/api/orders/${orderId}`);
+            console.log('API Request - Payload:', JSON.stringify(orderData, null, 2));
+
+            const response = await fetch(`${API_URL}/api/orders/${orderId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(orderData)
+            });
+
+            console.log('API Response - Status:', response.status, response.statusText);
+
+            const data = await response.json();
+            console.log('API Response - Data:', data);
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to update order');
+            }
+
+            return {
+                success: true,
+                data: data.data || data,
+                message: data.message || 'Order updated successfully'
+            };
+        } catch (error) {
+            console.error('Update Order API Error:', error);
+            return {
+                success: false,
+                error: error.message || 'Server error. Please try again later.'
+            };
+        }
     }
 };
