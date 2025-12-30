@@ -82,16 +82,9 @@ const Orders = () => {
         const mappedOrders = (result.data || []).map(order => {
           // Parse task statuses to determine overall status and items
           const taskStatuses = order.taskStatuses || [];
-          const hasInProgress = taskStatuses.some(status => status.includes('IN_PROGRESS'));
-          const allCompleted = taskStatuses.length > 0 && taskStatuses.every(status => status.includes('COMPLETED'));
           
-          // Determine order status based on task statuses
+          // Use the order status from the database directly
           let orderStatus = order.orderStatus?.toLowerCase() || 'pending';
-          if (allCompleted) {
-            orderStatus = 'ready';
-          } else if (hasInProgress) {
-            orderStatus = orderStatus;
-          }
 
           // Extract task types from task statuses
           const items = taskStatuses.map((taskStatus, idx) => {
@@ -187,9 +180,11 @@ const Orders = () => {
       cutting: { bg: 'bg-purple-100', text: 'text-purple-700', label: 'Cutting', icon: Scissors },
       stitching: { bg: 'bg-blue-100', text: 'text-blue-700', label: 'Stitching', icon: Scissors },
       fitting: { bg: 'bg-orange-100', text: 'text-orange-700', label: 'Fitting', icon: User },
-      ready: { bg: 'bg-green-100', text: 'text-green-700', label: 'Ready', icon: CheckCircle }
+      ready: { bg: 'bg-green-100', text: 'text-green-700', label: 'Ready', icon: CheckCircle },
+      completed: { bg: 'bg-green-100', text: 'text-green-700', label: 'Completed', icon: CheckCircle },
+      delivered: { bg: 'bg-blue-100', text: 'text-blue-700', label: 'Delivered', icon: Package }
     };
-    return configs[status] || configs.pending;
+    return configs[status.toLowerCase()] || configs.pending;
   };
 
   // Get payment status
@@ -300,7 +295,9 @@ const Orders = () => {
                           <option value="cutting">Cutting</option>
                           <option value="stitching">Stitching</option>
                           <option value="fitting">Fitting</option>
-                          <option value="ready">Ready / Completed</option>
+                          <option value="ready">Ready</option>
+                          <option value="completed">Completed</option>
+                          <option value="delivered">Delivered</option>
                         </select>
                       </div>
 
