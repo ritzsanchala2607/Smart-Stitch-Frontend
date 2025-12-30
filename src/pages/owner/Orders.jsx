@@ -20,12 +20,15 @@ const Orders = () => {
   const [ordersError, setOrdersError] = useState(null);
   const [showNewOrderModal, setShowNewOrderModal] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [showViewModal, setShowViewModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedOrderForView, setSelectedOrderForView] = useState(null);
   const [editingOrder, setEditingOrder] = useState(null);
+  const [showDeliverConfirm, setShowDeliverConfirm] = useState(false);
+  const [orderToDeliver, setOrderToDeliver] = useState(null);
   
   // New Order Form State
   const [selectedCustomer, setSelectedCustomer] = useState(null);
@@ -154,6 +157,7 @@ const Orders = () => {
         // Map API response to component format
         const mappedOrders = (result.data || []).map(order => ({
           id: `ORD${String(order.orderId).padStart(3, '0')}`,
+          orderId: order.orderId, // Keep the numeric ID for API calls
           customerId: order.customer?.customerId || order.customerId,
           customerName: order.customer?.name || order.customerName || 'Unknown Customer',
           orderDate: order.createdAt ? new Date(order.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
@@ -490,6 +494,7 @@ const Orders = () => {
         };
 
         setOrders(prev => [newOrder, ...prev]);
+        setSuccessMessage('Order created successfully! 🎉');
         setShowSuccess(true);
         setTimeout(() => setShowSuccess(false), 5000);
 
@@ -624,6 +629,7 @@ const Orders = () => {
     };
 
     setOrders(prev => prev.map(o => o.id === editingOrder.id ? updatedOrder : o));
+    setSuccessMessage('Order updated successfully! ✅');
     setShowSuccess(true);
     setTimeout(() => setShowSuccess(false), 3000);
 
@@ -637,9 +643,75 @@ const Orders = () => {
   const handleDeleteOrder = (orderId) => {
     if (window.confirm('Are you sure you want to delete this order? This action cannot be undone.')) {
       setOrders(prev => prev.filter(o => o.id !== orderId));
+      setSuccessMessage('Order deleted successfully! 🗑️');
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 3000);
     }
+  };
+
+  // Handle Mark as Delivered
+  const handleMarkAsDelivered = async (orderId) => {
+    setOrderToDeliver(orderId);
+    setShowDeliverConfirm(true);
+  };
+
+  const confirmDelivery = async () => {
+    setShowDeliverConfirm(false);
+    
+    if (!orderToDeliver) return;
+
+    // Get token
+    let token = localStorage.getItem('token');
+    if (!token) {
+      const userDataString = localStorage.getItem('user');
+      if (userDataString) {
+        try {
+          const userData = JSON.parse(userDataString);
+          token = userData.jwt || userData.token;
+        } catch (e) {
+          console.error('Error parsing user data:', e);
+        }
+      }
+    }
+
+    if (!token) {
+      setSuccessMessage('Authentication error. Please log in again.');
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 5000);
+      return;
+    }
+
+    try {
+      const result = await orderAPI.markAsDelivered(orderToDeliver, token);
+      
+      if (result.success) {
+        // Update the order status in the local state
+        setOrders(prev => prev.map(o => 
+          o.orderId === orderToDeliver ? { ...o, status: 'Delivered' } : o
+        ));
+        setSuccessMessage('Order marked as delivered successfully! 🎉');
+        setShowSuccess(true);
+        setTimeout(() => setShowSuccess(false), 5000);
+        // Refresh orders list
+        fetchOrders();
+      } else {
+        // Check if endpoint is not implemented
+        if (result.error.includes('No static resource') || result.error.includes('not found')) {
+          setSuccessMessage('⚠️ Delivery feature coming soon! Backend endpoint not yet available.');
+        } else {
+          setSuccessMessage(`Failed: ${result.error}`);
+        }
+        setShowSuccess(true);
+        setTimeout(() => setShowSuccess(false), 5000);
+      }
+    } catch (error) {
+      console.error('Error marking as delivered:', error);
+      setSuccessMessage('Failed to mark order as delivered. Please try again.');
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 5000);
+    }
+    
+    setOrderToDeliver(null);
   };
 
   // Filter orders
@@ -674,23 +746,39 @@ const Orders = () => {
             {/* Success Message */}
             {showSuccess && (
               <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-                className="mb-6 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-lg p-4 flex items-center justify-between"
+                initial={{ opacity: 0, y: -50, x: '-50%' }}
+                animate={{ opacity: 1, y: 0, x: '-50%' }}
+                exit={{ opacity: 0, y: -50, x: '-50%' }}
+                className="fixed top-6 left-1/2 z-50 max-w-md w-full"
               >
-                <div className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
-                  <span className="text-green-800 dark:text-green-400 font-medium">
-                    Order created successfully!
-                  </span>
+                <div className={`bg-white dark:bg-gray-800 rounded-lg shadow-2xl border-2 ${
+                  successMessage.includes('Failed') || successMessage.includes('coming soon') 
+                    ? 'border-orange-500 dark:border-orange-400' 
+                    : 'border-green-500 dark:border-green-400'
+                } p-4 flex items-center gap-3`}>
+                  <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
+                    successMessage.includes('Failed') || successMessage.includes('coming soon')
+                      ? 'bg-orange-100 dark:bg-orange-900/30'
+                      : 'bg-green-100 dark:bg-green-900/30'
+                  }`}>
+                    {successMessage.includes('Failed') || successMessage.includes('coming soon') ? (
+                      <AlertCircle className="w-6 h-6 text-orange-600 dark:text-orange-400" />
+                    ) : (
+                      <CheckCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                      {successMessage || 'Order created successfully!'}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setShowSuccess(false)}
+                    className="flex-shrink-0 p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                  >
+                    <X className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                  </button>
                 </div>
-                <button
-                  onClick={() => setShowSuccess(false)}
-                  className="text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300"
-                >
-                  <X className="w-5 h-5" />
-                </button>
               </motion.div>
             )}
 
@@ -827,6 +915,16 @@ const Orders = () => {
                               >
                                 <Edit className="w-4 h-4 text-orange-600 dark:text-orange-400" />
                               </button>
+                              {(order.status.toLowerCase() === 'ready' || order.status.toLowerCase() === 'completed') && (
+                                <button 
+                                  onClick={() => handleMarkAsDelivered(order.orderId)}
+                                  className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold rounded-lg transition-colors flex items-center gap-1" 
+                                  title="Mark as Delivered"
+                                >
+                                  <CheckCircle className="w-3 h-3" />
+                                  Deliver
+                                </button>
+                              )}
                               <button 
                                 onClick={() => handleDeleteOrder(order.id)}
                                 className="p-2 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors" 
@@ -1732,6 +1830,59 @@ const Orders = () => {
         onClose={() => setShowCustomerModal(false)}
         onSave={handleAddNewCustomer}
       />
+
+      {/* Deliver Confirmation Modal */}
+      <AnimatePresence>
+        {showDeliverConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 p-4"
+            onClick={() => setShowDeliverConfirm(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6"
+            >
+              {/* Icon */}
+              <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 bg-green-100 dark:bg-green-900/30 rounded-full">
+                <CheckCircle className="w-10 h-10 text-green-600 dark:text-green-400" />
+              </div>
+
+              {/* Title */}
+              <h3 className="text-xl font-bold text-center text-gray-900 dark:text-gray-100 mb-2">
+                Mark as Delivered?
+              </h3>
+
+              {/* Message */}
+              <p className="text-center text-gray-600 dark:text-gray-400 mb-6">
+                Are you sure you want to mark this order as delivered? The customer will be notified.
+              </p>
+
+              {/* Buttons */}
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowDeliverConfirm(false)}
+                  className="flex-1 px-4 py-2.5 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-lg font-medium transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDelivery}
+                  className="flex-1 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+                >
+                  <CheckCircle className="w-5 h-5" />
+                  Confirm
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

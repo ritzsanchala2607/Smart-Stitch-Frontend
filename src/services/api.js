@@ -1173,5 +1173,45 @@ export const orderAPI = {
                 error: error.message || 'Server error. Please try again later.'
             };
         }
+    },
+
+    /**
+     * Mark order as delivered
+     * @param {number} orderId - Order ID
+     * @param {string} token - JWT token for authentication
+     * @returns {Promise} Response with updated order data
+     */
+    markAsDelivered: async (orderId, token) => {
+        try {
+            console.log('API Request - URL:', `${API_URL}/api/orders/${orderId}/deliver`);
+
+            const response = await fetch(`${API_URL}/api/orders/${orderId}/deliver`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            console.log('API Response - Status:', response.status, response.statusText);
+
+            const data = await response.json();
+            console.log('API Response - Data:', data);
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to mark order as delivered');
+            }
+
+            return {
+                success: true,
+                data: data.data || data,
+                message: data.message || 'Order marked as delivered successfully'
+            };
+        } catch (error) {
+            console.error('Mark as Delivered API Error:', error);
+            return {
+                success: false,
+                error: error.message || 'Server error. Please try again later.'
+            };
+        }
     }
 };
