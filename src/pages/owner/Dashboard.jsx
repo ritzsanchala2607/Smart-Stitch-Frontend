@@ -23,6 +23,8 @@ const OwnerDashboard = () => {
   const [isLoadingDailyOrders, setIsLoadingDailyOrders] = useState(false);
   const [weeklyOrdersCount, setWeeklyOrdersCount] = useState(0);
   const [isLoadingWeeklyOrders, setIsLoadingWeeklyOrders] = useState(false);
+  const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
+  const [isLoadingPendingOrders, setIsLoadingPendingOrders] = useState(false);
 
   // Calculate today's and weekly orders
   const today = new Date().toISOString().split('T')[0];
@@ -34,6 +36,7 @@ const OwnerDashboard = () => {
   useEffect(() => {
     fetchDailyOrdersCount();
     fetchWeeklyOrdersCount();
+    fetchPendingOrdersCount();
   }, []);
 
   const fetchDailyOrdersCount = async () => {
@@ -120,6 +123,54 @@ const OwnerDashboard = () => {
       setWeeklyOrdersCount(weeklyOrders.length);
     } finally {
       setIsLoadingWeeklyOrders(false);
+    }
+  };
+
+  const fetchPendingOrdersCount = async () => {
+    setIsLoadingPendingOrders(true);
+
+    // Get token
+    let token = localStorage.getItem('token');
+    if (!token) {
+      const userDataString = localStorage.getItem('user');
+      if (userDataString) {
+        try {
+          const userData = JSON.parse(userDataString);
+          token = userData.jwt || userData.token;
+        } catch (e) {
+          console.error('Error parsing user data:', e);
+        }
+      }
+    }
+
+    if (!token) {
+      console.error('No token found for fetching pending orders');
+      setIsLoadingPendingOrders(false);
+      return;
+    }
+
+    try {
+      const result = await orderAPI.getOrders(token);
+
+      if (result.success) {
+        // Filter pending orders (not ready or delivered)
+        const allOrders = result.data || [];
+        const pending = allOrders.filter(order => {
+          const status = (order.status || '').toLowerCase();
+          return status !== 'ready' && status !== 'delivered' && status !== 'completed';
+        });
+        setPendingOrdersCount(pending.length);
+      } else {
+        console.error('Failed to fetch pending orders count:', result.error);
+        // Fallback to dummy data count
+        setPendingOrdersCount(pendingOrders.length);
+      }
+    } catch (error) {
+      console.error('Error fetching pending orders count:', error);
+      // Fallback to dummy data count
+      setPendingOrdersCount(pendingOrders.length);
+    } finally {
+      setIsLoadingPendingOrders(false);
     }
   };
   
@@ -346,10 +397,10 @@ const OwnerDashboard = () => {
               />
               <StatCard 
                 title="Pending Work" 
-                value={pendingOrders.length}
+                value={isLoadingPendingOrders ? '...' : pendingOrdersCount}
                 icon={Clock}
-                color={urgentOrders > 5 ? 'bg-red-500' : mediumOrders > 10 ? 'bg-yellow-500' : 'bg-blue-500'}
-                subtitle={`${urgentOrders} urgent`}
+                color="bg-orange-500"
+                subtitle="In progress"
                 onClick={() => navigate('/owner/pending-work')}
               />
               <StatCard 

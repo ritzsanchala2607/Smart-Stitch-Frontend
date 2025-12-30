@@ -43,7 +43,18 @@ const Orders = () => {
     custom: ''
   });
   const [orderItems, setOrderItems] = useState([
-    { id: Date.now(), name: '', quantity: '', price: '', fabricType: '', assignedWorker: null }
+    { 
+      id: Date.now(), 
+      name: '', 
+      quantity: '', 
+      price: '', 
+      fabricType: '', 
+      tasks: [
+        { id: `${Date.now()}-cutting`, type: 'CUTTING', workerId: null, workerName: null, deadline: '' },
+        { id: `${Date.now()}-stitching`, type: 'STITCHING', workerId: null, workerName: null, deadline: '' },
+        { id: `${Date.now()}-ironing`, type: 'IRONING', workerId: null, workerName: null, deadline: '' }
+      ]
+    }
   ]);
   const [errors, setErrors] = useState({});
   
@@ -323,10 +334,39 @@ const Orders = () => {
   };
 
   const handleAddItem = () => {
+    const newItemId = Date.now();
     setOrderItems(prev => [
       ...prev,
-      { id: Date.now(), name: '', quantity: '', price: '', fabricType: '', assignedWorker: null }
+      { 
+        id: newItemId, 
+        name: '', 
+        quantity: '', 
+        price: '', 
+        fabricType: '', 
+        tasks: [
+          { id: `${newItemId}-cutting`, type: 'CUTTING', workerId: null, workerName: null, deadline: '' },
+          { id: `${newItemId}-stitching`, type: 'STITCHING', workerId: null, workerName: null, deadline: '' },
+          { id: `${newItemId}-ironing`, type: 'IRONING', workerId: null, workerName: null, deadline: '' }
+        ]
+      }
     ]);
+  };
+
+  const handleTaskChange = (itemId, taskId, field, value) => {
+    setOrderItems(prev =>
+      prev.map(item =>
+        item.id === itemId
+          ? {
+              ...item,
+              tasks: item.tasks.map(task =>
+                task.id === taskId
+                  ? { ...task, [field]: value }
+                  : task
+              )
+            }
+          : item
+      )
+    );
   };
 
   const handleRemoveItem = (itemId) => {
@@ -425,22 +465,21 @@ const Orders = () => {
       tasks: []
     };
 
-    // Add tasks based on worker assignment mode
-    if (assignmentMode === 'whole' && wholeOrderWorker) {
-      // Assign all items to one worker
-      orderPayload.tasks = orderItems.map(item => ({
-        workerId: wholeOrderWorker.id,
-        taskType: 'STITCHING' // Default task type
-      }));
-    } else if (assignmentMode === 'individual') {
-      // Assign items individually
-      orderPayload.tasks = orderItems
-        .filter(item => item.assignedWorker)
-        .map(item => ({
-          workerId: item.assignedWorker,
-          taskType: 'STITCHING' // Default task type
-        }));
-    }
+    // Add tasks from items - each item can have multiple tasks (cutting, stitching, ironing)
+    orderPayload.tasks = [];
+    orderItems.forEach(item => {
+      if (item.tasks && item.tasks.length > 0) {
+        item.tasks.forEach(task => {
+          if (task.workerId && task.deadline) {
+            orderPayload.tasks.push({
+              workerId: task.workerId,
+              taskType: task.type,
+              deadline: task.deadline
+            });
+          }
+        });
+      }
+    });
 
     console.log('Creating order with payload:', orderPayload);
 
@@ -515,6 +554,7 @@ const Orders = () => {
   };
 
   const resetForm = () => {
+    const newItemId = Date.now();
     setSelectedCustomer(null);
     setCustomerSearchQuery('');
     setShowCustomerDropdown(false);
@@ -527,7 +567,18 @@ const Orders = () => {
       custom: ''
     });
     setOrderItems([
-      { id: Date.now(), name: '', quantity: '', price: '', fabricType: '', assignedWorker: null }
+      { 
+        id: newItemId, 
+        name: '', 
+        quantity: '', 
+        price: '', 
+        fabricType: '', 
+        tasks: [
+          { id: `${newItemId}-cutting`, type: 'CUTTING', workerId: null, workerName: null, deadline: '' },
+          { id: `${newItemId}-stitching`, type: 'STITCHING', workerId: null, workerName: null, deadline: '' },
+          { id: `${newItemId}-ironing`, type: 'IRONING', workerId: null, workerName: null, deadline: '' }
+        ]
+      }
     ]);
     setAssignmentMode('individual');
     setWholeOrderWorker(null);
@@ -1159,31 +1210,32 @@ const Orders = () => {
                   )}
                 </div>
 
-                {/* Order Items */}
+                {/* Order Items & Task Assignment */}
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
                     <FileText className="w-5 h-5 text-orange-500" />
-                    Order Items
+                    Order Items & Task Assignment
                   </h3>
 
-                  <div className="space-y-4">
+                  <div className="space-y-6">
                     {orderItems.map((item, index) => (
-                      <div key={item.id} className="p-4 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700">
-                        <div className="flex items-center justify-between mb-3">
-                          <h4 className="font-medium text-gray-700 dark:text-gray-300">Item {index + 1}</h4>
+                      <div key={item.id} className="p-5 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-gradient-to-br from-gray-50 to-white dark:from-gray-700 dark:to-gray-800 shadow-sm">
+                        <div className="flex items-center justify-between mb-4">
+                          <h4 className="font-bold text-lg text-gray-900 dark:text-gray-100">Item {index + 1}</h4>
                           {orderItems.length > 1 && (
                             <button
                               onClick={() => handleRemoveItem(item.id)}
-                              className="text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors"
+                              className="text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors p-2 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg"
                             >
                               <Trash2 className="w-5 h-5" />
                             </button>
                           )}
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                        {/* Item Basic Info */}
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
                           <div>
-                            <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                               Item Name <span className="text-red-500">*</span>
                             </label>
                             <input
@@ -1195,7 +1247,7 @@ const Orders = () => {
                             />
                           </div>
                           <div>
-                            <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                               Quantity <span className="text-red-500">*</span>
                             </label>
                             <input
@@ -1208,7 +1260,7 @@ const Orders = () => {
                             />
                           </div>
                           <div>
-                            <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                               Price <span className="text-red-500">*</span>
                             </label>
                             <input
@@ -1222,7 +1274,7 @@ const Orders = () => {
                             />
                           </div>
                           <div>
-                            <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Fabric Type</label>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Fabric Type</label>
                             <input
                               type="text"
                               value={item.fabricType}
@@ -1230,6 +1282,65 @@ const Orders = () => {
                               placeholder="e.g., Cotton"
                               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
                             />
+                          </div>
+                        </div>
+
+                        {/* Task Assignment for this Item */}
+                        <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                          <h5 className="font-semibold text-sm text-blue-900 dark:text-blue-300 mb-3 flex items-center gap-2">
+                            <Users className="w-4 h-4" />
+                            Task Assignment for this Item
+                          </h5>
+                          <div className="space-y-3">
+                            {item.tasks && item.tasks.map((task) => (
+                              <div key={task.id} className="grid grid-cols-1 md:grid-cols-3 gap-3 p-3 bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
+                                <div>
+                                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                                    {task.type} Worker
+                                  </label>
+                                  <select
+                                    value={task.workerId || ''}
+                                    onChange={(e) => {
+                                      const workerId = e.target.value;
+                                      const worker = workers.find(w => w.id === workerId);
+                                      handleTaskChange(item.id, task.id, 'workerId', workerId || null);
+                                      handleTaskChange(item.id, task.id, 'workerName', worker ? worker.name : null);
+                                    }}
+                                    disabled={isLoadingWorkers}
+                                    className="w-full px-2 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 disabled:opacity-50"
+                                  >
+                                    <option value="">-- Select Worker --</option>
+                                    {workers.filter(w => w.status === 'active').map(worker => (
+                                      <option key={worker.id} value={worker.id}>
+                                        {worker.name}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </div>
+                                <div>
+                                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                                    Deadline
+                                  </label>
+                                  <input
+                                    type="date"
+                                    value={task.deadline}
+                                    onChange={(e) => handleTaskChange(item.id, task.id, 'deadline', e.target.value)}
+                                    min={new Date().toISOString().split('T')[0]}
+                                    className="w-full px-2 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                                  />
+                                </div>
+                                <div className="flex items-end">
+                                  {task.workerId && task.deadline ? (
+                                    <span className="text-xs text-green-600 dark:text-green-400 font-medium flex items-center gap-1">
+                                      <CheckCircle className="w-4 h-4" />
+                                      Assigned
+                                    </span>
+                                  ) : (
+                                    <span className="text-xs text-gray-400 dark:text-gray-500">Optional</span>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
                           </div>
                         </div>
                       </div>
@@ -1241,158 +1352,12 @@ const Orders = () => {
 
                     <button
                       onClick={handleAddItem}
-                      className="flex items-center gap-2 px-4 py-2 text-orange-600 dark:text-orange-400 border-2 border-orange-600 dark:border-orange-400 rounded-lg hover:bg-orange-50 dark:hover:bg-orange-900/30 transition-colors font-medium"
+                      className="flex items-center gap-2 px-4 py-3 text-orange-600 dark:text-orange-400 border-2 border-dashed border-orange-600 dark:border-orange-400 rounded-lg hover:bg-orange-50 dark:hover:bg-orange-900/30 transition-colors font-medium w-full justify-center"
                     >
                       <Plus className="w-5 h-5" />
                       Add Another Item
                     </button>
                   </div>
-                </div>
-
-                {/* Worker Assignment */}
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
-                    <Users className="w-5 h-5 text-orange-500" />
-                    Worker Assignment
-                  </h3>
-
-                  {/* Assignment Mode Selection */}
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                      Assignment Mode
-                    </label>
-                    <div className="flex gap-4">
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="radio"
-                          name="assignmentMode"
-                          value="individual"
-                          checked={assignmentMode === 'individual'}
-                          onChange={(e) => setAssignmentMode(e.target.value)}
-                          className="w-4 h-4 text-orange-500 focus:ring-orange-500"
-                        />
-                        <span className="text-sm text-gray-700 dark:text-gray-300">Assign items individually</span>
-                      </label>
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="radio"
-                          name="assignmentMode"
-                          value="whole"
-                          checked={assignmentMode === 'whole'}
-                          onChange={(e) => setAssignmentMode(e.target.value)}
-                          className="w-4 h-4 text-orange-500 focus:ring-orange-500"
-                        />
-                        <span className="text-sm text-gray-700 dark:text-gray-300">Assign whole order to one worker</span>
-                      </label>
-                    </div>
-                  </div>
-
-                  {/* Individual Assignment */}
-                  {assignmentMode === 'individual' && (
-                    <div className="p-4 bg-blue-50 dark:bg-blue-900/30 rounded-lg border border-blue-200 dark:border-blue-800">
-                      <p className="text-sm text-blue-800 dark:text-blue-400 mb-3">
-                        💡 You can assign each item to a different worker below.
-                      </p>
-                      <div className="space-y-2">
-                        {orderItems.map((item, index) => {
-                          const assignedWorker = workers.find(w => w.id === item.assignedWorker);
-                          return (
-                            <div key={item.id} className="flex items-center justify-between bg-white dark:bg-gray-700 rounded-lg p-3">
-                              <div>
-                                <p className="font-medium text-gray-900 dark:text-gray-100">
-                                  Item {index + 1}: {item.name || 'Unnamed Item'}
-                                </p>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <select
-                                  value={item.assignedWorker || ''}
-                                  onChange={(e) => {
-                                    const workerId = e.target.value;
-                                    const worker = workers.find(w => w.id === workerId);
-                                    handleItemChange(item.id, 'assignedWorker', workerId || null);
-                                    handleItemChange(item.id, 'workerName', worker ? worker.name : null);
-                                  }}
-                                  disabled={isLoadingWorkers}
-                                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                  <option value="">
-                                    {isLoadingWorkers ? 'Loading workers...' : '-- Select Worker --'}
-                                  </option>
-                                  {workers.filter(w => w.status === 'active').map(worker => (
-                                    <option key={worker.id} value={worker.id}>
-                                      {worker.name} - {worker.specialization}
-                                    </option>
-                                  ))}
-                                </select>
-                                {assignedWorker && (
-                                  <span className="text-sm text-green-600 dark:text-green-400 font-medium">
-                                    ✓ {assignedWorker.name}
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Whole Order Assignment */}
-                  {assignmentMode === 'whole' && (
-                    <div className="p-4 bg-purple-50 dark:bg-purple-900/30 rounded-lg border border-purple-200 dark:border-purple-800">
-                      <p className="text-sm text-purple-800 dark:text-purple-400 mb-3">
-                        💡 Select one worker to handle all items in this order.
-                      </p>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                          Select Worker for Entire Order
-                        </label>
-                        <select
-                          value={wholeOrderWorker?.id || ''}
-                          onChange={(e) => {
-                            const workerId = e.target.value;
-                            const worker = workers.find(w => w.id === workerId);
-                            setWholeOrderWorker(worker || null);
-                          }}
-                          disabled={isLoadingWorkers}
-                          className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          <option value="">
-                            {isLoadingWorkers ? 'Loading workers...' : '-- Select a worker --'}
-                          </option>
-                          {workers.filter(w => w.status === 'active').map(worker => (
-                            <option key={worker.id} value={worker.id}>
-                              {worker.name} - {worker.specialization}
-                            </option>
-                          ))}
-                        </select>
-                        {workersError && (
-                          <div className="mt-2 text-sm text-red-600 dark:text-red-400">
-                            {workersError}
-                            <button
-                              onClick={fetchWorkers}
-                              className="ml-2 underline hover:no-underline"
-                            >
-                              Retry
-                            </button>
-                          </div>
-                        )}
-                        {wholeOrderWorker && (
-                          <div className="mt-3 p-3 bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
-                            <p className="text-sm text-gray-600 dark:text-gray-400">
-                              <span className="font-medium">Selected Worker:</span> {wholeOrderWorker.name}
-                            </p>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">
-                              <span className="font-medium">Specialization:</span> {wholeOrderWorker.specialization}
-                            </p>
-                            <p className="text-sm text-green-600 dark:text-green-400 mt-2">
-                              ✓ All {orderItems.length} item(s) will be assigned to this worker
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
                 </div>
 
                 {/* Order Details */}
