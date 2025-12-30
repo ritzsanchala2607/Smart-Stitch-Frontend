@@ -25,6 +25,10 @@ const OwnerDashboard = () => {
   const [isLoadingWeeklyOrders, setIsLoadingWeeklyOrders] = useState(false);
   const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
   const [isLoadingPendingOrders, setIsLoadingPendingOrders] = useState(false);
+  const [weeklyChartData, setWeeklyChartData] = useState([]);
+  const [isLoadingWeeklyChart, setIsLoadingWeeklyChart] = useState(false);
+  const [recentOrdersData, setRecentOrdersData] = useState([]);
+  const [isLoadingRecentOrders, setIsLoadingRecentOrders] = useState(false);
 
   // Calculate today's and weekly orders
   const today = new Date().toISOString().split('T')[0];
@@ -37,6 +41,8 @@ const OwnerDashboard = () => {
     fetchDailyOrdersCount();
     fetchWeeklyOrdersCount();
     fetchPendingOrdersCount();
+    fetchWeeklyChartData();
+    fetchRecentOrders();
   }, []);
 
   const fetchDailyOrdersCount = async () => {
@@ -173,6 +179,160 @@ const OwnerDashboard = () => {
       setIsLoadingPendingOrders(false);
     }
   };
+
+  const fetchWeeklyChartData = async () => {
+    setIsLoadingWeeklyChart(true);
+
+    // Get token
+    let token = localStorage.getItem('token');
+    if (!token) {
+      const userDataString = localStorage.getItem('user');
+      if (userDataString) {
+        try {
+          const userData = JSON.parse(userDataString);
+          token = userData.jwt || userData.token;
+        } catch (e) {
+          console.error('Error parsing user data:', e);
+        }
+      }
+    }
+
+    if (!token) {
+      console.error('No token found for fetching weekly chart data');
+      setIsLoadingWeeklyChart(false);
+      return;
+    }
+
+    try {
+      // Fetch orders for the last 7 days
+      const result = await orderAPI.getOrders(token);
+
+      if (result.success) {
+        const allOrders = result.data || [];
+        
+        // Get last 7 days
+        const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        const today = new Date();
+        const last7Days = [];
+        
+        for (let i = 6; i >= 0; i--) {
+          const date = new Date(today);
+          date.setDate(date.getDate() - i);
+          const dayName = days[date.getDay()];
+          const dateStr = date.toISOString().split('T')[0];
+          
+          // Count orders for this day
+          const dayOrders = allOrders.filter(order => {
+            const orderDate = order.createdAt ? new Date(order.createdAt).toISOString().split('T')[0] : null;
+            return orderDate === dateStr;
+          });
+          
+          // Calculate revenue for this day
+          const dayRevenue = dayOrders.reduce((sum, order) => sum + (order.totalPrice || 0), 0);
+          
+          last7Days.push({
+            day: dayName,
+            orders: dayOrders.length,
+            revenue: dayRevenue
+          });
+        }
+        
+        setWeeklyChartData(last7Days);
+      } else {
+        console.error('Failed to fetch weekly chart data:', result.error);
+        // Fallback to dummy data
+        setWeeklyChartData([
+          { day: 'Mon', orders: 12, revenue: 15000 },
+          { day: 'Tue', orders: 15, revenue: 18000 },
+          { day: 'Wed', orders: 18, revenue: 22000 },
+          { day: 'Thu', orders: 14, revenue: 17000 },
+          { day: 'Fri', orders: 20, revenue: 25000 },
+          { day: 'Sat', orders: 17, revenue: 21000 },
+          { day: 'Sun', orders: 22, revenue: 28000 }
+        ]);
+      }
+    } catch (error) {
+      console.error('Error fetching weekly chart data:', error);
+      // Fallback to dummy data
+      setWeeklyChartData([
+        { day: 'Mon', orders: 12, revenue: 15000 },
+        { day: 'Tue', orders: 15, revenue: 18000 },
+        { day: 'Wed', orders: 18, revenue: 22000 },
+        { day: 'Thu', orders: 14, revenue: 17000 },
+        { day: 'Fri', orders: 20, revenue: 25000 },
+        { day: 'Sat', orders: 17, revenue: 21000 },
+        { day: 'Sun', orders: 22, revenue: 28000 }
+      ]);
+    } finally {
+      setIsLoadingWeeklyChart(false);
+    }
+  };
+
+  const fetchRecentOrders = async () => {
+    setIsLoadingRecentOrders(true);
+
+    // Get token
+    let token = localStorage.getItem('token');
+    if (!token) {
+      const userDataString = localStorage.getItem('user');
+      if (userDataString) {
+        try {
+          const userData = JSON.parse(userDataString);
+          token = userData.jwt || userData.token;
+        } catch (e) {
+          console.error('Error parsing user data:', e);
+        }
+      }
+    }
+
+    if (!token) {
+      console.error('No token found for fetching recent orders');
+      setIsLoadingRecentOrders(false);
+      return;
+    }
+
+    try {
+      const result = await orderAPI.getOrders(token);
+
+      if (result.success) {
+        const allOrders = result.data || [];
+        
+        // Sort by creation date (most recent first) and take top 5
+        const sortedOrders = allOrders
+          .sort((a, b) => {
+            const dateA = new Date(a.createdAt || 0);
+            const dateB = new Date(b.createdAt || 0);
+            return dateB - dateA; // Descending order
+          })
+          .slice(0, 5);
+        
+        // Map to component format
+        const mappedOrders = sortedOrders.map(order => ({
+          id: `ORD${String(order.orderId).padStart(3, '0')}`,
+          orderId: order.orderId,
+          customerName: order.customer?.name || order.customerName || 'Unknown Customer',
+          items: order.items || [],
+          workerName: order.tasks && order.tasks.length > 0 
+            ? order.tasks[0].workerName || order.tasks[0].worker?.name || 'Unassigned'
+            : 'Unassigned',
+          status: order.status ? order.status.toLowerCase() : 'pending',
+          deliveryDate: order.deadline || 'N/A'
+        }));
+        
+        setRecentOrdersData(mappedOrders);
+      } else {
+        console.error('Failed to fetch recent orders:', result.error);
+        // Fallback to dummy data
+        setRecentOrdersData(orders.slice(0, 5));
+      }
+    } catch (error) {
+      console.error('Error fetching recent orders:', error);
+      // Fallback to dummy data
+      setRecentOrdersData(orders.slice(0, 5));
+    } finally {
+      setIsLoadingRecentOrders(false);
+    }
+  };
   
   // Pending work with urgency
   const pendingOrders = orders.filter(o => o.status !== 'ready');
@@ -184,8 +344,8 @@ const OwnerDashboard = () => {
   const totalPerformance = workers.reduce((sum, w) => sum + w.performance, 0);
   const avgPerformance = Math.round(totalPerformance / workers.length);
 
-  // Recent orders
-  const recentOrders = orders.slice(0, 5);
+  // Recent orders - use API data if available, fallback to dummy data
+  const recentOrders = recentOrdersData.length > 0 ? recentOrdersData : orders.slice(0, 5);
   const activeWorkers = workers.filter(w => w.status === 'active');
 
   // Low stock items
@@ -211,18 +371,18 @@ const OwnerDashboard = () => {
     { status: 'delayed', count: orders.filter(o => new Date(o.deliveryDate) < new Date() && o.status !== 'ready').length, color: 'bg-red-500' }
   ];
 
-  // Weekly data for chart
-  const weeklyData = [
-    { day: 'Mon', orders: 12, revenue: 15000 },
-    { day: 'Tue', orders: 15, revenue: 18000 },
-    { day: 'Wed', orders: 18, revenue: 22000 },
-    { day: 'Thu', orders: 14, revenue: 17000 },
-    { day: 'Fri', orders: 20, revenue: 25000 },
-    { day: 'Sat', orders: 17, revenue: 21000 },
-    { day: 'Sun', orders: 22, revenue: 28000 }
+  // Use API data for chart, fallback to empty data if not loaded yet
+  const weeklyData = weeklyChartData.length > 0 ? weeklyChartData : [
+    { day: 'Mon', orders: 0, revenue: 0 },
+    { day: 'Tue', orders: 0, revenue: 0 },
+    { day: 'Wed', orders: 0, revenue: 0 },
+    { day: 'Thu', orders: 0, revenue: 0 },
+    { day: 'Fri', orders: 0, revenue: 0 },
+    { day: 'Sat', orders: 0, revenue: 0 },
+    { day: 'Sun', orders: 0, revenue: 0 }
   ];
 
-  const maxOrders = Math.max(...weeklyData.map(d => d.orders));
+  const maxOrders = Math.max(...weeklyData.map(d => d.orders), 1); // Minimum 1 to avoid division by zero
 
   // Quick actions
   const quickActions = [
@@ -436,24 +596,30 @@ const OwnerDashboard = () => {
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-end justify-between h-64 gap-2">
-                    {weeklyData.map((data, index) => (
-                      <div key={index} className="flex-1 flex flex-col items-center gap-2">
-                        <div className="w-full flex flex-col items-center gap-1">
-                          <div className="relative w-full">
-                            <div
-                              className="bg-blue-500 rounded-t-lg transition-all hover:bg-blue-600"
-                              style={{ height: `${(data.orders / maxOrders) * 200}px` }}
-                            ></div>
-                            <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-xs font-semibold text-gray-700">
-                              {data.orders}
+                  {isLoadingWeeklyChart ? (
+                    <div className="flex items-center justify-center h-64">
+                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+                    </div>
+                  ) : (
+                    <div className="flex items-end justify-between h-64 gap-2">
+                      {weeklyData.map((data, index) => (
+                        <div key={index} className="flex-1 flex flex-col items-center gap-2">
+                          <div className="w-full flex flex-col items-center gap-1">
+                            <div className="relative w-full">
+                              <div
+                                className="bg-blue-500 rounded-t-lg transition-all hover:bg-blue-600"
+                                style={{ height: `${(data.orders / maxOrders) * 200}px` }}
+                              ></div>
+                              <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-xs font-semibold text-gray-700 dark:text-gray-300">
+                                {data.orders}
+                              </div>
                             </div>
                           </div>
+                          <span className="text-xs text-gray-600 dark:text-gray-400 font-medium">{data.day}</span>
                         </div>
-                        <span className="text-xs text-gray-600 dark:text-gray-400 font-medium">{data.day}</span>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  )}
                 </motion.div>
 
 
@@ -467,50 +633,67 @@ const OwnerDashboard = () => {
                   <div className="p-6 border-b border-gray-200 dark:border-gray-700">
                     <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Recent Orders</h2>
                   </div>
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead className="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
-                        <tr>
-                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400">Order ID</th>
-                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400">Customer</th>
-                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400">Type</th>
-                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400">Worker</th>
-                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400">Status</th>
-                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400">Delivery</th>
-                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400">Action</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                        {recentOrders.map((order) => (
-                          <tr key={order.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                            <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-100">{order.id}</td>
-                            <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{order.customerName}</td>
-                            <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{order.items[0]?.type || 'N/A'}</td>
-                            <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{order.workerName || 'Unassigned'}</td>
-                            <td className="px-6 py-4">
-                              <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                                order.status === 'ready' ? 'bg-green-100 text-green-700' :
-                                order.status === 'stitching' ? 'bg-blue-100 text-blue-700' :
-                                order.status === 'cutting' ? 'bg-purple-100 text-purple-700' :
-                                'bg-orange-100 text-orange-700'
-                              }`}>
-                                {order.status}
-                              </span>
-                            </td>
-                            <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{order.deliveryDate}</td>
-                            <td className="px-6 py-4">
-                              <button
-                                onClick={() => navigate('/owner/orders')}
-                                className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
-                              >
-                                <Eye className="w-4 h-4" />
-                              </button>
-                            </td>
+                  {isLoadingRecentOrders ? (
+                    <div className="flex items-center justify-center py-12">
+                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+                    </div>
+                  ) : recentOrders.length === 0 ? (
+                    <div className="p-12 text-center">
+                      <Package className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+                      <p className="text-gray-600 dark:text-gray-400">No recent orders</p>
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead className="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
+                          <tr>
+                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400">Order ID</th>
+                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400">Customer</th>
+                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400">Items</th>
+                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400">Worker</th>
+                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400">Status</th>
+                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400">Delivery</th>
+                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400">Action</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                        </thead>
+                        <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                          {recentOrders.map((order) => (
+                            <tr key={order.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                              <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-100">{order.id}</td>
+                              <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{order.customerName}</td>
+                              <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
+                                {order.items && order.items.length > 0 
+                                  ? order.items.map(item => item.itemName || item.itemType || item.type).join(', ')
+                                  : 'N/A'
+                                }
+                              </td>
+                              <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{order.workerName || 'Unassigned'}</td>
+                              <td className="px-6 py-4">
+                                <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                                  order.status === 'ready' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
+                                  order.status === 'delivered' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
+                                  order.status === 'stitching' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
+                                  order.status === 'cutting' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400' :
+                                  'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'
+                                }`}>
+                                  {order.status}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{order.deliveryDate}</td>
+                              <td className="px-6 py-4">
+                                <button
+                                  onClick={() => navigate('/owner/orders')}
+                                  className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
+                                >
+                                  <Eye className="w-4 h-4" />
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </motion.div>
 
                 {/* Customer Order Timeline Widget */}
