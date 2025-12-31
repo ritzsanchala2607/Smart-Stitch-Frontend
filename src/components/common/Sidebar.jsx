@@ -75,6 +75,7 @@ const Sidebar = ({ role, isOpen, onClose }) => {
     { icon: Scissors, label: 'Catalogue', path: '/customer/catalogue' },
     { icon: ShoppingCart, label: 'Cart', path: '/customer/cart' },
     { icon: CreditCard, label: 'Payment', path: '/customer/payment' },
+    { icon: Star, label: 'Ratings', path: '/customer/ratings' },
     { icon: HelpCircle, label: 'Support', path: '/customer/support' },
     { icon: Settings, label: 'Profile', path: '/customer/profile' },
   ];

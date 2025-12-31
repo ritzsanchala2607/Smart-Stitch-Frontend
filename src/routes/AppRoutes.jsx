@@ -41,6 +41,7 @@ import CustomerCart from '../pages/customer/Cart';
 import CustomerPayment from '../pages/customer/Payment';
 import CustomerSupport from '../pages/customer/Support';
 import CustomerProfile from '../pages/customer/Profile';
+import CustomerRatings from '../pages/customer/Ratings';
 
 // Admin Pages
 import AdminDashboard from '../pages/admin/AdminDashboard';
@@ -113,6 +114,7 @@ const AppRoutes = () => {
       <Route path="/customer/catalogue" element={<ProtectedRoute allowedRole="customer"><CustomerCatalogue /></ProtectedRoute>} />
       <Route path="/customer/cart" element={<ProtectedRoute allowedRole="customer"><CustomerCart /></ProtectedRoute>} />
       <Route path="/customer/payment" element={<ProtectedRoute allowedRole="customer"><CustomerPayment /></ProtectedRoute>} />
+      <Route path="/customer/ratings" element={<ProtectedRoute allowedRole="customer"><CustomerRatings /></ProtectedRoute>} />
       <Route path="/customer/support" element={<ProtectedRoute allowedRole="customer"><CustomerSupport /></ProtectedRoute>} />
       <Route path="/customer/profile" element={<ProtectedRoute allowedRole="customer"><CustomerProfile /></ProtectedRoute>} />
 
