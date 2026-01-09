@@ -1117,6 +1117,47 @@ export const customerAPI = {
                 error: error.message || 'Server error. Please try again later.'
             };
         }
+    },
+
+    /**
+     * Get recent activities for customer dashboard
+     * @param {string} token - JWT token for authentication
+     * @param {number} limit - Number of activities to fetch (default: 10)
+     * @returns {Promise} Response with recent activities
+     */
+    getRecentActivities: async (token, limit = 10) => {
+        try {
+            const url = `${API_URL}/api/customers/me/activities${limit ? `?limit=${limit}` : ''}`;
+            console.log('API Request - URL:', url);
+
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            console.log('API Response - Status:', response.status, response.statusText);
+
+            const data = await response.json();
+            console.log('API Response - Data:', data);
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to fetch recent activities');
+            }
+
+            return {
+                success: true,
+                data: data.data || data,
+                message: data.message || 'Recent activities fetched successfully'
+            };
+        } catch (error) {
+            console.error('Recent Activities API Error:', error);
+            return {
+                success: false,
+                error: error.message || 'Server error. Please try again later.'
+            };
+        }
     }
 };
 

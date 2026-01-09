@@ -21,7 +21,9 @@ const Dashboard = () => {
 
   const [statsLoading, setStatsLoading] = useState(true);
   const [ordersLoading, setOrdersLoading] = useState(true);
+  const [activitiesLoading, setActivitiesLoading] = useState(true);
   const [activeOrders, setActiveOrders] = useState([]);
+  const [recentActivities, setRecentActivities] = useState([]);
   const [customerData, setCustomerData] = useState({
     name: 'Customer',
     totalOrders: 0,
@@ -66,6 +68,7 @@ const Dashboard = () => {
   useEffect(() => {
     fetchCustomerStats();
     fetchActiveOrders();
+    fetchRecentActivities();
   }, []);
 
   const fetchCustomerStats = async () => {
@@ -123,7 +126,6 @@ const Dashboard = () => {
         // Don't filter - show all orders including delivered
         // Sort by order ID descending to get most recent orders first
         const sortedOrders = [...orders].sort((a, b) => b.orderId - a.orderId);
-        console.log('Sorted orders (most recent first):', sortedOrders);
 
         // Transform orders to match component structure
         const transformedOrders = sortedOrders.map(order => {
@@ -209,6 +211,49 @@ const Dashboard = () => {
     setOrdersLoading(false);
   };
 
+  // Fetch recent activities
+  const fetchRecentActivities = async () => {
+    setActivitiesLoading(true);
+    const token = getToken();
+    
+    if (!token) {
+      console.error('No token found');
+      setActivitiesLoading(false);
+      return;
+    }
+
+    try {
+      const response = await customerAPI.getRecentActivities(token, 5); // Get last 5 activities
+      
+      if (response.success) {
+        const activities = response.data || [];
+        console.log('Recent activities from API:', activities);
+        
+        // Transform activities to display format
+        const transformedActivities = activities.map(activity => {
+          return activity.description || 'Activity update';
+        });
+        
+        setRecentActivities(transformedActivities);
+      } else {
+        console.error('Failed to fetch activities:', response.error);
+        // Set default activities on error
+        setRecentActivities([
+          'No recent activities',
+          'Check back later for updates'
+        ]);
+      }
+    } catch (error) {
+      console.error('Error fetching recent activities:', error);
+      setRecentActivities([
+        'Unable to load activities',
+        'Please try again later'
+      ]);
+    }
+    
+    setActivitiesLoading(false);
+  };
+
   // Order trend data (last 6 months)
   const orderTrendData = [
     { month: 'Aug', orders: 2 },
@@ -227,12 +272,12 @@ const Dashboard = () => {
     { category: 'Kurta', count: 2, color: '#8b5cf6' }
   ];
 
-  // Today's activity
-  const todayActivity = [
-    'Your shirt order progressed to Cutting stage',
-    'Pant delivery expected in 2 days',
-    'New catalogue items added'
-  ];
+  // Today's activity - will be replaced by API data
+  // const todayActivity = [
+  //   'Your shirt order progressed to Cutting stage',
+  //   'Pant delivery expected in 2 days',
+  //   'New catalogue items added'
+  // ];
 
   return (
     <Layout role="customer">
@@ -472,34 +517,34 @@ const Dashboard = () => {
                           
                           const x1 = 50 + 40 * Math.cos((startAngle * Math.PI) / 180);
                           const y1 = 50 + 40 * Math.sin((startAngle * Math.PI) / 180);
-                          const x2 = 50 + 40 * Math.cos((currentAngle * Math.PI) / 180);
-                          const y2 = 50 + 40 * Math.sin((currentAngle * Math.PI) / 180);
-                          
-                          const largeArc = angle > 180 ? 1 : 0;
-                          
-                          return (
-                            <path
-                              key={idx}
-                              d={`M 50 50 L ${x1} ${y1} A 40 40 0 ${largeArc} 1 ${x2} ${y2} Z`}
-                              fill={cat.color}
-                            />
-                          );
-                        });
-                      })()}
-                    </svg>
-                  </div>
-                  <div className="flex-1 space-y-2">
-                    {categoryData.map((cat, idx) => (
-                      <div key={idx} className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div className="w-4 h-4 rounded" style={{ backgroundColor: cat.color }} />
-                          <span className="text-sm text-gray-700 dark:text-gray-300">{cat.category}</span>
+                            const x2 = 50 + 40 * Math.cos((currentAngle * Math.PI) / 180);
+                            const y2 = 50 + 40 * Math.sin((currentAngle * Math.PI) / 180);
+                            
+                            const largeArc = angle > 180 ? 1 : 0;
+                            
+                            return (
+                              <path
+                                key={idx}
+                                d={`M 50 50 L ${x1} ${y1} A 40 40 0 ${largeArc} 1 ${x2} ${y2} Z`}
+                                fill={cat.color}
+                              />
+                            );
+                          });
+                        })()}
+                      </svg>
+                    </div>
+                    <div className="flex-1 space-y-2">
+                      {categoryData.map((cat, idx) => (
+                        <div key={idx} className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <div className="w-4 h-4 rounded" style={{ backgroundColor: cat.color }} />
+                            <span className="text-sm text-gray-700 dark:text-gray-300">{cat.category}</span>
+                          </div>
+                          <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">{cat.count}</span>
                         </div>
-                        <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">{cat.count}</span>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                </div>
               </motion.div>
             </div>
 
@@ -515,14 +560,31 @@ const Dashboard = () => {
                   <Activity className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                   <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">Recent Activity</h2>
                 </div>
-                <div className="space-y-3">
-                  {todayActivity.map((activity, idx) => (
-                    <div key={idx} className="flex items-start gap-3">
-                      <div className="w-2 h-2 bg-blue-600 dark:bg-blue-400 rounded-full mt-2" />
-                      <p className="text-sm text-gray-700 dark:text-gray-300">{activity}</p>
-                    </div>
-                  ))}
-                </div>
+                {activitiesLoading ? (
+                  <div className="space-y-3">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="flex items-start gap-3 animate-pulse">
+                        <div className="w-2 h-2 bg-gray-200 dark:bg-gray-700 rounded-full mt-2" />
+                        <div className="flex-1">
+                          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : recentActivities.length === 0 ? (
+                  <div className="text-center py-6">
+                    <p className="text-gray-400 dark:text-gray-500 text-sm">No recent activities</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {recentActivities.map((activity, idx) => (
+                      <div key={idx} className="flex items-start gap-3">
+                        <div className="w-2 h-2 bg-blue-600 dark:bg-blue-400 rounded-full mt-2" />
+                        <p className="text-sm text-gray-700 dark:text-gray-300">{activity}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </motion.div>
             </div>
           </div>
