@@ -989,6 +989,134 @@ export const customerAPI = {
                 error: error.message || 'Server error. Please try again later.'
             };
         }
+    },
+
+    /**
+     * Get customer dashboard statistics
+     * @param {string} token - JWT token for authentication
+     * @returns {Promise} Response with customer statistics
+     */
+    getCustomerStats: async (token) => {
+        try {
+            console.log('API Request - URL:', `${API_URL}/api/customers/me/stats`);
+
+            const response = await fetch(`${API_URL}/api/customers/me/stats`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            console.log('API Response - Status:', response.status, response.statusText);
+
+            const data = await response.json();
+            console.log('API Response - Data:', data);
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to fetch statistics');
+            }
+
+            return {
+                success: true,
+                data: data.data || data,
+                message: data.message || 'Statistics fetched successfully'
+            };
+        } catch (error) {
+            console.error('Customer Stats API Error:', error);
+            return {
+                success: false,
+                error: error.message || 'Server error. Please try again later.'
+            };
+        }
+    },
+
+    /**
+     * Get customer payment history
+     * @param {string} token - JWT token for authentication
+     * @returns {Promise} Response with payment history
+     */
+    getPaymentHistory: async (token) => {
+        try {
+            console.log('API Request - URL:', `${API_URL}/api/customers/me/payments`);
+
+            const response = await fetch(`${API_URL}/api/customers/me/payments`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            console.log('API Response - Status:', response.status, response.statusText);
+
+            const data = await response.json();
+            console.log('API Response - Data:', data);
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to fetch payment history');
+            }
+
+            return {
+                success: true,
+                data: data.data || data,
+                message: data.message || 'Payment history fetched successfully'
+            };
+        } catch (error) {
+            console.error('Payment History API Error:', error);
+            return {
+                success: false,
+                error: error.message || 'Server error. Please try again later.'
+            };
+        }
+    },
+
+    /**
+     * Get customer order history with optional date filtering
+     * @param {string} token - JWT token for authentication
+     * @param {Object} filters - Optional filters (year, month, startDate, endDate)
+     * @returns {Promise} Response with order history
+     */
+    getOrderHistory: async (token, filters = {}) => {
+        try {
+            // Build query string from filters
+            const queryParams = new URLSearchParams();
+            if (filters.year) queryParams.append('year', filters.year);
+            if (filters.month) queryParams.append('month', filters.month);
+            if (filters.startDate) queryParams.append('startDate', filters.startDate);
+            if (filters.endDate) queryParams.append('endDate', filters.endDate);
+
+            const queryString = queryParams.toString();
+            const url = `${API_URL}/api/customers/me/orders/history${queryString ? `?${queryString}` : ''}`;
+
+            console.log('API Request - URL:', url);
+
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            console.log('API Response - Status:', response.status, response.statusText);
+
+            const data = await response.json();
+            console.log('API Response - Data:', data);
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to fetch order history');
+            }
+
+            return {
+                success: true,
+                data: data.data || data,
+                message: data.message || 'Order history fetched successfully'
+            };
+        } catch (error) {
+            console.error('Order History API Error:', error);
+            return {
+                success: false,
+                error: error.message || 'Server error. Please try again later.'
+            };
+        }
     }
 };
 
@@ -1292,6 +1420,312 @@ export const orderAPI = {
             };
         } catch (error) {
             console.error('Update Order API Error:', error);
+            return {
+                success: false,
+                error: error.message || 'Server error. Please try again later.'
+            };
+        }
+    }
+};
+
+
+/**
+ * API Service for rating endpoints
+ * Handles all rating-related requests to the backend
+ */
+export const ratingAPI = {
+    /**
+     * Rate a shop
+     * @param {Object} ratingData - Rating data
+     * @param {number} ratingData.orderId - Order ID
+     * @param {number} ratingData.rating - Rating (1-5)
+     * @param {string} ratingData.review - Review text (optional)
+     * @param {string} token - JWT token for authentication
+     * @returns {Promise} Response with rating data
+     */
+    rateShop: async (ratingData, token) => {
+        try {
+            console.log('API Request - URL:', `${API_URL}/api/ratings/shop`);
+            console.log('API Request - Payload:', JSON.stringify(ratingData, null, 2));
+
+            const response = await fetch(`${API_URL}/api/ratings/shop`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(ratingData)
+            });
+
+            console.log('API Response - Status:', response.status, response.statusText);
+
+            const data = await response.json();
+            console.log('API Response - Data:', data);
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to submit shop rating');
+            }
+
+            return {
+                success: true,
+                data: data.data || data,
+                message: data.message || 'Shop rating submitted successfully'
+            };
+        } catch (error) {
+            console.error('Shop Rating API Error:', error);
+            return {
+                success: false,
+                error: error.message || 'Server error. Please try again later.'
+            };
+        }
+    },
+
+    /**
+     * Rate a worker
+     * @param {Object} ratingData - Rating data
+     * @param {number} ratingData.orderId - Order ID
+     * @param {number} ratingData.workerId - Worker ID
+     * @param {number} ratingData.rating - Rating (1-5)
+     * @param {string} ratingData.review - Review text (optional)
+     * @param {string} token - JWT token for authentication
+     * @returns {Promise} Response with rating data
+     */
+    rateWorker: async (ratingData, token) => {
+        try {
+            console.log('API Request - URL:', `${API_URL}/api/ratings/worker`);
+            console.log('API Request - Payload:', JSON.stringify(ratingData, null, 2));
+
+            const response = await fetch(`${API_URL}/api/ratings/worker`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(ratingData)
+            });
+
+            console.log('API Response - Status:', response.status, response.statusText);
+
+            const data = await response.json();
+            console.log('API Response - Data:', data);
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to submit worker rating');
+            }
+
+            return {
+                success: true,
+                data: data.data || data,
+                message: data.message || 'Worker rating submitted successfully'
+            };
+        } catch (error) {
+            console.error('Worker Rating API Error:', error);
+            return {
+                success: false,
+                error: error.message || 'Server error. Please try again later.'
+            };
+        }
+    },
+
+    /**
+     * Get shop ratings
+     * @param {number} shopId - Shop ID
+     * @param {string} token - JWT token for authentication
+     * @returns {Promise} Response with shop ratings
+     */
+    getShopRatings: async (shopId, token) => {
+        try {
+            console.log('API Request - URL:', `${API_URL}/api/ratings/shop/${shopId}`);
+
+            const response = await fetch(`${API_URL}/api/ratings/shop/${shopId}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            console.log('API Response - Status:', response.status, response.statusText);
+
+            const data = await response.json();
+            console.log('API Response - Data:', data);
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to fetch shop ratings');
+            }
+
+            return {
+                success: true,
+                data: data.data || data,
+                message: data.message
+            };
+        } catch (error) {
+            console.error('Get Shop Ratings API Error:', error);
+            return {
+                success: false,
+                error: error.message || 'Server error. Please try again later.'
+            };
+        }
+    },
+
+    /**
+     * Get shop rating summary
+     * @param {number} shopId - Shop ID
+     * @param {string} token - JWT token for authentication
+     * @returns {Promise} Response with average rating and count
+     */
+    getShopRatingSummary: async (shopId, token) => {
+        try {
+            console.log('API Request - URL:', `${API_URL}/api/ratings/shop/${shopId}/summary`);
+
+            const response = await fetch(`${API_URL}/api/ratings/shop/${shopId}/summary`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            console.log('API Response - Status:', response.status, response.statusText);
+
+            const data = await response.json();
+            console.log('API Response - Data:', data);
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to fetch shop rating summary');
+            }
+
+            return {
+                success: true,
+                data: data.data || data,
+                message: data.message
+            };
+        } catch (error) {
+            console.error('Get Shop Rating Summary API Error:', error);
+            return {
+                success: false,
+                error: error.message || 'Server error. Please try again later.'
+            };
+        }
+    },
+
+    /**
+     * Get worker ratings
+     * @param {number} workerId - Worker ID
+     * @param {string} token - JWT token for authentication
+     * @returns {Promise} Response with worker ratings
+     */
+    getWorkerRatings: async (workerId, token) => {
+        try {
+            console.log('API Request - URL:', `${API_URL}/api/ratings/worker/${workerId}`);
+
+            const response = await fetch(`${API_URL}/api/ratings/worker/${workerId}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            console.log('API Response - Status:', response.status, response.statusText);
+
+            const data = await response.json();
+            console.log('API Response - Data:', data);
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to fetch worker ratings');
+            }
+
+            return {
+                success: true,
+                data: data.data || data,
+                message: data.message
+            };
+        } catch (error) {
+            console.error('Get Worker Ratings API Error:', error);
+            return {
+                success: false,
+                error: error.message || 'Server error. Please try again later.'
+            };
+        }
+    },
+
+    /**
+     * Get worker rating summary
+     * @param {number} workerId - Worker ID
+     * @param {string} token - JWT token for authentication
+     * @returns {Promise} Response with average rating and count
+     */
+    getWorkerRatingSummary: async (workerId, token) => {
+        try {
+            console.log('API Request - URL:', `${API_URL}/api/ratings/worker/${workerId}/summary`);
+
+            const response = await fetch(`${API_URL}/api/ratings/worker/${workerId}/summary`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            console.log('API Response - Status:', response.status, response.statusText);
+
+            const data = await response.json();
+            console.log('API Response - Data:', data);
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to fetch worker rating summary');
+            }
+
+            return {
+                success: true,
+                data: data.data || data,
+                message: data.message
+            };
+        } catch (error) {
+            console.error('Get Worker Rating Summary API Error:', error);
+            return {
+                success: false,
+                error: error.message || 'Server error. Please try again later.'
+            };
+        }
+    }
+};
+
+/**
+ * API Service for shop information endpoints
+ * Handles shop-related requests to the backend
+ */
+export const shopAPI = {
+    /**
+     * Get shop information with ratings
+     * @param {number} shopId - Shop ID
+     * @param {string} token - JWT token for authentication
+     * @returns {Promise} Response with shop information
+     */
+    getShopInfo: async (shopId, token) => {
+        try {
+            console.log('API Request - URL:', `${API_URL}/api/shops/${shopId}`);
+
+            const response = await fetch(`${API_URL}/api/shops/${shopId}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            console.log('API Response - Status:', response.status, response.statusText);
+
+            const data = await response.json();
+            console.log('API Response - Data:', data);
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to fetch shop information');
+            }
+
+            return {
+                success: true,
+                data: data.data || data,
+                message: data.message || 'Shop information fetched successfully'
+            };
+        } catch (error) {
+            console.error('Shop Info API Error:', error);
             return {
                 success: false,
                 error: error.message || 'Server error. Please try again later.'

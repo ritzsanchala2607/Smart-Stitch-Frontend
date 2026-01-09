@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Layout from '../../components/common/Layout';
 import { motion, AnimatePresence } from 'framer-motion';
 import usePageTitle from '../../hooks/usePageTitle';
@@ -29,27 +29,222 @@ import {
   Wallet,
   Calendar,
   Activity,
-  Phone
+  Phone,
+  Loader
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { customerAPI } from '../../services/api';
 
 const Dashboard = () => {
   usePageTitle('Dashboard');
   const navigate = useNavigate();
 
-  // Mock customer data
-  const customerData = {
-    name: 'Robert Johnson',
-    loyaltyPoints: 1250,
-    tier: 'Gold',
-    totalOrders: 12,
-    activeOrders: 2,
-    completedOrders: 10,
-    pendingDelivery: 1,
-    totalSpent: 15000,
-    savedMeasurements: 3,
-    paymentDue: 1300,
-    lastPayment: 2800
+  const [loading, setLoading] = useState(true);
+  const [statsLoading, setStatsLoading] = useState(true);
+  const [ordersLoading, setOrdersLoading] = useState(true);
+  const [activeOrders, setActiveOrders] = useState([]);
+  const [customerData, setCustomerData] = useState({
+    name: 'Customer',
+    loyaltyPoints: 0,
+    tier: 'Bronze',
+    totalOrders: 0,
+    activeOrders: 0,
+    completedOrders: 0,
+    pendingDelivery: 0,
+    totalSpent: 0,
+    savedMeasurements: 0,
+    paymentDue: 0,
+    lastPayment: 0
+  });
+
+  // Get token from localStorage
+  const getToken = () => {
+    const token = localStorage.getItem('token');
+    if (token) return token;
+    
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        return user.jwt || user.token;
+      } catch (e) {
+        console.error('Error parsing user from localStorage:', e);
+      }
+    }
+    return null;
+  };
+
+  // Get customer name from localStorage
+  const getCustomerName = () => {
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        return user.name || 'Customer';
+      } catch (e) {
+        console.error('Error parsing user from localStorage:', e);
+      }
+    }
+    return 'Customer';
+  };
+
+  // Fetch customer statistics
+  useEffect(() => {
+    fetchCustomerStats();
+    fetchActiveOrders();
+  }, []);
+
+  const fetchCustomerStats = async () => {
+    setStatsLoading(true);
+    const token = getToken();
+    
+    if (!token) {
+      console.error('No token found');
+      setStatsLoading(false);
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const response = await customerAPI.getCustomerStats(token);
+      
+      if (response.success) {
+        const stats = response.data;
+        setCustomerData(prev => ({
+          ...prev,
+          name: getCustomerName(),
+          totalOrders: stats.totalOrders || 0,
+          activeOrders: stats.activeOrders || 0,
+          completedOrders: stats.completedOrders || 0,
+          pendingDelivery: stats.activeOrders || 0, // Using activeOrders as pending delivery
+          totalSpent: stats.totalSpent || 0,
+          paymentDue: stats.pendingPayment || 0
+        }));
+      } else {
+        console.error('Failed to fetch stats:', response.error);
+      }
+    } catch (error) {
+      console.error('Error fetching customer stats:', error);
+    }
+    
+    setStatsLoading(false);
+    setLoading(false);
+  };
+
+  // Fetch active orders
+  const fetchActiveOrders = async () => {
+    setOrdersLoading(true);
+    const token = getToken();
+    
+    if (!token) {
+      console.error('No token found');
+      setOrdersLoading(false);
+      return;
+    }
+
+    try {
+      const response = await customerAPI.getMyOrders(token);
+      
+      if (response.success) {
+        const orders = response.data || [];
+        console.log('All orders from API:', orders);
+        
+        // Don't filter - show all orders including delivered
+        // Sort by order ID descending to get most recent orders first
+        const sortedOrders = [...orders].sort((a, b) => b.orderId - a.orderId);
+        console.log('Sorted orders (most recent first):', sortedOrders);
+
+        // Transform orders to match component structure
+        const transformedOrders = sortedOrders.map(order => {
+          // Get all items from taskStatuses
+          const taskStatuses = order.taskStatuses || [];
+          const itemNames = taskStatuses.map(ts => {
+            const taskType = ts.split('_')[0];
+            return taskType.charAt(0) + taskType.slice(1).toLowerCase();
+          }).join(', ') || 'Order Items';
+          
+          // Get order status from orderStatus field
+          const orderStatus = (order.orderStatus || 'PENDING').toUpperCase();
+          console.log(`Order ${order.orderId} orderStatus: ${orderStatus}`);
+          
+          // Define stage progression based on order status
+          // Status flow: PENDING/NEW → IN_CUTTING → IN_STITCHING → IN_IRONING → READY/COMPLETED → DELIVERED
+          const stages = [
+            { 
+              name: 'Ordered', 
+              completed: true // Always completed if order exists
+            },
+            { 
+              name: 'Cutting', 
+              completed: orderStatus.includes('CUTTING') || 
+                         orderStatus.includes('STITCHING') || 
+                         orderStatus.includes('IRONING') || 
+                         orderStatus === 'READY' || 
+                         orderStatus === 'COMPLETED' ||
+                         orderStatus === 'DELIVERED'
+            },
+            { 
+              name: 'Stitching', 
+              completed: orderStatus.includes('STITCHING') || 
+                         orderStatus.includes('IRONING') || 
+                         orderStatus === 'READY' || 
+                         orderStatus === 'COMPLETED' ||
+                         orderStatus === 'DELIVERED'
+            },
+            { 
+              name: 'Ironing', 
+              completed: orderStatus.includes('IRONING') || 
+                         orderStatus === 'READY' || 
+                         orderStatus === 'COMPLETED' ||
+                         orderStatus === 'DELIVERED'
+            },
+            { 
+              name: 'Ready', 
+              completed: orderStatus === 'READY' || 
+                         orderStatus === 'COMPLETED' ||
+                         orderStatus === 'DELIVERED'
+            }
+          ];
+          
+          console.log(`Order ${order.orderId} stages:`, stages);
+          
+          // Calculate progress based on completed stages
+          const completedStagesCount = stages.filter(s => s.completed).length;
+          const totalStagesCount = stages.length;
+          const progress = Math.round((completedStagesCount / totalStagesCount) * 100);
+          
+          console.log(`Order ${order.orderId} progress: ${completedStagesCount}/${totalStagesCount} = ${progress}%`);
+          
+          // Determine current status for display
+          const displayStatus = orderStatus.toLowerCase().replace('in_', '').replace('_', ' ');
+
+          const transformed = {
+            id: `ORD${String(order.orderId).padStart(3, '0')}`,
+            item: itemNames,
+            status: displayStatus,
+            progress: progress,
+            deliveryDate: order.deadline ? new Date(order.deadline).toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: '2-digit',
+              day: '2-digit'
+            }) : 'TBD',
+            stages: stages
+          };
+
+          console.log(`Transformed order ${order.orderId}:`, transformed);
+          return transformed;
+        });
+
+        setActiveOrders(transformedOrders.slice(0, 3)); // Show last 3 orders
+        console.log('Final orders set (last 3):', transformedOrders.slice(0, 3));
+      } else {
+        console.error('Failed to fetch orders:', response.error);
+      }
+    } catch (error) {
+      console.error('Error fetching active orders:', error);
+    }
+    
+    setOrdersLoading(false);
   };
 
   // Recent orders
@@ -186,38 +381,6 @@ const Dashboard = () => {
     }
   ];
 
-  // Active orders with progress
-  const activeOrders = [
-    {
-      id: 'ORD001',
-      item: 'Classic Formal Shirt',
-      status: 'stitching',
-      progress: 60,
-      deliveryDate: '2024-01-25',
-      stages: [
-        { name: 'Ordered', completed: true },
-        { name: 'Cutting', completed: true },
-        { name: 'Stitching', completed: false },
-        { name: 'Fitting', completed: false },
-        { name: 'Ready', completed: false }
-      ]
-    },
-    {
-      id: 'ORD002',
-      item: 'Designer Kurta',
-      status: 'cutting',
-      progress: 30,
-      deliveryDate: '2024-01-28',
-      stages: [
-        { name: 'Ordered', completed: true },
-        { name: 'Cutting', completed: false },
-        { name: 'Stitching', completed: false },
-        { name: 'Fitting', completed: false },
-        { name: 'Ready', completed: false }
-      ]
-    }
-  ];
-
   // Loyalty rewards
   const loyaltyRewards = [
     { points: 500, reward: '10% Off Next Order', unlocked: true },
@@ -294,6 +457,7 @@ const Dashboard = () => {
                 icon={Package}
                 color="bg-blue-500"
                 onClick={() => navigate('/customer/orders')}
+                loading={statsLoading}
               />
               <StatCard
                 title="Active Orders"
@@ -301,6 +465,7 @@ const Dashboard = () => {
                 icon={Clock}
                 color="bg-orange-500"
                 onClick={() => navigate('/customer/orders')}
+                loading={statsLoading}
               />
               <StatCard
                 title="Pending Delivery"
@@ -308,6 +473,7 @@ const Dashboard = () => {
                 icon={TrendingUp}
                 color="bg-purple-500"
                 onClick={() => navigate('/customer/orders')}
+                loading={statsLoading}
               />
               <StatCard
                 title="Delivered"
@@ -315,6 +481,7 @@ const Dashboard = () => {
                 icon={CheckCircle}
                 color="bg-green-500"
                 onClick={() => navigate('/customer/orders')}
+                loading={statsLoading}
               />
               <StatCard
                 title="Payment Due"
@@ -322,6 +489,7 @@ const Dashboard = () => {
                 icon={AlertCircle}
                 color="bg-red-500"
                 onClick={() => navigate('/customer/payment')}
+                loading={statsLoading}
               />
             </div>
 
@@ -336,7 +504,7 @@ const Dashboard = () => {
                   className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 sm:p-6"
                 >
                   <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Active Orders Progress</h2>
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Orders Progress</h2>
                     <button
                       onClick={() => navigate('/customer/orders')}
                       className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium"
@@ -345,65 +513,107 @@ const Dashboard = () => {
                     </button>
                   </div>
 
-                  <div className="space-y-6">
-                    {activeOrders.map((order) => (
-                      <div key={order.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-                        <div className="flex items-center justify-between mb-4">
-                          <div>
-                            <p className="font-semibold text-gray-900 dark:text-gray-100">{order.id}</p>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">{order.item}</p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-sm text-gray-600 dark:text-gray-400">Delivery</p>
-                            <p className="font-semibold text-gray-900 dark:text-gray-100">{order.deliveryDate}</p>
-                          </div>
-                        </div>
-
-                        {/* Progress Bar */}
-                        <div className="mb-4">
-                          <div className="flex justify-between text-xs text-gray-600 dark:text-gray-400 mb-2">
-                            <span>Progress</span>
-                            <span>{order.progress}%</span>
-                          </div>
-                          <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                            <motion.div
-                              initial={{ width: 0 }}
-                              animate={{ width: `${order.progress}%` }}
-                              transition={{ duration: 1, ease: 'easeOut' }}
-                              className="h-full bg-gradient-to-r from-blue-500 to-green-500"
-                            />
-                          </div>
-                        </div>
-
-                        {/* Stage Timeline */}
-                        <div className="flex items-center justify-between">
-                          {order.stages.map((stage, idx) => (
-                            <div key={idx} className="flex flex-col items-center flex-1">
-                              <motion.div
-                                initial={{ scale: 0 }}
-                                animate={{ scale: 1 }}
-                                transition={{ delay: idx * 0.1 }}
-                                className={`w-8 h-8 rounded-full flex items-center justify-center mb-2 ${
-                                  stage.completed
-                                    ? 'bg-green-500 dark:bg-green-600'
-                                    : idx === order.stages.findIndex(s => !s.completed)
-                                    ? 'bg-blue-500 dark:bg-blue-600 animate-pulse'
-                                    : 'bg-gray-300 dark:bg-gray-600'
-                                }`}
-                              >
-                                {stage.completed ? (
-                                  <CheckCircle className="w-4 h-4 text-white" />
-                                ) : (
-                                  <Clock className="w-4 h-4 text-white" />
-                                )}
-                              </motion.div>
-                              <p className="text-xs text-gray-600 dark:text-gray-400 text-center">{stage.name}</p>
+                  {ordersLoading ? (
+                    <div className="space-y-6">
+                      {[1, 2].map((i) => (
+                        <div key={i} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 animate-pulse">
+                          <div className="flex items-center justify-between mb-4">
+                            <div className="flex-1">
+                              <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded w-24 mb-2" />
+                              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-40" />
                             </div>
-                          ))}
+                            <div className="text-right">
+                              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-16 mb-2" />
+                              <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded w-24" />
+                            </div>
+                          </div>
+                          <div className="mb-4">
+                            <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full" />
+                          </div>
+                          <div className="flex items-center justify-between">
+                            {[1, 2, 3, 4, 5].map((j) => (
+                              <div key={j} className="flex flex-col items-center flex-1">
+                                <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full mb-2" />
+                                <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-12" />
+                              </div>
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  ) : activeOrders.length === 0 ? (
+                    <div className="text-center py-12">
+                      <Package className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+                      <p className="text-gray-500 dark:text-gray-400 text-lg font-medium mb-2">No Orders Yet</p>
+                      <p className="text-gray-400 dark:text-gray-500 text-sm mb-6">You haven't placed any orders yet</p>
+                      <button
+                        onClick={() => navigate('/customer/catalogue')}
+                        className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium"
+                      >
+                        Browse Catalogue
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="space-y-6">
+                      {activeOrders.map((order) => (
+                        <div key={order.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                          <div className="flex items-center justify-between mb-4">
+                            <div>
+                              <p className="font-semibold text-gray-900 dark:text-gray-100">{order.id}</p>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">{order.item}</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-sm text-gray-600 dark:text-gray-400">Delivery</p>
+                              <p className="font-semibold text-gray-900 dark:text-gray-100">{order.deliveryDate}</p>
+                            </div>
+                          </div>
+
+                          {/* Progress Bar */}
+                          <div className="mb-4">
+                            <div className="flex justify-between text-xs text-gray-600 dark:text-gray-400 mb-2">
+                              <span>Progress</span>
+                              <span>{order.progress}%</span>
+                            </div>
+                            <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                              <motion.div
+                                initial={{ width: 0 }}
+                                animate={{ width: `${order.progress}%` }}
+                                transition={{ duration: 1, ease: 'easeOut' }}
+                                className="h-full bg-gradient-to-r from-blue-500 to-green-500"
+                              />
+                            </div>
+                          </div>
+
+                          {/* Stage Timeline */}
+                          <div className="flex items-center justify-between">
+                            {order.stages.map((stage, idx) => (
+                              <div key={idx} className="flex flex-col items-center flex-1">
+                                <motion.div
+                                  initial={{ scale: 0 }}
+                                  animate={{ scale: 1 }}
+                                  transition={{ delay: idx * 0.1 }}
+                                  className={`w-8 h-8 rounded-full flex items-center justify-center mb-2 ${
+                                    stage.completed
+                                      ? 'bg-green-500 dark:bg-green-600'
+                                      : idx === order.stages.findIndex(s => !s.completed)
+                                      ? 'bg-blue-500 dark:bg-blue-600 animate-pulse'
+                                      : 'bg-gray-300 dark:bg-gray-600'
+                                  }`}
+                                >
+                                  {stage.completed ? (
+                                    <CheckCircle className="w-4 h-4 text-white" />
+                                  ) : (
+                                    <Clock className="w-4 h-4 text-white" />
+                                  )}
+                                </motion.div>
+                                <p className="text-xs text-gray-600 dark:text-gray-400 text-center">{stage.name}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </motion.div>
 
                 {/* Style Inspirations Gallery */}
@@ -1093,7 +1303,7 @@ const Dashboard = () => {
 };
 
 // Stat Card Component
-const StatCard = ({ title, value, icon: Icon, color, onClick }) => {
+const StatCard = ({ title, value, icon: Icon, color, onClick, loading }) => {
   // Extract color name from the color class (e.g., "bg-blue-500" -> "blue")
   const colorName = color.match(/bg-(\w+)-/)?.[1] || 'blue';
   const iconColorClass = `text-${colorName}-600 dark:text-${colorName}-400`;
@@ -1106,11 +1316,19 @@ const StatCard = ({ title, value, icon: Icon, color, onClick }) => {
     >
       <div className="flex items-center justify-between mb-2 sm:mb-4">
         <div className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded-lg flex items-center justify-center bg-gray-100 dark:bg-gray-700">
-          <Icon className={`w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 ${iconColorClass}`} />
+          {loading ? (
+            <Loader className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-gray-400 animate-spin" />
+          ) : (
+            <Icon className={`w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 ${iconColorClass}`} />
+          )}
         </div>
       </div>
       <p className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm">{title}</p>
-      <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1 sm:mt-2">{value}</p>
+      {loading ? (
+        <div className="h-6 sm:h-7 lg:h-8 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mt-1 sm:mt-2" />
+      ) : (
+        <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1 sm:mt-2">{value}</p>
+      )}
     </motion.div>
   );
 };

@@ -1,202 +1,195 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
 import { motion, AnimatePresence } from 'framer-motion';
 import usePageTitle from '../../hooks/usePageTitle';
 import {
   Ruler,
-  Save,
-  Plus,
-  Edit2,
-  Trash2,
   User,
   Clock,
-  CheckCircle,
-  AlertCircle,
   ChevronDown,
   ChevronUp,
-  History
+  Loader,
+  AlertCircle
 } from 'lucide-react';
+import { customerAPI } from '../../services/api';
 
 const Measurements = () => {
   usePageTitle('Measurements');
-  // Mock customer ID (in real app, this would come from auth context)
-  const currentCustomerId = 'CUST001';
 
-  // State for profiles
-  const [profiles, setProfiles] = useState([
-    {
-      id: 1,
-      name: 'My Measurements',
-      isDefault: true,
-      createdAt: '2024-01-15',
-      updatedAt: '2024-03-10',
-      measurements: {
-        pant: {
-          length: '40',
-          waist: '32',
-          seatHip: '38',
-          thigh: '22',
-          knee: '16',
-          bottom: '14',
-          flyLength: '7'
-        },
-        shirt: {
-          length: '28',
-          chest: '38',
-          waist: '32',
-          shoulder: '16',
-          sleeveLength: '24',
-          armhole: '18',
-          collar: '15'
-        },
-        coat: {
-          length: '32',
-          chest: '40',
-          waist: '34',
-          shoulder: '17',
-          sleeveLength: '25',
-          armhole: '19'
-        },
-        kurta: {
-          length: '42',
-          chest: '38',
-          waist: '32',
-          shoulder: '16',
-          sleeveLength: '24',
-          armhole: '18'
-        },
-        dhoti: {
-          length: '45',
-          waist: '32',
-          hip: '38',
-          sideLength: '40',
-          foldLength: '12'
-        },
-        custom: [
-          { label: 'Cuff', value: '9' }
-        ]
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [profiles, setProfiles] = useState([]);
+  const [selectedProfile, setSelectedProfile] = useState(null);
+  const [expandedCategory, setExpandedCategory] = useState('shirt');
+
+  // Get token from localStorage
+  const getToken = () => {
+    const token = localStorage.getItem('token');
+    if (token) return token;
+    
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        return user.jwt || user.token;
+      } catch (e) {
+        console.error('Error parsing user from localStorage:', e);
       }
     }
-  ]);
-
-  const [selectedProfile, setSelectedProfile] = useState(profiles[0]);
-  const [isEditing, setIsEditing] = useState(false);
-  const [showAddProfile, setShowAddProfile] = useState(false);
-  const [showHistory, setShowHistory] = useState(false);
-  const [newProfileName, setNewProfileName] = useState('');
-  const [expandedCategory, setExpandedCategory] = useState('shirt');
-  const [successMessage, setSuccessMessage] = useState('');
-  const [editedMeasurements, setEditedMeasurements] = useState(selectedProfile.measurements);
-
-  // Mock measurement history
-  const measurementHistory = [
-    { id: 1, date: '2024-03-10', profile: 'My Measurements', category: 'Shirt', field: 'Chest', oldValue: '37', newValue: '38', updatedBy: 'Self' },
-    { id: 2, date: '2024-02-20', profile: 'My Measurements', category: 'Pant', field: 'Waist', oldValue: '31', newValue: '32', updatedBy: 'Self' },
-    { id: 3, date: '2024-01-15', profile: 'My Measurements', category: 'All', field: 'Initial Setup', oldValue: '-', newValue: 'Complete', updatedBy: 'Self' }
-  ];
-
-  // Handle measurement change
-  const handleMeasurementChange = (category, field, value) => {
-    setEditedMeasurements(prev => ({
-      ...prev,
-      [category]: {
-        ...prev[category],
-        [field]: value
-      }
-    }));
+    return null;
   };
 
-  // Handle custom measurement change
-  const handleCustomChange = (index, field, value) => {
-    const newCustom = [...editedMeasurements.custom];
-    newCustom[index] = { ...newCustom[index], [field]: value };
-    setEditedMeasurements(prev => ({
-      ...prev,
-      custom: newCustom
-    }));
-  };
-
-  // Add custom measurement
-  const addCustomMeasurement = () => {
-    setEditedMeasurements(prev => ({
-      ...prev,
-      custom: [...prev.custom, { label: '', value: '' }]
-    }));
-  };
-
-  // Remove custom measurement
-  const removeCustomMeasurement = (index) => {
-    setEditedMeasurements(prev => ({
-      ...prev,
-      custom: prev.custom.filter((_, i) => i !== index)
-    }));
-  };
-
-  // Save measurements
-  const handleSave = () => {
-    const updatedProfiles = profiles.map(p => 
-      p.id === selectedProfile.id 
-        ? { ...p, measurements: editedMeasurements, updatedAt: new Date().toISOString().split('T')[0] }
-        : p
-    );
-    setProfiles(updatedProfiles);
-    setSelectedProfile({ ...selectedProfile, measurements: editedMeasurements });
-    setIsEditing(false);
-    setSuccessMessage('Measurements saved successfully!');
-    setTimeout(() => setSuccessMessage(''), 3000);
-  };
-
-  // Cancel editing
-  const handleCancel = () => {
-    setEditedMeasurements(selectedProfile.measurements);
-    setIsEditing(false);
-  };
-
-  // Add new profile
-  const handleAddProfile = () => {
-    if (!newProfileName.trim()) return;
+  // Get customer ID from JWT token
+  const getCustomerId = () => {
+    const token = getToken();
+    if (!token) return null;
     
-    const newProfile = {
-      id: profiles.length + 1,
-      name: newProfileName,
-      isDefault: false,
-      createdAt: new Date().toISOString().split('T')[0],
-      updatedAt: new Date().toISOString().split('T')[0],
-      measurements: {
-        pant: { length: '', waist: '', seatHip: '', thigh: '', knee: '', bottom: '', flyLength: '' },
-        shirt: { length: '', chest: '', waist: '', shoulder: '', sleeveLength: '', armhole: '', collar: '' },
-        coat: { length: '', chest: '', waist: '', shoulder: '', sleeveLength: '', armhole: '' },
-        kurta: { length: '', chest: '', waist: '', shoulder: '', sleeveLength: '', armhole: '' },
-        dhoti: { length: '', waist: '', hip: '', sideLength: '', foldLength: '' },
-        custom: []
-      }
-    };
-    
-    setProfiles([...profiles, newProfile]);
-    setSelectedProfile(newProfile);
-    setEditedMeasurements(newProfile.measurements);
-    setNewProfileName('');
-    setShowAddProfile(false);
-    setIsEditing(true);
-    setSuccessMessage('New profile created! Please add measurements.');
-    setTimeout(() => setSuccessMessage(''), 3000);
+    try {
+      // Decode JWT token (format: header.payload.signature)
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split('')
+          .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .join('')
+      );
+      
+      const payload = JSON.parse(jsonPayload);
+      console.log('JWT Payload:', payload);
+      
+      // The JWT should contain userId or sub (subject)
+      return payload.userId || payload.sub || payload.id;
+    } catch (e) {
+      console.error('Error decoding JWT token:', e);
+      return null;
+    }
   };
 
-  // Delete profile
-  const handleDeleteProfile = (profileId) => {
-    if (profiles.length === 1) {
-      alert('Cannot delete the last profile!');
+  // Fetch measurement profiles on mount
+  useEffect(() => {
+    fetchMeasurementProfiles();
+  }, []);
+
+  const fetchMeasurementProfiles = async () => {
+    setLoading(true);
+    setError('');
+    
+    const token = getToken();
+    const customerId = getCustomerId();
+    
+    if (!token) {
+      setError('Please login to view measurements');
+      setLoading(false);
       return;
     }
-    const updatedProfiles = profiles.filter(p => p.id !== profileId);
-    setProfiles(updatedProfiles);
-    if (selectedProfile.id === profileId) {
-      setSelectedProfile(updatedProfiles[0]);
-      setEditedMeasurements(updatedProfiles[0].measurements);
+
+    if (!customerId) {
+      setError('Unable to identify customer. Please login again.');
+      setLoading(false);
+      return;
     }
-    setSuccessMessage('Profile deleted successfully!');
-    setTimeout(() => setSuccessMessage(''), 3000);
+
+    console.log('Fetching measurements for customer ID:', customerId);
+
+    const response = await customerAPI.getMeasurementProfiles(customerId, token);
+    
+    if (response.success) {
+      const fetchedProfiles = response.data || [];
+      
+      // Transform API data to match component structure
+      const transformedProfiles = fetchedProfiles.map(profile => ({
+        id: profile.profileId,
+        name: `${profile.dressType} Measurements`,
+        dressType: profile.dressType,
+        isDefault: profile.dressType === 'SHIRT',
+        createdAt: profile.createdAt?.split('T')[0] || 'N/A',
+        updatedAt: profile.updatedAt?.split('T')[0] || 'N/A',
+        notes: profile.notes || '',
+        measurements: transformMeasurements(profile.dressType, profile.measurements)
+      }));
+
+      setProfiles(transformedProfiles);
+      
+      // Select first profile by default
+      if (transformedProfiles.length > 0) {
+        setSelectedProfile(transformedProfiles[0]);
+        // Set expanded category based on first profile's dress type
+        setExpandedCategory(transformedProfiles[0].dressType.toLowerCase());
+      }
+    } else {
+      setError(response.error || 'Failed to fetch measurements');
+    }
+    
+    setLoading(false);
+  };
+
+  // Transform measurements from API format to component format
+  const transformMeasurements = (dressType, measurements) => {
+    const result = {
+      pant: {},
+      shirt: {},
+      coat: {},
+      kurta: {},
+      dhoti: {},
+      custom: []
+    };
+
+    if (!measurements) return result;
+
+    // Map measurements based on dress type
+    const dressTypeKey = dressType.toLowerCase();
+    
+    if (dressTypeKey === 'pant') {
+      result.pant = {
+        length: measurements.length || '',
+        waist: measurements.waist || '',
+        seatHip: measurements.hip || measurements.seatHip || '',
+        thigh: measurements.thigh || '',
+        knee: measurements.knee || '',
+        bottom: measurements.bottom || '',
+        flyLength: measurements.flyLength || ''
+      };
+    } else if (dressTypeKey === 'shirt') {
+      result.shirt = {
+        length: measurements.length || '',
+        chest: measurements.chest || '',
+        waist: measurements.waist || '',
+        shoulder: measurements.shoulder || '',
+        sleeveLength: measurements.sleeve || measurements.sleeveLength || '',
+        armhole: measurements.armhole || '',
+        collar: measurements.collar || measurements.neck || ''
+      };
+    } else if (dressTypeKey === 'coat') {
+      result.coat = {
+        length: measurements.length || '',
+        chest: measurements.chest || '',
+        waist: measurements.waist || '',
+        shoulder: measurements.shoulder || '',
+        sleeveLength: measurements.sleeve || measurements.sleeveLength || '',
+        armhole: measurements.armhole || ''
+      };
+    } else if (dressTypeKey === 'kurta') {
+      result.kurta = {
+        length: measurements.length || '',
+        chest: measurements.chest || '',
+        waist: measurements.waist || '',
+        shoulder: measurements.shoulder || '',
+        sleeveLength: measurements.sleeve || measurements.sleeveLength || '',
+        armhole: measurements.armhole || ''
+      };
+    } else if (dressTypeKey === 'dhoti') {
+      result.dhoti = {
+        length: measurements.length || '',
+        waist: measurements.waist || '',
+        hip: measurements.hip || '',
+        sideLength: measurements.sideLength || '',
+        foldLength: measurements.foldLength || ''
+      };
+    }
+
+    return result;
   };
 
   // Measurement categories configuration
@@ -283,372 +276,169 @@ const Measurements = () => {
                 </div>
                 <div>
                   <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">My Measurements</h1>
-                  <p className="text-gray-600 dark:text-gray-400">Manage your measurement profiles</p>
+                  <p className="text-gray-600 dark:text-gray-400">View your measurement profiles</p>
                 </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => setShowHistory(!showHistory)}
-                  className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg transition-colors"
-                >
-                  <History className="w-4 h-4" />
-                  History
-                </button>
-                <button
-                  onClick={() => setShowAddProfile(true)}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-                >
-                  <Plus className="w-4 h-4" />
-                  Add Profile
-                </button>
               </div>
             </div>
 
-            {/* Success Message */}
-            <AnimatePresence>
-              {successMessage && (
-                <motion.div
-                  initial={{ opacity: 0, y: -20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  className="flex items-center gap-2 p-4 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-lg"
-                >
-                  <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
-                  <span className="text-green-700 dark:text-green-400 font-medium">{successMessage}</span>
-                </motion.div>
-              )}
-            </AnimatePresence>
+            {/* Loading State */}
+            {loading && (
+              <div className="flex items-center justify-center py-12">
+                <Loader className="w-8 h-8 text-blue-500 animate-spin" />
+                <span className="ml-3 text-gray-600 dark:text-gray-400">Loading measurements...</span>
+              </div>
+            )}
 
-            {/* Main Content Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-              {/* Left Sidebar - Profile Selection */}
-              <div className="lg:col-span-1">
-                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 sticky top-6">
-                  <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4">Profiles</h2>
-                  <div className="space-y-2">
-                    {profiles.map((profile) => (
-                      <motion.div
-                        key={profile.id}
-                        whileHover={{ scale: 1.02 }}
-                        onClick={() => {
-                          setSelectedProfile(profile);
-                          setEditedMeasurements(profile.measurements);
-                          setIsEditing(false);
-                        }}
-                        className={`p-3 rounded-lg cursor-pointer transition-all ${
-                          selectedProfile.id === profile.id
-                            ? 'bg-blue-50 dark:bg-blue-900/30 border-2 border-blue-500 dark:border-blue-400'
-                            : 'bg-gray-50 dark:bg-gray-700 border-2 border-transparent hover:border-gray-300 dark:hover:border-gray-600'
-                        }`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <User className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-                            <span className="font-medium text-gray-900 dark:text-gray-100">{profile.name}</span>
-                          </div>
-                          {!profile.isDefault && (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDeleteProfile(profile.id);
-                              }}
-                              className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          )}
-                        </div>
-                        {profile.isDefault && (
-                          <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">Default</span>
-                        )}
-                        <div className="flex items-center gap-2 mt-2 text-xs text-gray-500 dark:text-gray-400">
-                          <Clock className="w-3 h-3" />
-                          Updated: {profile.updatedAt}
-                        </div>
-                      </motion.div>
-                    ))}
+            {/* Error State */}
+            {error && !loading && (
+              <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg p-6">
+                <div className="flex items-center gap-3">
+                  <AlertCircle className="w-6 h-6 text-red-600 dark:text-red-400" />
+                  <div>
+                    <h3 className="text-lg font-bold text-red-900 dark:text-red-100">Error</h3>
+                    <p className="text-red-700 dark:text-red-300">{error}</p>
                   </div>
                 </div>
               </div>
+            )}
 
-              {/* Right Content - Measurements Form */}
-              <div className="lg:col-span-3 space-y-6">
-                {/* Profile Info Card */}
-                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-                  <div className="flex items-center justify-between">
+            {/* No Measurements State */}
+            {!loading && !error && profiles.length === 0 && (
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-12 text-center">
+                <div className="w-20 h-20 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Ruler className="w-10 h-10 text-gray-400" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+                  No Measurements Found
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400">
+                  Please contact the shop owner to add your measurements.
+                </p>
+              </div>
+            )}
+
+            {/* Main Content Grid */}
+            {!loading && !error && profiles.length > 0 && selectedProfile && (
+              <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                {/* Left Sidebar - Profile Selection */}
+                <div className="lg:col-span-1">
+                  <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 sticky top-6">
+                    <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4">Profiles</h2>
+                    <div className="space-y-2">
+                      {profiles.map((profile) => (
+                        <motion.div
+                          key={profile.id}
+                          whileHover={{ scale: 1.02 }}
+                          onClick={() => {
+                            setSelectedProfile(profile);
+                            setExpandedCategory(profile.dressType.toLowerCase());
+                          }}
+                          className={`p-3 rounded-lg cursor-pointer transition-all ${
+                            selectedProfile.id === profile.id
+                              ? 'bg-blue-50 dark:bg-blue-900/30 border-2 border-blue-500 dark:border-blue-400'
+                              : 'bg-gray-50 dark:bg-gray-700 border-2 border-transparent hover:border-gray-300 dark:hover:border-gray-600'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <User className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                              <span className="font-medium text-gray-900 dark:text-gray-100">{profile.name}</span>
+                            </div>
+                          </div>
+                          {profile.isDefault && (
+                            <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">Default</span>
+                          )}
+                          <div className="flex items-center gap-2 mt-2 text-xs text-gray-500 dark:text-gray-400">
+                            <Clock className="w-3 h-3" />
+                            Updated: {profile.updatedAt}
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Content - Measurements Display */}
+                <div className="lg:col-span-3 space-y-6">
+                  {/* Profile Info Card */}
+                  <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
                     <div>
                       <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{selectedProfile.name}</h2>
                       <p className="text-sm text-gray-600 dark:text-gray-400">Created: {selectedProfile.createdAt} | Last Updated: {selectedProfile.updatedAt}</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {!isEditing ? (
-                        <button
-                          onClick={() => setIsEditing(true)}
-                          className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                          Edit
-                        </button>
-                      ) : (
-                        <>
-                          <button
-                            onClick={handleCancel}
-                            className="px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg transition-colors"
-                          >
-                            Cancel
-                          </button>
-                          <button
-                            onClick={handleSave}
-                            className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
-                          >
-                            <Save className="w-4 h-4" />
-                            Save
-                          </button>
-                        </>
+                      {selectedProfile.notes && (
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                          <span className="font-medium">Notes:</span> {selectedProfile.notes}
+                        </p>
                       )}
                     </div>
                   </div>
-                </div>
 
-                {/* Measurement Categories */}
-                {Object.entries(categories).map(([categoryKey, category]) => (
-                  <motion.div
-                    key={categoryKey}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden"
-                  >
-                    <button
-                      onClick={() => setExpandedCategory(expandedCategory === categoryKey ? null : categoryKey)}
-                      className="w-full p-6 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className="text-2xl">{category.icon}</span>
-                        <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">{category.label}</h3>
-                      </div>
-                      {expandedCategory === categoryKey ? (
-                        <ChevronUp className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                      ) : (
-                        <ChevronDown className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                      )}
-                    </button>
+                  {/* Measurement Category for Selected Profile */}
+                  {Object.entries(categories).map(([categoryKey, category]) => {
+                    // Only show category if it matches the selected profile's dress type
+                    const profileDressType = selectedProfile.dressType?.toLowerCase();
+                    if (profileDressType && categoryKey !== profileDressType) {
+                      return null;
+                    }
                     
-                    <AnimatePresence>
-                      {expandedCategory === categoryKey && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: 'auto', opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          className="border-t border-gray-200 dark:border-gray-700"
-                        >
-                          <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {category.fields.map((field) => (
-                              <div key={field.key}>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                  {field.label} <span className="text-gray-500 dark:text-gray-400">({field.unit})</span>
-                                </label>
-                                <input
-                                  type="text"
-                                  value={editedMeasurements[categoryKey][field.key] || ''}
-                                  onChange={(e) => handleMeasurementChange(categoryKey, field.key, e.target.value)}
-                                  placeholder={field.placeholder}
-                                  disabled={!isEditing}
-                                  className={`w-full px-4 py-2 border dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 ${
-                                    isEditing ? 'bg-white dark:bg-gray-800' : 'bg-gray-50 dark:bg-gray-700'
-                                  }`}
-                                />
-                              </div>
-                            ))}
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </motion.div>
-                ))}
-
-                {/* Custom Measurements */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden"
-                >
-                  <button
-                    onClick={() => setExpandedCategory(expandedCategory === 'custom' ? null : 'custom')}
-                    className="w-full p-6 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl">📏</span>
-                      <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">Custom Measurements</h3>
-                    </div>
-                    {expandedCategory === 'custom' ? (
-                      <ChevronUp className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                    ) : (
-                      <ChevronDown className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                    )}
-                  </button>
-                  
-                  <AnimatePresence>
-                    {expandedCategory === 'custom' && (
+                    return (
                       <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        className="border-t border-gray-200 dark:border-gray-700"
+                        key={categoryKey}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden"
                       >
-                        <div className="p-6 space-y-4">
-                          {editedMeasurements.custom.map((custom, index) => (
-                            <div key={index} className="flex items-center gap-3">
-                              <input
-                                type="text"
-                                value={custom.label}
-                                onChange={(e) => handleCustomChange(index, 'label', e.target.value)}
-                                placeholder="Measurement Name"
-                                disabled={!isEditing}
-                                className={`flex-1 px-4 py-2 border dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 ${
-                                  isEditing ? 'bg-white dark:bg-gray-800' : 'bg-gray-50 dark:bg-gray-700'
-                                }`}
-                              />
-                              <input
-                                type="text"
-                                value={custom.value}
-                                onChange={(e) => handleCustomChange(index, 'value', e.target.value)}
-                                placeholder="Value (inches)"
-                                disabled={!isEditing}
-                                className={`w-32 px-4 py-2 border dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 ${
-                                  isEditing ? 'bg-white dark:bg-gray-800' : 'bg-gray-50 dark:bg-gray-700'
-                                }`}
-                              />
-                              {isEditing && (
-                                <button
-                                  onClick={() => removeCustomMeasurement(index)}
-                                  className="p-2 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </button>
-                              )}
-                            </div>
-                          ))}
-                          {isEditing && (
-                            <button
-                              onClick={addCustomMeasurement}
-                              className="flex items-center gap-2 px-4 py-2 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 text-blue-600 dark:text-blue-400 rounded-lg transition-colors"
-                            >
-                              <Plus className="w-4 h-4" />
-                              Add Custom Measurement
-                            </button>
+                        <button
+                          onClick={() => setExpandedCategory(expandedCategory === categoryKey ? null : categoryKey)}
+                          className="w-full p-6 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                        >
+                          <div className="flex items-center gap-3">
+                            <span className="text-2xl">{category.icon}</span>
+                            <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">{category.label}</h3>
+                          </div>
+                          {expandedCategory === categoryKey ? (
+                            <ChevronUp className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                          ) : (
+                            <ChevronDown className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                           )}
-                        </div>
+                        </button>
+                        
+                        <AnimatePresence>
+                          {expandedCategory === categoryKey && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: 'auto', opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              className="border-t border-gray-200 dark:border-gray-700"
+                            >
+                              <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {category.fields.map((field) => (
+                                  <div key={field.key}>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                      {field.label} <span className="text-gray-500 dark:text-gray-400">({field.unit})</span>
+                                    </label>
+                                    <input
+                                      type="text"
+                                      value={selectedProfile.measurements[categoryKey][field.key] || ''}
+                                      placeholder={field.placeholder}
+                                      disabled
+                                      className="w-full px-4 py-2 border dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 bg-gray-50"
+                                    />
+                                  </div>
+                                ))}
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
                       </motion.div>
-                    )}
-                  </AnimatePresence>
-                </motion.div>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
+            )}
           </motion.div>
         </main>
       </div>
-
-      {/* Add Profile Modal */}
-      <AnimatePresence>
-        {showAddProfile && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 p-4"
-            onClick={() => setShowAddProfile(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              onClick={(e) => e.stopPropagation()}
-              className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 max-w-md w-full"
-            >
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Add New Profile</h2>
-              <p className="text-gray-600 dark:text-gray-400 mb-4">Create a new measurement profile for family members or different occasions.</p>
-              <input
-                type="text"
-                value={newProfileName}
-                onChange={(e) => setNewProfileName(e.target.value)}
-                placeholder="Profile Name (e.g., Dad's Measurements)"
-                className="w-full px-4 py-2 border dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 mb-4"
-                autoFocus
-              />
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => setShowAddProfile(false)}
-                  className="flex-1 px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleAddProfile}
-                  disabled={!newProfileName.trim()}
-                  className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Create Profile
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Measurement History Modal */}
-      <AnimatePresence>
-        {showHistory && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 p-4"
-            onClick={() => setShowHistory(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              onClick={(e) => e.stopPropagation()}
-              className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 max-w-3xl w-full max-h-[80vh] overflow-y-auto"
-            >
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Measurement History</h2>
-                <button
-                  onClick={() => setShowHistory(false)}
-                  className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
-                >
-                  ✕
-                </button>
-              </div>
-              <div className="space-y-3">
-                {measurementHistory.map((entry) => (
-                  <div key={entry.id} className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-semibold text-gray-900 dark:text-gray-100">{entry.profile}</span>
-                      <span className="text-sm text-gray-500 dark:text-gray-400">{entry.date}</span>
-                    </div>
-                    <div className="text-sm text-gray-700 dark:text-gray-300">
-                      <span className="font-medium">{entry.category}</span> - {entry.field}
-                      {entry.oldValue !== '-' && (
-                        <span className="ml-2">
-                          <span className="text-red-600 dark:text-red-400">{entry.oldValue}"</span>
-                          {' → '}
-                          <span className="text-green-600 dark:text-green-400">{entry.newValue}"</span>
-                        </span>
-                      )}
-                      {entry.oldValue === '-' && (
-                        <span className="ml-2 text-green-600 dark:text-green-400">{entry.newValue}</span>
-                      )}
-                    </div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Updated by: {entry.updatedBy}</div>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 };
