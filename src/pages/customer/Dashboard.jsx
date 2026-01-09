@@ -24,6 +24,8 @@ const Dashboard = () => {
   const [activitiesLoading, setActivitiesLoading] = useState(true);
   const [activeOrders, setActiveOrders] = useState([]);
   const [recentActivities, setRecentActivities] = useState([]);
+  const [categoryData, setCategoryData] = useState([]);
+  const [orderTrendData, setOrderTrendData] = useState([]);
   const [customerData, setCustomerData] = useState({
     name: 'Customer',
     totalOrders: 0,
@@ -123,6 +125,12 @@ const Dashboard = () => {
         const orders = response.data || [];
         console.log('All orders from API:', orders);
         
+        // Calculate category distribution from orders
+        calculateCategoryDistribution(orders);
+        
+        // Calculate order trend from orders
+        calculateOrderTrend(orders);
+        
         // Don't filter - show all orders including delivered
         // Sort by order ID descending to get most recent orders first
         const sortedOrders = [...orders].sort((a, b) => b.orderId - a.orderId);
@@ -211,6 +219,74 @@ const Dashboard = () => {
     setOrdersLoading(false);
   };
 
+  // Calculate category distribution from orders
+  const calculateCategoryDistribution = (orders) => {
+    const categoryCount = {};
+    const categoryColors = {
+      'CUTTING': '#3b82f6',    // Blue
+      'STITCHING': '#10b981',  // Green
+      'IRONING': '#f59e0b',    // Orange
+      'SHIRT': '#8b5cf6',      // Purple
+      'PANT': '#ec4899',       // Pink
+      'COAT': '#14b8a6',       // Teal
+      'KURTA': '#f97316',      // Orange-Red
+      'DHOTI': '#06b6d4'       // Cyan
+    };
+    
+    orders.forEach(order => {
+      const taskStatuses = order.taskStatuses || [];
+      taskStatuses.forEach(ts => {
+        const taskType = ts.split('_')[0]; // "CUTTING_IN_PROGRESS" → "CUTTING"
+        categoryCount[taskType] = (categoryCount[taskType] || 0) + 1;
+      });
+    });
+    
+    // Convert to array with colors
+    const categories = Object.entries(categoryCount).map(([category, count]) => ({
+      category: category.charAt(0) + category.slice(1).toLowerCase() + 's',
+      count: count,
+      color: categoryColors[category] || '#6b7280'
+    }));
+    
+    console.log('Category distribution calculated:', categories);
+    setCategoryData(categories);
+  };
+
+  // Calculate order trend for last 6 months
+  const calculateOrderTrend = (orders) => {
+    // Generate last 6 months
+    const months = [];
+    const now = new Date();
+    for (let i = 5; i >= 0; i--) {
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      months.push({
+        month: date.toLocaleString('en-US', { month: 'short' }),
+        year: date.getFullYear(),
+        monthNum: date.getMonth(),
+        orders: 0
+      });
+    }
+    
+    // Count orders per month
+    orders.forEach(order => {
+      if (order.createdAt) {
+        const orderDate = new Date(order.createdAt);
+        const orderMonth = orderDate.getMonth();
+        const orderYear = orderDate.getFullYear();
+        
+        const monthData = months.find(m => 
+          m.monthNum === orderMonth && m.year === orderYear
+        );
+        if (monthData) {
+          monthData.orders++;
+        }
+      }
+    });
+    
+    console.log('Order trend calculated:', months);
+    setOrderTrendData(months);
+  };
+
   // Fetch recent activities
   const fetchRecentActivities = async () => {
     setActivitiesLoading(true);
@@ -254,30 +330,7 @@ const Dashboard = () => {
     setActivitiesLoading(false);
   };
 
-  // Order trend data (last 6 months)
-  const orderTrendData = [
-    { month: 'Aug', orders: 2 },
-    { month: 'Sep', orders: 1 },
-    { month: 'Oct', orders: 3 },
-    { month: 'Nov', orders: 2 },
-    { month: 'Dec', orders: 3 },
-    { month: 'Jan', orders: 1 }
-  ];
 
-  // Category distribution
-  const categoryData = [
-    { category: 'Shirts', count: 5, color: '#3b82f6' },
-    { category: 'Pants', count: 3, color: '#10b981' },
-    { category: 'Suits', count: 2, color: '#f59e0b' },
-    { category: 'Kurta', count: 2, color: '#8b5cf6' }
-  ];
-
-  // Today's activity - will be replaced by API data
-  // const todayActivity = [
-  //   'Your shirt order progressed to Cutting stage',
-  //   'Pant delivery expected in 2 days',
-  //   'New catalogue items added'
-  // ];
 
   return (
     <Layout role="customer">
@@ -346,8 +399,8 @@ const Dashboard = () => {
 
           {/* Main Content Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-            {/* Left Column - 2/3 */}
-            <div className="lg:col-span-2 space-y-4 sm:space-y-6">
+            {/* Orders Progress - Left Column */}
+            <div className="lg:col-span-2">
               {/* Orders Progress */}
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
@@ -466,90 +519,10 @@ const Dashboard = () => {
                   </div>
                 )}
               </motion.div>
-
-              {/* Order Trend Chart */}
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.1 }}
-                className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"
-              >
-                <h3 className="font-bold text-gray-900 dark:text-gray-100 mb-4">Order Trend (Last 6 Months)</h3>
-                <div className="flex items-end justify-between h-48 gap-2">
-                  {orderTrendData.map((data, idx) => {
-                    const maxOrders = Math.max(...orderTrendData.map(d => d.orders));
-                    const height = (data.orders / maxOrders) * 100;
-                    return (
-                      <div key={idx} className="flex-1 flex flex-col items-center gap-2">
-                        <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">{data.orders}</span>
-                        <motion.div
-                          initial={{ height: 0 }}
-                          animate={{ height: `${height}%` }}
-                          transition={{ delay: idx * 0.1 }}
-                          className="w-full bg-blue-500 dark:bg-blue-600 rounded-t hover:bg-blue-600 dark:hover:bg-blue-500 transition-colors"
-                        />
-                        <span className="text-xs text-gray-600 dark:text-gray-400">{data.month}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </motion.div>
-
-              {/* Category Distribution Pie Chart */}
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.2 }}
-                className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"
-              >
-                <h3 className="font-bold text-gray-900 dark:text-gray-100 mb-4">Order Category Distribution</h3>
-                <div className="flex items-center gap-8">
-                  <div className="w-48 h-48">
-                    <svg viewBox="0 0 100 100" className="transform -rotate-90">
-                      {(() => {
-                        let currentAngle = 0;
-                        const total = categoryData.reduce((sum, cat) => sum + cat.count, 0);
-                        return categoryData.map((cat, idx) => {
-                          const percentage = (cat.count / total) * 100;
-                          const angle = (percentage / 100) * 360;
-                          const startAngle = currentAngle;
-                          currentAngle += angle;
-                          
-                          const x1 = 50 + 40 * Math.cos((startAngle * Math.PI) / 180);
-                          const y1 = 50 + 40 * Math.sin((startAngle * Math.PI) / 180);
-                            const x2 = 50 + 40 * Math.cos((currentAngle * Math.PI) / 180);
-                            const y2 = 50 + 40 * Math.sin((currentAngle * Math.PI) / 180);
-                            
-                            const largeArc = angle > 180 ? 1 : 0;
-                            
-                            return (
-                              <path
-                                key={idx}
-                                d={`M 50 50 L ${x1} ${y1} A 40 40 0 ${largeArc} 1 ${x2} ${y2} Z`}
-                                fill={cat.color}
-                              />
-                            );
-                          });
-                        })()}
-                      </svg>
-                    </div>
-                    <div className="flex-1 space-y-2">
-                      {categoryData.map((cat, idx) => (
-                        <div key={idx} className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <div className="w-4 h-4 rounded" style={{ backgroundColor: cat.color }} />
-                            <span className="text-sm text-gray-700 dark:text-gray-300">{cat.category}</span>
-                          </div>
-                          <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">{cat.count}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-              </motion.div>
             </div>
 
-            {/* Right Column - 1/3 */}
-            <div className="space-y-4 sm:space-y-6">
+            {/* Recent Activity - Right Column */}
+            <div>
               {/* Recent Activity */}
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
@@ -588,6 +561,51 @@ const Dashboard = () => {
               </motion.div>
             </div>
           </div>
+
+          {/* Order Trend Chart - Full Width */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"
+          >
+            <h3 className="font-bold text-gray-900 dark:text-gray-100 mb-4">Order Trend (Last 6 Months)</h3>
+            {ordersLoading ? (
+              <div className="flex items-end justify-between h-48 gap-2">
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <div key={i} className="flex-1 flex flex-col items-center gap-2">
+                    <div className="h-4 w-8 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                    <div className="w-full h-24 bg-gray-200 dark:bg-gray-700 rounded-t animate-pulse" />
+                    <div className="h-3 w-8 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                  </div>
+                ))}
+              </div>
+            ) : orderTrendData.length === 0 ? (
+              <div className="flex items-center justify-center h-48">
+                <p className="text-gray-400 dark:text-gray-500 text-sm">No data available</p>
+              </div>
+            ) : (
+              <div className="flex items-end justify-between h-48 gap-2">
+                {orderTrendData.map((data, idx) => {
+                  const maxOrders = Math.max(...orderTrendData.map(d => d.orders), 1);
+                  const height = data.orders > 0 ? (data.orders / maxOrders) * 100 : 0;
+                  return (
+                    <div key={idx} className="flex-1 flex flex-col items-center gap-2">
+                      <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">{data.orders}</span>
+                      <motion.div
+                        initial={{ height: 0 }}
+                        animate={{ height: `${height}%` }}
+                        transition={{ delay: idx * 0.1 }}
+                        className="w-full bg-blue-500 dark:bg-blue-600 rounded-t hover:bg-blue-600 dark:hover:bg-blue-500 transition-colors"
+                        style={{ minHeight: data.orders > 0 ? '8px' : '0' }}
+                      />
+                      <span className="text-xs text-gray-600 dark:text-gray-400">{data.month}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </motion.div>
         </motion.div>
       </div>
     </Layout>
