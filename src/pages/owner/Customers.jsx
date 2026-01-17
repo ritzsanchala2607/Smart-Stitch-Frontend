@@ -81,61 +81,73 @@ const Customers = () => {
         console.log('Customers fetched:', result.data);
         
         // Map API response to component format
-        const mappedCustomers = (result.data || []).map(customer => ({
-          id: customer.customerId || customer.id,
-          name: customer.user?.name || customer.name,
-          email: customer.user?.email || customer.email,
-          phone: customer.user?.contactNumber || customer.phone,
-          address: '',
-          joinDate: customer.createdAt ? new Date(customer.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-          totalOrders: 0,
-          totalSpent: 0,
-          measurements: {
-            pant: {
-              length: customer.measurements?.pantLength || '',
-              waist: customer.measurements?.pantWaist || '',
-              seatHip: customer.measurements?.seatHip || '',
-              thigh: customer.measurements?.thigh || '',
-              knee: customer.measurements?.knee || '',
-              bottom: customer.measurements?.bottom || '',
-              flyLength: customer.measurements?.flyLength || ''
+        const mappedCustomers = (result.data || []).map(customer => {
+          // Extract userId from the nested user object
+          const userId = customer.user?.userId || customer.userId;
+          
+          console.log('Mapping customer:', {
+            customerId: customer.customerId,
+            userId: userId,
+            userObject: customer.user
+          });
+          
+          return {
+            id: customer.customerId || customer.id,
+            userId: userId, // Extract from user.userId
+            name: customer.user?.name || customer.name,
+            email: customer.user?.email || customer.email,
+            phone: customer.user?.contactNumber || customer.phone,
+            address: '',
+            joinDate: customer.createdAt ? new Date(customer.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+            totalOrders: 0,
+            totalSpent: 0,
+            measurements: {
+              pant: {
+                length: customer.measurements?.pantLength || '',
+                waist: customer.measurements?.pantWaist || '',
+                seatHip: customer.measurements?.seatHip || '',
+                thigh: customer.measurements?.thigh || '',
+                knee: customer.measurements?.knee || '',
+                bottom: customer.measurements?.bottom || '',
+                flyLength: customer.measurements?.flyLength || ''
+              },
+              shirt: {
+                length: customer.measurements?.shirtLength || '',
+                chest: customer.measurements?.chest || '',
+                waist: customer.measurements?.shirtWaist || '',
+                shoulder: customer.measurements?.shoulder || '',
+                sleeveLength: customer.measurements?.sleeveLength || '',
+                armhole: customer.measurements?.armhole || '',
+                collar: customer.measurements?.collar || ''
+              },
+              coat: {
+                length: customer.measurements?.coatLength || '',
+                chest: customer.measurements?.coatChest || '',
+                waist: customer.measurements?.coatWaist || '',
+                shoulder: customer.measurements?.coatShoulder || '',
+                sleeveLength: customer.measurements?.coatSleeveLength || '',
+                armhole: customer.measurements?.coatArmhole || ''
+              },
+              kurta: {
+                length: customer.measurements?.kurtaLength || '',
+                chest: customer.measurements?.kurtaChest || '',
+                waist: customer.measurements?.kurtaWaist || '',
+                shoulder: customer.measurements?.kurtaShoulder || '',
+                sleeveLength: customer.measurements?.kurtaSleeveLength || '',
+                armhole: customer.measurements?.kurtaArmhole || ''
+              },
+              dhoti: {
+                length: customer.measurements?.dhotiLength || '',
+                waist: customer.measurements?.dhotiWaist || '',
+                hip: customer.measurements?.dhotiHip || '',
+                sideLength: customer.measurements?.sideLength || '',
+                foldLength: customer.measurements?.foldLength || ''
+              },
+              custom: customer.measurements?.customMeasurements || ''
             },
-            shirt: {
-              length: customer.measurements?.shirtLength || '',
-              chest: customer.measurements?.chest || '',
-              waist: customer.measurements?.shirtWaist || '',
-              shoulder: customer.measurements?.shoulder || '',
-              sleeveLength: customer.measurements?.sleeveLength || '',
-              armhole: customer.measurements?.armhole || '',
-              collar: customer.measurements?.collar || ''
-            },
-            coat: {
-              length: customer.measurements?.coatLength || '',
-              chest: customer.measurements?.coatChest || '',
-              waist: customer.measurements?.coatWaist || '',
-              shoulder: customer.measurements?.coatShoulder || '',
-              sleeveLength: customer.measurements?.coatSleeveLength || '',
-              armhole: customer.measurements?.coatArmhole || ''
-            },
-            kurta: {
-              length: customer.measurements?.kurtaLength || '',
-              chest: customer.measurements?.kurtaChest || '',
-              waist: customer.measurements?.kurtaWaist || '',
-              shoulder: customer.measurements?.kurtaShoulder || '',
-              sleeveLength: customer.measurements?.kurtaSleeveLength || '',
-              armhole: customer.measurements?.kurtaArmhole || ''
-            },
-            dhoti: {
-              length: customer.measurements?.dhotiLength || '',
-              waist: customer.measurements?.dhotiWaist || '',
-              hip: customer.measurements?.dhotiHip || '',
-              sideLength: customer.measurements?.sideLength || '',
-              foldLength: customer.measurements?.foldLength || ''
-            },
-            custom: customer.measurements?.customMeasurements || ''
-          },
-          avatar: customer.user?.profilePicture || `https://i.pravatar.cc/150?img=${customer.customerId || Math.floor(Math.random() * 70)}`
-        }));
+            avatar: customer.user?.profilePicture || `https://i.pravatar.cc/150?img=${customer.customerId || Math.floor(Math.random() * 70)}`
+          };
+        });
         
         setCustomers(mappedCustomers);
       } else {
@@ -481,21 +493,35 @@ const Customers = () => {
       }
     }
 
-    if (token && customerId) {
+    if (token && customer) {
       try {
-        const result = await customerAPI.getMeasurementProfiles(customerId, token);
+        console.log('=== Fetching Measurements ===');
+        console.log('Customer ID:', customer.id);
+        
+        // Try the new endpoint first (if backend has deployed it)
+        let result = await customerAPI.getMeasurementProfilesByCustomerId(customer.id, token);
+        
+        // If new endpoint doesn't exist, try the old endpoint with customerId
+        if (!result.success && result.error.includes('No static resource')) {
+          console.log('New endpoint not available, trying original endpoint with customerId...');
+          result = await customerAPI.getMeasurementProfiles(customer.id, token);
+        }
+        
+        console.log('API Result:', result);
         
         if (result.success) {
-          console.log('Measurement profiles fetched:', result.data);
+          console.log('✓ Measurement profiles fetched successfully:', result.data);
           setMeasurementProfiles(result.data || []);
         } else {
-          console.error('Failed to fetch measurement profiles:', result.error);
+          console.error('✗ Failed to fetch measurement profiles:', result.error);
           setMeasurementProfiles([]);
         }
       } catch (error) {
-        console.error('Error fetching measurement profiles:', error);
+        console.error('✗ Error fetching measurement profiles:', error);
         setMeasurementProfiles([]);
       }
+    } else {
+      console.error('Missing token or customer data');
     }
     
     setIsLoadingMeasurements(false);
@@ -549,7 +575,14 @@ const Customers = () => {
 
     if (token && customerId) {
       try {
-        const result = await customerAPI.getMeasurementProfiles(customerId, token);
+        // Try the new endpoint first (if backend has deployed it)
+        let result = await customerAPI.getMeasurementProfilesByCustomerId(customerId, token);
+        
+        // If new endpoint doesn't exist, try the old endpoint with customerId
+        if (!result.success && result.error.includes('No static resource')) {
+          console.log('New endpoint not available, trying original endpoint with customerId...');
+          result = await customerAPI.getMeasurementProfiles(customerId, token);
+        }
         
         if (result.success) {
           console.log('Measurement profiles fetched for editing:', result.data);
@@ -1291,10 +1324,14 @@ const Customers = () => {
                       ))}
                     </div>
                   ) : (
-                    <div className="text-center py-8 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                      <p className="text-gray-500 dark:text-gray-400">No measurement profiles found</p>
-                      <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
-                        Measurements can be added when creating or editing the customer
+                    <div className="text-center py-8 bg-gray-50 dark:bg-gray-700 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600">
+                      <div className="text-4xl mb-3">📏</div>
+                      <p className="text-gray-600 dark:text-gray-300 font-medium mb-1">No measurement profiles found</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        This customer doesn't have any measurements yet.
+                      </p>
+                      <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
+                        Click "Edit Customer" to add measurements
                       </p>
                     </div>
                   )}

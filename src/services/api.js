@@ -890,6 +890,46 @@ export const customerAPI = {
     },
 
     /**
+     * Get measurement profiles for a customer by customerId
+     * @param {number} customerId - Customer ID
+     * @param {string} token - JWT token for authentication
+     * @returns {Promise} Response with measurement profiles list
+     */
+    getMeasurementProfilesByCustomerId: async (customerId, token) => {
+        try {
+            console.log('API Request - URL:', `${API_URL}/api/measurements/customer-id/${customerId}`);
+
+            const response = await fetch(`${API_URL}/api/measurements/customer-id/${customerId}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            console.log('API Response - Status:', response.status, response.statusText);
+
+            const data = await response.json();
+            console.log('API Response - Data:', data);
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to fetch measurement profiles');
+            }
+
+            return {
+                success: true,
+                data: data.data || data,
+                message: data.message
+            };
+        } catch (error) {
+            console.error('Get Measurement Profiles by Customer ID API Error:', error);
+            return {
+                success: false,
+                error: error.message || 'Server error. Please try again later.'
+            };
+        }
+    },
+
+    /**
      * Update measurement profile
      * @param {number} profileId - Measurement profile ID
      * @param {Object} updateData - Updated measurement data
