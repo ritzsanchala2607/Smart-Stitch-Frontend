@@ -428,6 +428,88 @@ export const workerAPI = {
     },
 
     /**
+     * Get worker's profile
+     * @param {string} token - JWT token for authentication
+     * @returns {Promise} Response with worker's profile data
+     */
+    getWorkerProfile: async (token) => {
+        try {
+            console.log('API Request - URL:', `${API_URL}/api/workers/me`);
+
+            const response = await fetch(`${API_URL}/api/workers/me`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            console.log('API Response - Status:', response.status, response.statusText);
+
+            const data = await response.json();
+            console.log('API Response - Data:', data);
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to fetch worker profile');
+            }
+
+            return {
+                success: true,
+                data: data.data || data,
+                message: data.message
+            };
+        } catch (error) {
+            console.error('Worker Profile API Error:', error);
+            return {
+                success: false,
+                error: error.message || 'Server error. Please try again later.'
+            };
+        }
+    },
+
+    /**
+     * Update worker's profile
+     * @param {Object} profileData - Updated profile data
+     * @param {string} token - JWT token for authentication
+     * @returns {Promise} Response with updated profile
+     */
+    updateWorkerProfile: async (profileData, token) => {
+        try {
+            console.log('API Request - URL:', `${API_URL}/api/workers/me`);
+            console.log('API Request - Payload:', JSON.stringify(profileData, null, 2));
+
+            const response = await fetch(`${API_URL}/api/workers/me`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(profileData)
+            });
+
+            console.log('API Response - Status:', response.status, response.statusText);
+
+            const data = await response.json();
+            console.log('API Response - Data:', data);
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to update worker profile');
+            }
+
+            return {
+                success: true,
+                data: data.data || data,
+                message: data.message || 'Profile updated successfully'
+            };
+        } catch (error) {
+            console.error('Update Worker Profile API Error:', error);
+            return {
+                success: false,
+                error: error.message || 'Server error. Please try again later.'
+            };
+        }
+    },
+
+    /**
      * Start a task (change status from PENDING to IN_PROGRESS)
      * @param {number} taskId - Task ID
      * @param {string} token - JWT token for authentication

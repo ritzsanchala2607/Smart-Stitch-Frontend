@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
 import { motion } from 'framer-motion';
@@ -15,24 +15,30 @@ import {
   Edit,
   Mail,
   Phone,
-  MapPin
+  MapPin,
+  Loader
 } from 'lucide-react';
-import { workers } from '../../data/dummyData';
+import { workerAPI } from '../../services/api';
 
 const WorkerProfile = () => {
   usePageTitle('Profile');
-  // Mock current worker
-  const currentWorkerId = 'WORK001';
-  const workerData = workers.find(w => w.id === currentWorkerId);
 
+  const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [profile, setProfile] = useState({
-    name: workerData?.name || '',
-    email: workerData?.email || '',
-    phone: workerData?.phone || '',
-    specialization: workerData?.specialization || '',
-    avatar: workerData?.avatar || ''
+    name: '',
+    email: '',
+    phone: '',
+    specialization: '',
+    avatar: '',
+    workType: '',
+    experience: 0,
+    joinDate: '',
+    rating: 0,
+    completedTasks: 0,
+    activeTasks: 0,
+    rates: []
   });
 
   const [passwords, setPasswords] = useState({
@@ -41,11 +47,100 @@ const WorkerProfile = () => {
     confirm: ''
   });
 
+  // Get token from localStorage
+  const getToken = () => {
+    const token = localStorage.getItem('token');
+    if (token) return token;
+    
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        return user.jwt || user.token;
+      } catch (e) {
+        console.error('Error parsing user from localStorage:', e);
+      }
+    }
+    return null;
+  };
+
+  // Fetch worker profile on component mount
+  useEffect(() => {
+    fetchWorkerProfile();
+  }, []);
+
+  const fetchWorkerProfile = async () => {
+    setIsLoading(true);
+    const token = getToken();
+    
+    if (!token) {
+      console.error('No token found');
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const response = await workerAPI.getWorkerProfile(token);
+      
+      if (response.success) {
+        const data = response.data;
+        console.log('Worker profile fetched:', data);
+        
+        setProfile({
+          name: data.name || '',
+          email: data.email || '',
+          phone: data.contactNumber || '',
+          specialization: data.workType || '',
+          avatar: `https://i.pravatar.cc/150?img=${data.workerId || Math.floor(Math.random() * 70)}`,
+          workType: data.workType || '',
+          experience: data.experience || 0,
+          joinDate: 'N/A', // Backend doesn't return this yet
+          rating: data.ratings || 0,
+          completedTasks: 0, // Backend doesn't return this yet
+          activeTasks: 0, // Backend doesn't return this yet
+          rates: data.rates || []
+        });
+      } else {
+        console.error('Failed to fetch worker profile:', response.error);
+      }
+    } catch (error) {
+      console.error('Error fetching worker profile:', error);
+    }
+    
+    setIsLoading(false);
+  };
+
   // Handle profile update
-  const handleSaveProfile = () => {
-    console.log('Saving profile:', profile);
-    setIsEditing(false);
-    alert('Profile updated successfully!');
+  const handleSaveProfile = async () => {
+    const token = getToken();
+    
+    if (!token) {
+      alert('Authentication required. Please login again.');
+      return;
+    }
+
+    try {
+      const updateData = {
+        name: profile.name,
+        contactNumber: profile.phone,
+        profilePicture: profile.avatar
+      };
+
+      const response = await workerAPI.updateWorkerProfile(updateData, token);
+      
+      if (response.success) {
+        console.log('Profile updated successfully');
+        setIsEditing(false);
+        alert('Profile updated successfully!');
+        fetchWorkerProfile(); // Refresh profile data
+      } else {
+        console.error('Failed to update profile:', response.error);
+        alert(`Failed to update profile: ${response.error}`);
+      }
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      alert('Failed to update profile. Please try again.');
+    }
   };
 
   // Handle password change
@@ -219,25 +314,25 @@ const WorkerProfile = () => {
               <StatCard
                 icon={Calendar}
                 label="Joining Date"
-                value={workerData?.joinDate || 'N/A'}
+                value={profile.joinDate}
                 color="bg-blue-500"
               />
               <StatCard
                 icon={Award}
                 label="Tasks Completed"
-                value={workerData?.completedOrders || 0}
+                value={profile.completedTasks}
                 color="bg-green-500"
               />
               <StatCard
                 icon={Star}
                 label="Average Rating"
-                value={`${workerData?.rating || 0}/5`}
+                value={`${profile.rating}/5`}
                 color="bg-yellow-500"
               />
               <StatCard
                 icon={Briefcase}
-                label="Assigned Category"
-                value={workerData?.specialization || 'N/A'}
+                label="Work Type"
+                value={profile.workType || 'N/A'}
                 color="bg-purple-500"
               />
             </div>
@@ -246,39 +341,42 @@ const WorkerProfile = () => {
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
               <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">Performance Overview</h3>
               <div className="space-y-4">
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Overall Performance</span>
-                    <span className="text-sm font-bold text-gray-900 dark:text-gray-100">{workerData?.performance}%</span>
-                  </div>
-                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
-                    <div
-                      className="bg-gradient-to-r from-blue-500 to-purple-600 h-3 rounded-full transition-all"
-                      style={{ width: `${workerData?.performance}%` }}
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
-                    <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{workerData?.assignedOrders || 0}</p>
+                    <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{profile.activeTasks}</p>
                     <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Active Tasks</p>
                   </div>
                   <div className="text-center p-4 bg-green-50 dark:bg-green-900/30 rounded-lg">
-                    <p className="text-2xl font-bold text-green-600 dark:text-green-400">{workerData?.completedOrders || 0}</p>
+                    <p className="text-2xl font-bold text-green-600 dark:text-green-400">{profile.completedTasks}</p>
                     <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Completed</p>
                   </div>
                   <div className="text-center p-4 bg-yellow-50 dark:bg-yellow-900/30 rounded-lg">
-                    <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{workerData?.rating || 0}</p>
+                    <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{profile.rating}</p>
                     <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Rating</p>
-                  </div>
-                  <div className="text-center p-4 bg-purple-50 dark:bg-purple-900/30 rounded-lg">
-                    <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">₹{workerData?.salary?.toLocaleString() || 0}</p>
-                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Salary</p>
                   </div>
                 </div>
               </div>
             </div>
+
+            {/* Work Rates */}
+            {profile.rates && profile.rates.length > 0 && (
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">Work Rates</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {profile.rates.map((rate, index) => (
+                    <div key={index} className="p-4 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">{rate.workType}</p>
+                          <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">₹{rate.rate}</p>
+                        </div>
+                        <Briefcase className="w-8 h-8 text-blue-600 dark:text-blue-400 opacity-50" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Security Settings */}
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
