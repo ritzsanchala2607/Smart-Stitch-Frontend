@@ -26,27 +26,31 @@ const Ratings = () => {
 
   // Get token from localStorage
   const getToken = () => {
-    const token = localStorage.getItem('token');
+    // First try to get token directly
+    let token = localStorage.getItem('token');
     if (token) return token;
     
+    // Then try to get from user object
     const userStr = localStorage.getItem('user');
     if (userStr) {
       try {
         const user = JSON.parse(userStr);
-        return user.jwt || user.token;
+        token = user.jwt || user.token;
+        if (token) return token;
       } catch (e) {
         console.error('Error parsing user from localStorage:', e);
       }
     }
+    
     return null;
   };
 
   // Fetch completed orders on mount
   useEffect(() => {
-    fetchCompletedOrders();
+    fetchOrdersForRating();
   }, []);
 
-  const fetchCompletedOrders = async () => {
+  const fetchOrdersForRating = async () => {
     setLoading(true);
     const token = getToken();
     
@@ -57,52 +61,97 @@ const Ratings = () => {
       return;
     }
 
-    const response = await customerAPI.getMyOrders(token);
-    
-    if (response.success) {
-      // Filter only delivered orders
-      const completed = response.data.filter(order => {
-        const status = (order.status || '').toLowerCase();
-        return status === 'delivered';
-      });
+    try {
+      // Try the new endpoint first
+      let response = await ratingAPI.getMyOrdersForRating(token);
       
-      setCompletedOrders(completed);
-      
-      // Initialize rating states for each order
-      const shopRatingsInit = {};
-      const workerRatingsInit = {};
-      
-      completed.forEach(order => {
-        shopRatingsInit[order.id] = {
-          rating: 0,
-          hoverRating: 0,
-          review: ''
-        };
+      // If endpoint doesn't exist or returns 403/404, fallback to orders/status
+      if (!response.success && (response.error.includes('403') || response.error.includes('404') || response.error.includes('Only customers'))) {
+        // Fallback: Use existing orders endpoint
+        response = await customerAPI.getMyOrders(token);
         
-        // Initialize ratings for each worker in the order
-        if (order.tasks && Array.isArray(order.tasks)) {
-          order.tasks.forEach(task => {
-            if (task.worker && task.worker.id) {
-              const key = `${order.id}-${task.worker.id}`;
+        if (response.success) {
+          const orders = response.data || [];
+          
+          // Transform to match expected format
+          const transformedOrders = orders.map(order => ({
+            orderId: order.orderId || order.id,
+            shopName: 'Smart Stitch', // Default shop name
+            deadline: order.deadline,
+            status: order.orderStatus || order.status,
+            createdAt: order.createdAt,
+            workers: []
+          }));
+          
+          response = {
+            success: true,
+            data: transformedOrders
+          };
+        }
+      }
+      
+      if (response.success) {
+        const orders = response.data || [];
+        console.log('📦 All orders received:', orders);
+        console.log('📦 Order statuses:', orders.map(o => ({ id: o.orderId, status: o.status })));
+        
+        // Filter orders that can be rated (COMPLETED or DELIVERED - case insensitive)
+        const completed = orders.filter(order => {
+          const status = (order.status || '').toUpperCase();
+          console.log(`Checking order ${order.orderId}: status="${status}"`);
+          // Accept: COMPLETED, DELIVERED (any case)
+          return status === 'COMPLETED' || status === 'DELIVERED';
+        });
+        
+        console.log('✅ Filtered rateable orders:', completed);
+        
+        if (completed.length === 0) {
+          console.warn('⚠️ No COMPLETED or DELIVERED orders found.');
+          console.warn('Available order statuses:', orders.map(o => o.status));
+        }
+        
+        setCompletedOrders(completed);
+        
+        // Initialize rating states for each order
+        const shopRatingsInit = {};
+        const workerRatingsInit = {};
+        
+        completed.forEach(order => {
+          shopRatingsInit[order.orderId] = {
+            rating: 0,
+            hoverRating: 0,
+            review: '',
+            alreadyRated: false
+          };
+          
+          // Initialize ratings for each worker in the order
+          if (order.workers && Array.isArray(order.workers)) {
+            order.workers.forEach(worker => {
+              const key = `${order.orderId}-${worker.workerId}`;
               workerRatingsInit[key] = {
                 rating: 0,
                 hoverRating: 0,
-                review: ''
+                review: '',
+                alreadyRated: worker.alreadyRated || false
               };
-            }
-          });
+            });
+          }
+        });
+        
+        setShopRatings(shopRatingsInit);
+        setWorkerRatings(workerRatingsInit);
+        
+        // Select first order by default
+        if (completed.length > 0) {
+          setSelectedOrder(completed[0]);
         }
-      });
-      
-      setShopRatings(shopRatingsInit);
-      setWorkerRatings(workerRatingsInit);
-      
-      // Select first order by default
-      if (completed.length > 0) {
-        setSelectedOrder(completed[0]);
+      } else {
+        setErrorMessage(response.error || 'Failed to fetch orders');
+        setShowError(true);
       }
-    } else {
-      setErrorMessage(response.error || 'Failed to fetch orders');
+    } catch (error) {
+      console.error('Error fetching orders for rating:', error);
+      setErrorMessage('Failed to fetch orders. Please try again.');
       setShowError(true);
     }
     
@@ -143,7 +192,14 @@ const Ratings = () => {
   const handleSubmitShopRating = async (orderId) => {
     const rating = shopRatings[orderId];
     
-    if (!rating || rating.rating === 0) {
+    if (!rating) {
+      setErrorMessage('Please select a rating');
+      setShowError(true);
+      setTimeout(() => setShowError(false), 3000);
+      return;
+    }
+    
+    if (rating.rating === 0 || !rating.rating) {
       setErrorMessage('Please select a rating');
       setShowError(true);
       setTimeout(() => setShowError(false), 3000);
@@ -171,19 +227,28 @@ const Ratings = () => {
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 5000);
 
-      // Reset form
+      // Mark as already rated
       setShopRatings(prev => ({
         ...prev,
         [orderId]: {
-          rating: 0,
-          hoverRating: 0,
-          review: ''
+          ...prev[orderId],
+          alreadyRated: true
         }
       }));
+
+      // Refresh orders to get updated alreadyRated flags
+      fetchOrdersForRating();
     } else {
-      setErrorMessage(response.error || 'Failed to submit rating');
+      let errorMsg = response.error || 'Failed to submit rating';
+      
+      // Provide helpful message for common errors
+      if (errorMsg.includes('Can only rate completed orders')) {
+        errorMsg = 'This order cannot be rated yet. The backend currently only allows rating orders with "COMPLETED" status. Please ask the backend team to update the validation to also accept "DELIVERED" orders.';
+      }
+      
+      setErrorMessage(errorMsg);
       setShowError(true);
-      setTimeout(() => setShowError(false), 5000);
+      setTimeout(() => setShowError(false), 8000); // Longer timeout for detailed message
     }
   };
 
@@ -221,15 +286,17 @@ const Ratings = () => {
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 5000);
 
-      // Reset worker rating
+      // Mark worker as already rated
       setWorkerRatings(prev => ({
         ...prev,
         [key]: {
-          rating: 0,
-          hoverRating: 0,
-          review: ''
+          ...prev[key],
+          alreadyRated: true
         }
       }));
+
+      // Refresh orders to get updated alreadyRated flags
+      fetchOrdersForRating();
     } else {
       setErrorMessage(response.error || 'Failed to submit rating');
       setShowError(true);
@@ -239,23 +306,44 @@ const Ratings = () => {
 
   // Star component
   const StarRating = ({ rating, hoverRating, onStarClick, onStarHover, size = 'w-8 h-8' }) => {
+    const handleClick = (e, star) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (onStarClick) {
+        onStarClick(star);
+      }
+    };
+
+    const handleMouseEnter = (star) => {
+      if (onStarHover) {
+        onStarHover(star);
+      }
+    };
+
+    const handleMouseLeave = () => {
+      if (onStarHover) {
+        onStarHover(0);
+      }
+    };
+
     return (
       <div className="flex gap-2">
         {[1, 2, 3, 4, 5].map((star) => (
           <button
             key={star}
             type="button"
-            onClick={() => onStarClick(star)}
-            onMouseEnter={() => onStarHover(star)}
-            onMouseLeave={() => onStarHover(0)}
-            className="transition-transform hover:scale-110"
+            onClick={(e) => handleClick(e, star)}
+            onMouseEnter={() => handleMouseEnter(star)}
+            onMouseLeave={handleMouseLeave}
+            className="transition-transform hover:scale-110 cursor-pointer focus:outline-none"
+            aria-label={`Rate ${star} stars`}
           >
             <Star
               className={`${size} ${
                 star <= (hoverRating || rating)
                   ? 'fill-yellow-400 text-yellow-400'
                   : 'text-gray-300 dark:text-gray-600'
-              }`}
+              } pointer-events-none`}
             />
           </button>
         ))}
@@ -380,16 +468,16 @@ const Ratings = () => {
                   Select Order to Rate
                 </label>
                 <select
-                  value={selectedOrder?.id || ''}
+                  value={selectedOrder?.orderId || ''}
                   onChange={(e) => {
-                    const order = completedOrders.find(o => o.id === parseInt(e.target.value));
+                    const order = completedOrders.find(o => o.orderId === parseInt(e.target.value));
                     setSelectedOrder(order);
                   }}
                   className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
                 >
                   {completedOrders.map(order => (
-                    <option key={order.id} value={order.id}>
-                      Order #{order.id} - {order.items?.map(item => item.name).join(', ') || 'No items'} ({order.status})
+                    <option key={order.orderId} value={order.orderId}>
+                      Order #{order.orderId} - {order.shopName} ({order.status})
                     </option>
                   ))}
                 </select>
@@ -443,7 +531,7 @@ const Ratings = () => {
               >
                 <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">Rate Our Shop</h2>
                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
-                  Order #{selectedOrder.id} - {selectedOrder.items?.map(item => item.name).join(', ') || 'No items'}
+                  Order #{selectedOrder.orderId} - {selectedOrder.shopName}
                 </p>
 
                 {/* Overall Rating */}
@@ -452,18 +540,18 @@ const Ratings = () => {
                     Overall Rating
                   </label>
                   <StarRating
-                    rating={shopRatings[selectedOrder.id]?.rating || 0}
-                    hoverRating={shopRatings[selectedOrder.id]?.hoverRating || 0}
-                    onStarClick={(rating) => handleShopStarClick(selectedOrder.id, rating)}
-                    onStarHover={(rating) => handleShopStarHover(selectedOrder.id, rating)}
+                    rating={shopRatings[selectedOrder.orderId]?.rating || 0}
+                    hoverRating={shopRatings[selectedOrder.orderId]?.hoverRating || 0}
+                    onStarClick={(rating) => handleShopStarClick(selectedOrder.orderId, rating)}
+                    onStarHover={(rating) => handleShopStarHover(selectedOrder.orderId, rating)}
                   />
-                  {shopRatings[selectedOrder.id]?.rating > 0 && (
+                  {shopRatings[selectedOrder.orderId]?.rating > 0 && (
                     <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                      {shopRatings[selectedOrder.id].rating === 5 && 'Excellent!'}
-                      {shopRatings[selectedOrder.id].rating === 4 && 'Very Good!'}
-                      {shopRatings[selectedOrder.id].rating === 3 && 'Good'}
-                      {shopRatings[selectedOrder.id].rating === 2 && 'Fair'}
-                      {shopRatings[selectedOrder.id].rating === 1 && 'Poor'}
+                      {shopRatings[selectedOrder.orderId].rating === 5 && 'Excellent!'}
+                      {shopRatings[selectedOrder.orderId].rating === 4 && 'Very Good!'}
+                      {shopRatings[selectedOrder.orderId].rating === 3 && 'Good'}
+                      {shopRatings[selectedOrder.orderId].rating === 2 && 'Fair'}
+                      {shopRatings[selectedOrder.orderId].rating === 1 && 'Poor'}
                     </p>
                   )}
                 </div>
@@ -474,10 +562,10 @@ const Ratings = () => {
                     Write a Review (Optional)
                   </label>
                   <textarea
-                    value={shopRatings[selectedOrder.id]?.review || ''}
+                    value={shopRatings[selectedOrder.orderId]?.review || ''}
                     onChange={(e) => setShopRatings(prev => ({
                       ...prev,
-                      [selectedOrder.id]: { ...prev[selectedOrder.id], review: e.target.value }
+                      [selectedOrder.orderId]: { ...prev[selectedOrder.orderId], review: e.target.value }
                     }))}
                     className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
                     placeholder="Share your experience with us..."
@@ -487,11 +575,16 @@ const Ratings = () => {
 
                 {/* Submit Button */}
                 <button
-                  onClick={() => handleSubmitShopRating(selectedOrder.id)}
-                  className="w-full bg-orange-500 text-white py-3 rounded-lg font-semibold hover:bg-orange-600 transition-colors flex items-center justify-center gap-2"
+                  onClick={() => handleSubmitShopRating(selectedOrder.orderId)}
+                  disabled={shopRatings[selectedOrder.orderId]?.alreadyRated}
+                  className={`w-full py-3 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2 ${
+                    shopRatings[selectedOrder.orderId]?.alreadyRated
+                      ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+                      : 'bg-orange-500 text-white hover:bg-orange-600'
+                  }`}
                 >
                   <Send className="w-5 h-5" />
-                  Submit Rating
+                  {shopRatings[selectedOrder.orderId]?.alreadyRated ? 'Already Rated' : 'Submit Rating'}
                 </button>
               </motion.div>
             )}
@@ -503,80 +596,92 @@ const Ratings = () => {
                 animate={{ opacity: 1, x: 0 }}
                 className="space-y-6"
               >
-                {selectedOrder.tasks && selectedOrder.tasks.length > 0 ? (
-                  selectedOrder.tasks
-                    .filter(task => task.worker && task.worker.id)
-                    .map((task) => {
-                      const worker = task.worker;
-                      const key = `${selectedOrder.id}-${worker.id}`;
-                      
-                      return (
-                        <div
-                          key={key}
-                          className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6"
-                        >
-                          {/* Worker Info */}
-                          <div className="flex items-center gap-4 mb-6">
-                            <div className="w-16 h-16 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center text-white text-2xl font-bold">
-                              {worker.user?.name?.charAt(0).toUpperCase() || 'W'}
-                            </div>
-                            <div>
-                              <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
-                                {worker.user?.name || 'Worker'}
-                              </h3>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">
-                                {task.taskType || 'Task'}
+                {selectedOrder.workers && selectedOrder.workers.length > 0 ? (
+                  selectedOrder.workers.map((worker) => {
+                    const key = `${selectedOrder.orderId}-${worker.workerId}`;
+                    const isAlreadyRated = workerRatings[key]?.alreadyRated || false;
+                    
+                    return (
+                      <div
+                        key={key}
+                        className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6"
+                      >
+                        {/* Worker Info */}
+                        <div className="flex items-center gap-4 mb-6">
+                          <div className="w-16 h-16 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center text-white text-2xl font-bold">
+                            {worker.workerName?.charAt(0).toUpperCase() || 'W'}
+                          </div>
+                          <div>
+                            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                              {worker.workerName || 'Worker'}
+                            </h3>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                              {worker.taskType || 'Task'} - {worker.taskStatus || 'Status'}
+                            </p>
+                            <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                              Order #{selectedOrder.orderId}
+                            </p>
+                            {isAlreadyRated && (
+                              <p className="text-xs text-green-600 dark:text-green-400 mt-1 flex items-center gap-1">
+                                <CheckCircle className="w-3 h-3" />
+                                Already rated
                               </p>
-                              <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                                Order #{selectedOrder.id}
-                              </p>
-                            </div>
+                            )}
                           </div>
-
-                          {/* Overall Rating */}
-                          <div className="mb-4">
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                              Overall Rating
-                            </label>
-                            <StarRating
-                              rating={workerRatings[key]?.rating || 0}
-                              hoverRating={workerRatings[key]?.hoverRating || 0}
-                              onStarClick={(rating) => handleWorkerStarClick(key, rating)}
-                              onStarHover={(rating) => handleWorkerStarHover(key, rating)}
-                              size="w-7 h-7"
-                            />
-                          </div>
-
-                          {/* Review Text */}
-                          <div className="mb-4">
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                              Write a Review (Optional)
-                            </label>
-                            <textarea
-                              value={workerRatings[key]?.review || ''}
-                              onChange={(e) =>
-                                setWorkerRatings(prev => ({
-                                  ...prev,
-                                  [key]: { ...prev[key], review: e.target.value }
-                                }))
-                              }
-                              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
-                              placeholder="Share your experience with this worker..."
-                              rows="3"
-                            />
-                          </div>
-
-                          {/* Submit Button */}
-                          <button
-                            onClick={() => handleSubmitWorkerRating(selectedOrder.id, worker.id)}
-                            className="w-full bg-orange-500 text-white py-3 rounded-lg font-semibold hover:bg-orange-600 transition-colors flex items-center justify-center gap-2"
-                          >
-                            <Send className="w-5 h-5" />
-                            Submit Rating
-                          </button>
                         </div>
-                      );
-                    })
+
+                        {/* Overall Rating */}
+                        <div className="mb-4">
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                            Overall Rating
+                          </label>
+                          <StarRating
+                            rating={workerRatings[key]?.rating || 0}
+                            hoverRating={workerRatings[key]?.hoverRating || 0}
+                            onStarClick={(rating) => !isAlreadyRated && handleWorkerStarClick(key, rating)}
+                            onStarHover={(rating) => !isAlreadyRated && handleWorkerStarHover(key, rating)}
+                            size="w-7 h-7"
+                          />
+                        </div>
+
+                        {/* Review Text */}
+                        <div className="mb-4">
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Write a Review (Optional)
+                          </label>
+                          <textarea
+                            value={workerRatings[key]?.review || ''}
+                            onChange={(e) =>
+                              !isAlreadyRated && setWorkerRatings(prev => ({
+                                ...prev,
+                                [key]: { ...prev[key], review: e.target.value }
+                              }))
+                            }
+                            disabled={isAlreadyRated}
+                            className={`w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 ${
+                              isAlreadyRated ? 'opacity-50 cursor-not-allowed' : ''
+                            }`}
+                            placeholder="Share your experience with this worker..."
+                            rows="3"
+                          />
+                        </div>
+
+                        {/* Submit Button */}
+                        <button
+                          onClick={() => handleSubmitWorkerRating(selectedOrder.orderId, worker.workerId)}
+                          disabled={isAlreadyRated}
+                          className={`w-full py-3 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2 ${
+                            isAlreadyRated
+                              ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+                              : 'bg-orange-500 text-white hover:bg-orange-600'
+                          }`}
+                        >
+                          <Send className="w-5 h-5" />
+                          {isAlreadyRated ? 'Already Rated' : 'Submit Rating'}
+                        </button>
+                      </div>
+                    );
+                  })
                 ) : (
                   <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-12 text-center">
                     <div className="w-20 h-20 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">

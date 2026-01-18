@@ -1848,6 +1848,45 @@ export const ratingAPI = {
                 error: error.message || 'Server error. Please try again later.'
             };
         }
+    },
+
+    /**
+     * Get customer orders for rating (with worker details and already rated flags)
+     * @param {string} token - JWT token for authentication
+     * @returns {Promise} Response with orders and worker details
+     */
+    getMyOrdersForRating: async (token) => {
+        try {
+            console.log('API Request - URL:', `${API_URL}/api/ratings/my-orders`);
+
+            const response = await fetch(`${API_URL}/api/ratings/my-orders`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            console.log('API Response - Status:', response.status, response.statusText);
+
+            const data = await response.json();
+            console.log('API Response - Data:', data);
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to fetch orders for rating');
+            }
+
+            return {
+                success: true,
+                data: data.data || data,
+                message: data.message || 'Orders fetched successfully'
+            };
+        } catch (error) {
+            console.error('Get Orders for Rating API Error:', error);
+            return {
+                success: false,
+                error: error.message || 'Server error. Please try again later.'
+            };
+        }
     }
 };
 

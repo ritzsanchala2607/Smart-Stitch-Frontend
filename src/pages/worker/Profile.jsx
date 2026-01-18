@@ -15,10 +15,9 @@ import {
   Edit,
   Mail,
   Phone,
-  MapPin,
   Loader
 } from 'lucide-react';
-import { workerAPI } from '../../services/api';
+import { workerAPI, ratingAPI } from '../../services/api';
 
 const WorkerProfile = () => {
   usePageTitle('Profile');
@@ -38,7 +37,8 @@ const WorkerProfile = () => {
     rating: 0,
     completedTasks: 0,
     activeTasks: 0,
-    rates: []
+    rates: [],
+    workerId: null
   });
 
   const [passwords, setPasswords] = useState({
@@ -46,6 +46,14 @@ const WorkerProfile = () => {
     new: '',
     confirm: ''
   });
+
+  // Customer ratings state
+  const [customerRatings, setCustomerRatings] = useState([]);
+  const [ratingSummary, setRatingSummary] = useState({
+    averageRating: 0,
+    totalRatings: 0
+  });
+  const [loadingRatings, setLoadingRatings] = useState(false);
 
   // Get token from localStorage
   const getToken = () => {
@@ -69,6 +77,13 @@ const WorkerProfile = () => {
     fetchWorkerProfile();
   }, []);
 
+  // Fetch customer ratings when workerId is available
+  useEffect(() => {
+    if (profile.workerId) {
+      fetchCustomerRatings();
+    }
+  }, [profile.workerId]);
+
   const fetchWorkerProfile = async () => {
     setIsLoading(true);
     const token = getToken();
@@ -80,11 +95,36 @@ const WorkerProfile = () => {
     }
 
     try {
+      // Fetch worker profile
       const response = await workerAPI.getWorkerProfile(token);
       
       if (response.success) {
         const data = response.data;
         console.log('Worker profile fetched:', data);
+        
+        // Fetch worker tasks to calculate active and completed counts
+        const tasksResponse = await workerAPI.getMyTasks(token);
+        let activeTasks = 0;
+        let completedTasks = 0;
+        
+        if (tasksResponse.success) {
+          const tasks = tasksResponse.data || [];
+          console.log('Worker tasks fetched:', tasks);
+          
+          // Count active tasks (PENDING or IN_PROGRESS status)
+          activeTasks = tasks.filter(task => {
+            const status = (task.status || '').toUpperCase();
+            return status === 'PENDING' || status === 'IN_PROGRESS';
+          }).length;
+          
+          // Count completed tasks (COMPLETED status)
+          completedTasks = tasks.filter(task => {
+            const status = (task.status || '').toUpperCase();
+            return status === 'COMPLETED';
+          }).length;
+          
+          console.log('Task counts - Active:', activeTasks, 'Completed:', completedTasks);
+        }
         
         setProfile({
           name: data.name || '',
@@ -96,9 +136,10 @@ const WorkerProfile = () => {
           experience: data.experience || 0,
           joinDate: 'N/A', // Backend doesn't return this yet
           rating: data.ratings || 0,
-          completedTasks: 0, // Backend doesn't return this yet
-          activeTasks: 0, // Backend doesn't return this yet
-          rates: data.rates || []
+          completedTasks: completedTasks,
+          activeTasks: activeTasks,
+          rates: data.rates || [],
+          workerId: data.workerId
         });
       } else {
         console.error('Failed to fetch worker profile:', response.error);
@@ -165,6 +206,39 @@ const WorkerProfile = () => {
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  // Fetch customer ratings for this worker
+  const fetchCustomerRatings = async () => {
+    setLoadingRatings(true);
+    const token = getToken();
+    
+    if (!token || !profile.workerId) {
+      setLoadingRatings(false);
+      return;
+    }
+
+    try {
+      // Fetch rating summary
+      const summaryResponse = await ratingAPI.getWorkerRatingSummary(profile.workerId, token);
+      if (summaryResponse.success) {
+        const summaryData = summaryResponse.data;
+        setRatingSummary({
+          averageRating: summaryData.averageRating || 0,
+          totalRatings: summaryData.totalRatings || 0
+        });
+      }
+
+      // Fetch individual ratings
+      const ratingsResponse = await ratingAPI.getWorkerRatings(profile.workerId, token);
+      if (ratingsResponse.success) {
+        setCustomerRatings(ratingsResponse.data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching customer ratings:', error);
+    }
+    
+    setLoadingRatings(false);
   };
 
   return (
@@ -326,7 +400,7 @@ const WorkerProfile = () => {
               <StatCard
                 icon={Star}
                 label="Average Rating"
-                value={`${profile.rating}/5`}
+                value={`${ratingSummary.averageRating > 0 ? ratingSummary.averageRating.toFixed(1) : '0'}/5`}
                 color="bg-yellow-500"
               />
               <StatCard
@@ -351,7 +425,9 @@ const WorkerProfile = () => {
                     <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Completed</p>
                   </div>
                   <div className="text-center p-4 bg-yellow-50 dark:bg-yellow-900/30 rounded-lg">
-                    <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{profile.rating}</p>
+                    <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
+                      {ratingSummary.averageRating > 0 ? ratingSummary.averageRating.toFixed(1) : '0'}
+                    </p>
                     <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Rating</p>
                   </div>
                 </div>
@@ -377,6 +453,120 @@ const WorkerProfile = () => {
                 </div>
               </div>
             )}
+
+            {/* Customer Ratings Section */}
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">Customer Ratings</h3>
+                {loadingRatings && (
+                  <Loader className="w-5 h-5 text-blue-600 dark:text-blue-400 animate-spin" />
+                )}
+              </div>
+
+              {/* Rating Summary */}
+              <div className="mb-6 p-4 bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Average Rating</p>
+                    <div className="flex items-center gap-2">
+                      <span className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                        {ratingSummary.averageRating.toFixed(1)}
+                      </span>
+                      <div className="flex items-center">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Star
+                            key={star}
+                            className={`w-5 h-5 ${
+                              star <= Math.round(ratingSummary.averageRating)
+                                ? 'fill-yellow-400 text-yellow-400'
+                                : 'text-gray-300 dark:text-gray-600'
+                            }`}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Reviews</p>
+                    <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                      {ratingSummary.totalRatings}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Individual Ratings */}
+              {loadingRatings ? (
+                <div className="text-center py-8">
+                  <Loader className="w-8 h-8 text-blue-600 dark:text-blue-400 animate-spin mx-auto mb-2" />
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Loading ratings...</p>
+                </div>
+              ) : customerRatings.length > 0 ? (
+                <div className="space-y-4 max-h-96 overflow-y-auto">
+                  {customerRatings.map((rating, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                      className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600"
+                    >
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
+                            {rating.customerName?.charAt(0).toUpperCase() || 'C'}
+                          </div>
+                          <div>
+                            <p className="font-medium text-gray-900 dark:text-gray-100">
+                              {rating.customerName || 'Customer'}
+                            </p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                              Order #{rating.orderId}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <Star
+                              key={star}
+                              className={`w-4 h-4 ${
+                                star <= rating.rating
+                                  ? 'fill-yellow-400 text-yellow-400'
+                                  : 'text-gray-300 dark:text-gray-600'
+                              }`}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                      {rating.review && (
+                        <p className="text-sm text-gray-700 dark:text-gray-300 mt-2 pl-13">
+                          "{rating.review}"
+                        </p>
+                      )}
+                      {rating.createdAt && (
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 pl-13">
+                          {new Date(rating.createdAt).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric'
+                          })}
+                        </p>
+                      )}
+                    </motion.div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <Star className="w-8 h-8 text-gray-400" />
+                  </div>
+                  <p className="text-gray-600 dark:text-gray-400">No customer ratings yet</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">
+                    Complete orders to receive ratings from customers
+                  </p>
+                </div>
+              )}
+            </div>
 
             {/* Security Settings */}
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
