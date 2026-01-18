@@ -247,6 +247,14 @@ const WorkerProfile = () => {
       <div className="flex-1 flex flex-col overflow-hidden">
         <Topbar />
         <main className="flex-1 overflow-y-auto p-6">
+          {isLoading ? (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center">
+                <Loader className="w-12 h-12 text-purple-600 dark:text-purple-400 animate-spin mx-auto mb-4" />
+                <p className="text-lg text-gray-600 dark:text-gray-400">Loading profile...</p>
+              </div>
+            </div>
+          ) : (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -583,6 +591,7 @@ const WorkerProfile = () => {
               </button>
             </div>
           </motion.div>
+          )}
         </main>
       </div>
 
