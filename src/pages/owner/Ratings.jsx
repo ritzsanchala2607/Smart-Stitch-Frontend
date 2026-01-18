@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
 import { motion } from 'framer-motion';
@@ -6,9 +6,10 @@ import usePageTitle from '../../hooks/usePageTitle';
 import {
   Star, TrendingUp, Users, Award, Filter, Search,
   Eye, MessageSquare, CheckCircle, AlertCircle, Tag,
-  ThumbsUp, Calendar, User, Briefcase, PieChart
+  ThumbsUp, Calendar, User, Briefcase, PieChart, Loader
 } from 'lucide-react';
 import { reviews, workers } from '../../data/dummyData';
+import { ratingAPI, workerAPI } from '../../services/api';
 
 const Ratings = () => {
   usePageTitle('Ratings & Feedback');
@@ -17,6 +18,199 @@ const Ratings = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedReview, setSelectedReview] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [shopRatings, setShopRatings] = useState([]);
+  const [ratingSummary, setRatingSummary] = useState({
+    averageRating: 0,
+    totalRatings: 0
+  });
+  const [workerRatings, setWorkerRatings] = useState([]);
+  const [avgWorkerRating, setAvgWorkerRating] = useState(0);
+
+  // Get token from localStorage
+  const getToken = () => {
+    const token = localStorage.getItem('token');
+    if (token) return token;
+    
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        return user.jwt || user.token;
+      } catch (e) {
+        console.error('Error parsing user from localStorage:', e);
+      }
+    }
+    return null;
+  };
+
+  // Decode JWT to get shopId
+  const getShopIdFromToken = () => {
+    const token = getToken();
+    if (!token) return null;
+
+    try {
+      // JWT has 3 parts separated by dots: header.payload.signature
+      const parts = token.split('.');
+      if (parts.length !== 3) {
+        console.error('Invalid JWT format');
+        return null;
+      }
+
+      // Decode the payload (second part)
+      const payload = parts[1];
+      const decodedPayload = atob(payload);
+      const payloadObj = JSON.parse(decodedPayload);
+      
+      console.log('Decoded JWT payload:', payloadObj);
+      
+      // Extract shopId from payload
+      const shopId = payloadObj.shopId;
+      console.log('Extracted shopId from JWT:', shopId);
+      
+      return shopId;
+    } catch (error) {
+      console.error('Error decoding JWT:', error);
+      return null;
+    }
+  };
+
+  // Fetch shop ratings on mount
+  useEffect(() => {
+    fetchShopRatings();
+    fetchWorkerRatings();
+  }, []);
+
+  const fetchShopRatings = async () => {
+    setLoading(true);
+    const token = getToken();
+    
+    if (!token) {
+      console.error('No token found');
+      setLoading(false);
+      return;
+    }
+
+    // Get shopId from JWT token
+    const shopId = getShopIdFromToken();
+    
+    if (!shopId) {
+      console.error('No shopId found in JWT token');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      console.log('Fetching ratings for shopId:', shopId);
+      
+      // Fetch rating summary
+      const summaryResponse = await ratingAPI.getShopRatingSummary(shopId, token);
+      console.log('Summary response:', summaryResponse);
+      if (summaryResponse.success) {
+        const summaryData = summaryResponse.data;
+        setRatingSummary({
+          averageRating: summaryData.averageRating || 0,
+          totalRatings: summaryData.totalRatings || 0
+        });
+      }
+
+      // Fetch individual ratings
+      const ratingsResponse = await ratingAPI.getShopRatings(shopId, token);
+      console.log('Ratings response:', ratingsResponse);
+      if (ratingsResponse.success) {
+        const ratings = ratingsResponse.data || [];
+        console.log('Shop ratings fetched:', ratings);
+        setShopRatings(ratings);
+      }
+    } catch (error) {
+      console.error('Error fetching shop ratings:', error);
+    }
+    
+    setLoading(false);
+  };
+
+  const fetchWorkerRatings = async () => {
+    const token = getToken();
+    
+    if (!token) {
+      console.error('No token found');
+      return;
+    }
+
+    try {
+      // Fetch all workers for the shop
+      const workersResponse = await workerAPI.getWorkers(token);
+      console.log('Workers API response:', workersResponse);
+      
+      if (workersResponse.success) {
+        // Handle different response structures
+        let workers = workersResponse.data;
+        
+        // If data is an object with a data property, extract it
+        if (workers && typeof workers === 'object' && !Array.isArray(workers)) {
+          if (workers.data && Array.isArray(workers.data)) {
+            workers = workers.data;
+          } else {
+            console.error('Workers data is not an array:', workers);
+            workers = [];
+          }
+        }
+        
+        // Ensure workers is an array
+        if (!Array.isArray(workers)) {
+          console.error('Workers is not an array:', workers);
+          workers = [];
+        }
+        
+        console.log('Workers array:', workers);
+        
+        if (workers.length === 0) {
+          console.log('No workers found');
+          setAvgWorkerRating(0);
+          return;
+        }
+        
+        // Fetch rating summary for each worker
+        const workerRatingsPromises = workers.map(async (worker) => {
+          const summaryResponse = await ratingAPI.getWorkerRatingSummary(worker.workerId, token);
+          
+          if (summaryResponse.success) {
+            return {
+              workerId: worker.workerId,
+              workerName: worker.name,
+              averageRating: summaryResponse.data.averageRating || 0,
+              totalRatings: summaryResponse.data.totalRatings || 0
+            };
+          }
+          
+          return {
+            workerId: worker.workerId,
+            workerName: worker.name,
+            averageRating: 0,
+            totalRatings: 0
+          };
+        });
+        
+        const ratingsData = await Promise.all(workerRatingsPromises);
+        console.log('Worker ratings data:', ratingsData);
+        setWorkerRatings(ratingsData);
+        
+        // Calculate average worker rating across all workers
+        const workersWithRatings = ratingsData.filter(w => w.totalRatings > 0);
+        if (workersWithRatings.length > 0) {
+          const totalAvg = workersWithRatings.reduce((sum, w) => sum + w.averageRating, 0);
+          const overallAvg = totalAvg / workersWithRatings.length;
+          setAvgWorkerRating(overallAvg);
+          console.log('Overall worker average rating:', overallAvg);
+        } else {
+          setAvgWorkerRating(0);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching worker ratings:', error);
+      setAvgWorkerRating(0);
+    }
+  };
 
   // Extended mock data for ratings
   const [feedbackList, setFeedbackList] = useState([
@@ -142,32 +336,18 @@ const Ratings = () => {
     }
   ]);
 
-  // Calculate statistics
-  const totalRatings = feedbackList.length;
-  const avgShopRating = (feedbackList.reduce((sum, f) => sum + f.shopRating, 0) / totalRatings).toFixed(1);
-  const avgWorkerRating = (feedbackList.reduce((sum, f) => sum + f.workerRating, 0) / totalRatings).toFixed(1);
+  // Calculate statistics from API data
+  const totalRatings = ratingSummary.totalRatings;
+  const avgShopRating = ratingSummary.averageRating.toFixed(1);
 
-  // Rating distribution
+  // Rating distribution from API data
   const ratingDistribution = {
-    5: feedbackList.filter(f => f.shopRating === 5).length,
-    4: feedbackList.filter(f => f.shopRating === 4).length,
-    3: feedbackList.filter(f => f.shopRating === 3).length,
-    2: feedbackList.filter(f => f.shopRating === 2).length,
-    1: feedbackList.filter(f => f.shopRating === 1).length
+    5: shopRatings.filter(r => r.rating === 5).length,
+    4: shopRatings.filter(r => r.rating === 4).length,
+    3: shopRatings.filter(r => r.rating === 3).length,
+    2: shopRatings.filter(r => r.rating === 2).length,
+    1: shopRatings.filter(r => r.rating === 1).length
   };
-
-  // Worker ratings
-  const workerRatings = workers.map(worker => {
-    const workerFeedback = feedbackList.filter(f => f.workerId === worker.id);
-    const avgRating = workerFeedback.length > 0
-      ? (workerFeedback.reduce((sum, f) => sum + f.workerRating, 0) / workerFeedback.length).toFixed(1)
-      : worker.rating;
-    return {
-      ...worker,
-      feedbackCount: workerFeedback.length,
-      avgRating: parseFloat(avgRating)
-    };
-  }).sort((a, b) => b.avgRating - a.avgRating);
 
   // Filter feedback
   const filteredFeedback = feedbackList.filter(feedback => {
@@ -272,7 +452,7 @@ const Ratings = () => {
             {activeTab === 'overview' && (
               <div className="space-y-6">
                 {/* Stats Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <StatCard
                     title="Total Ratings"
                     value={totalRatings}
@@ -288,16 +468,10 @@ const Ratings = () => {
                   />
                   <StatCard
                     title="Worker Rating"
-                    value={avgWorkerRating}
+                    value={avgWorkerRating > 0 ? avgWorkerRating.toFixed(1) : '0'}
                     icon={Users}
                     color="bg-green-500"
                     suffix="/5"
-                  />
-                  <StatCard
-                    title="Pending Reviews"
-                    value={feedbackList.filter(f => f.status === 'pending').length}
-                    icon={AlertCircle}
-                    color="bg-orange-500"
                   />
                 </div>
 
@@ -334,49 +508,67 @@ const Ratings = () => {
 
                 {/* Recent Feedback */}
                 <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-                  <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">Recent Feedback</h2>
-                  <div className="space-y-4">
-                    {feedbackList.slice(0, 5).map(feedback => (
-                      <div key={feedback.id} className="flex items-start gap-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                        <img
-                          src={feedback.customerAvatar}
-                          alt={feedback.customerName}
-                          className="w-12 h-12 rounded-full"
-                        />
-                        <div className="flex-1">
-                          <div className="flex items-center justify-between mb-2">
-                            <div>
-                              <h3 className="font-semibold text-gray-900 dark:text-gray-100">{feedback.customerName}</h3>
-                              <p className="text-sm text-gray-500 dark:text-gray-400">Order: {feedback.orderId}</p>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              {[...Array(5)].map((_, i) => (
-                                <Star
-                                  key={i}
-                                  className={`w-4 h-4 ${
-                                    i < feedback.shopRating
-                                      ? 'text-yellow-500 fill-yellow-500'
-                                      : 'text-gray-300 dark:text-gray-600'
-                                  }`}
-                                />
-                              ))}
-                            </div>
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">Recent Shop Ratings</h2>
+                  {loading ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader className="w-8 h-8 text-orange-500 animate-spin" />
+                      <span className="ml-3 text-gray-600 dark:text-gray-400">Loading ratings...</span>
+                    </div>
+                  ) : shopRatings.length > 0 ? (
+                    <div className="space-y-4">
+                      {shopRatings.slice(0, 5).map(rating => (
+                        <div key={rating.ratingId} className="flex items-start gap-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                          <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                            {rating.customerName?.charAt(0).toUpperCase() || 'C'}
                           </div>
-                          <p className="text-gray-700 dark:text-gray-300 text-sm">{feedback.comment}</p>
-                          <div className="flex items-center gap-2 mt-2">
-                            <span className="text-xs text-gray-500 dark:text-gray-400">{feedback.date}</span>
-                            <span className={`text-xs px-2 py-1 rounded-full ${
-                              feedback.status === 'important' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400' :
-                              feedback.status === 'reviewed' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' :
-                              'bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-gray-300'
-                            }`}>
-                              {feedback.status}
-                            </span>
+                          <div className="flex-1">
+                            <div className="flex items-center justify-between mb-2">
+                              <div>
+                                <h3 className="font-semibold text-gray-900 dark:text-gray-100">{rating.customerName || 'Customer'}</h3>
+                                <p className="text-sm text-gray-500 dark:text-gray-400">Order: #{rating.orderId}</p>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                {[...Array(5)].map((_, i) => (
+                                  <Star
+                                    key={i}
+                                    className={`w-4 h-4 ${
+                                      i < rating.rating
+                                        ? 'text-yellow-500 fill-yellow-500'
+                                        : 'text-gray-300 dark:text-gray-600'
+                                    }`}
+                                  />
+                                ))}
+                              </div>
+                            </div>
+                            {rating.review && (
+                              <p className="text-gray-700 dark:text-gray-300 text-sm">{rating.review}</p>
+                            )}
+                            <div className="flex items-center gap-2 mt-2">
+                              {rating.createdAt && (
+                                <span className="text-xs text-gray-500 dark:text-gray-400">
+                                  {new Date(rating.createdAt).toLocaleDateString('en-US', {
+                                    year: 'numeric',
+                                    month: 'short',
+                                    day: 'numeric'
+                                  })}
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <Star className="w-8 h-8 text-gray-400" />
                       </div>
-                    ))}
-                  </div>
+                      <p className="text-gray-600 dark:text-gray-400">No shop ratings yet</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">
+                        Ratings will appear here once customers rate your shop
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
