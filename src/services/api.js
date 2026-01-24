@@ -868,6 +868,72 @@ export const customerAPI = {
     },
 
     /**
+     * Update customer information (name, email, contact)
+     * @param {number} customerId - Customer ID
+     * @param {Object} updateData - Customer update data
+     * @param {Object} updateData.user - User details to update
+     * @param {string} updateData.user.name - Customer name
+     * @param {string} updateData.user.contactNumber - Contact number
+     * @param {string} updateData.user.profilePicture - Profile picture URL (optional)
+     * @param {string} token - JWT token for authentication
+     * @returns {Promise} Response with update status
+     */
+    updateCustomer: async (customerId, updateData, token) => {
+        try {
+            console.log('API Request - URL:', `${API_URL}/api/customers/${customerId}`);
+            console.log('API Request - Method: PUT');
+            console.log('API Request - Payload:', JSON.stringify(updateData, null, 2));
+
+            const response = await fetch(`${API_URL}/api/customers/${customerId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(updateData)
+            });
+
+            console.log('API Response - Status:', response.status, response.statusText);
+
+            const contentType = response.headers.get('content-type');
+            let data = null;
+
+            if (contentType && contentType.includes('application/json')) {
+                const text = await response.text();
+                console.log('API Response - Body (text):', text);
+                if (text) {
+                    data = JSON.parse(text);
+                }
+            } else {
+                const text = await response.text();
+                console.log('API Response - Body (non-JSON):', text);
+                if (!response.ok) {
+                    throw new Error(text || `Server error: ${response.status} ${response.statusText}`);
+                }
+                data = {
+                    message: text || 'Customer updated successfully'
+                };
+            }
+
+            if (!response.ok) {
+                throw new Error((data && data.message) || (data && data.error) || `Server error: ${response.status} ${response.statusText}`);
+            }
+
+            return {
+                success: true,
+                data: data.data || data,
+                message: (data && data.message) || 'Customer updated successfully'
+            };
+        } catch (error) {
+            console.error('Update Customer API Error:', error);
+            return {
+                success: false,
+                error: error.message || 'Server error. Please try again later.'
+            };
+        }
+    },
+
+    /**
      * Create measurement profile for customer
      * @param {Object} measurementData - Measurement profile data
      * @param {number} measurementData.customerId - Customer ID

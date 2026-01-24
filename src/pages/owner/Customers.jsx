@@ -671,13 +671,6 @@ const Customers = () => {
   };
 
   const handleUpdateCustomer = async () => {
-    // Skip validation for now - we're only updating measurements
-    // const validation = validateCustomerForm(customerForm);
-    // if (!validation.isValid) {
-    //   setErrors(validation.errors);
-    //   return;
-    // }
-
     // Get JWT token
     let token = localStorage.getItem('token');
     if (!token) {
@@ -698,8 +691,39 @@ const Customers = () => {
     }
 
     try {
-      console.log('Updating measurement profiles for customer:', editingCustomer.id);
+      console.log('Updating customer:', editingCustomer.id);
       
+      // Step 1: Update customer personal information (name, mobile, email)
+      const hasPersonalInfoChanges = 
+        customerForm.name !== editingCustomer.name ||
+        customerForm.mobile !== editingCustomer.mobile ||
+        customerForm.email !== editingCustomer.email;
+
+      if (hasPersonalInfoChanges) {
+        console.log('Updating customer personal information...');
+        
+        const customerUpdatePayload = {
+          user: {
+            name: customerForm.name,
+            contactNumber: customerForm.mobile,
+            // Note: Email updates might not be allowed by backend
+          }
+        };
+
+        const customerUpdateResult = await customerAPI.updateCustomer(
+          editingCustomer.id,
+          customerUpdatePayload,
+          token
+        );
+
+        if (!customerUpdateResult.success) {
+          throw new Error(customerUpdateResult.error || 'Failed to update customer information');
+        }
+
+        console.log('Customer personal information updated successfully');
+      }
+
+      // Step 2: Update measurement profiles
       let updatedProfiles = 0;
       let createdProfiles = 0;
       let failedProfiles = 0;
@@ -789,10 +813,8 @@ const Customers = () => {
         const existingProfile = measurementProfiles.find(p => p.dressType === dressType.type);
 
         if (existingProfile) {
-          // Update existing profile - API requires customerId and dressType
+          // Update existing profile - only send notes and measurements
           const updatePayload = {
-            customerId: editingCustomer.id,
-            dressType: dressType.type,
             notes: 'Updated measurements',
             measurements: cleanedData
           };
@@ -839,8 +861,6 @@ const Customers = () => {
           const result = await customerAPI.updateMeasurementProfile(
             existingCustomProfile.profileId,
             { 
-              customerId: editingCustomer.id,
-              dressType: 'CUSTOM',
               notes: customerForm.measurements.custom, 
               measurements: {} 
             },
@@ -866,36 +886,47 @@ const Customers = () => {
       // Refresh the customers list from the backend
       await fetchCustomers();
 
-      const message = `Updated ${updatedProfiles} profile(s), created ${createdProfiles} new profile(s).${failedProfiles > 0 ? ` (${failedProfiles} failed)` : ''}`;
+      if (failedProfiles > 0) {
+        // Show partial success with warning
+        const message = `${hasPersonalInfoChanges ? 'Personal information updated. ' : ''}Updated ${updatedProfiles} measurement profile(s), created ${createdProfiles} new profile(s). ${failedProfiles} profile(s) failed to update.`;
+        
+        setErrors({ 
+          api: `${message}\n\nNote: If you're seeing duplicate key errors, this is a known backend issue. The backend needs to be updated to properly handle measurement updates. Please contact the backend team.` 
+        });
+      } else {
+        const personalInfoMsg = hasPersonalInfoChanges ? 'Personal information updated. ' : '';
+        const measurementMsg = `Updated ${updatedProfiles} measurement profile(s), created ${createdProfiles} new profile(s).`;
+        const message = personalInfoMsg + measurementMsg;
 
-      setSuccessMessage({
-        title: 'Customer Measurements Updated!',
-        description: message
-      });
-      setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 5000);
+        setSuccessMessage({
+          title: 'Customer Updated Successfully!',
+          description: message
+        });
+        setShowSuccess(true);
+        setTimeout(() => setShowSuccess(false), 5000);
 
-      // Reset form and close modal
-      setCustomerForm({
-        name: '',
-        mobile: '',
-        email: '',
-        password: '',
-        measurements: {
-          pant: { length: '', waist: '', seatHip: '', thigh: '', knee: '', bottom: '', flyLength: '' },
-          shirt: { length: '', chest: '', waist: '', shoulder: '', sleeveLength: '', armhole: '', collar: '' },
-          coat: { length: '', chest: '', waist: '', shoulder: '', sleeveLength: '', armhole: '' },
-          kurta: { length: '', chest: '', waist: '', shoulder: '', sleeveLength: '', armhole: '' },
-          dhoti: { length: '', waist: '', hip: '', sideLength: '', foldLength: '' },
-          custom: ''
-        },
-        photo: null
-      });
-      setPhotoPreview(null);
-      setErrors({});
-      setEditingCustomer(null);
-      setMeasurementProfiles([]);
-      setShowEditModal(false);
+        // Reset form and close modal
+        setCustomerForm({
+          name: '',
+          mobile: '',
+          email: '',
+          password: '',
+          measurements: {
+            pant: { length: '', waist: '', seatHip: '', thigh: '', knee: '', bottom: '', flyLength: '' },
+            shirt: { length: '', chest: '', waist: '', shoulder: '', sleeveLength: '', armhole: '', collar: '' },
+            coat: { length: '', chest: '', waist: '', shoulder: '', sleeveLength: '', armhole: '' },
+            kurta: { length: '', chest: '', waist: '', shoulder: '', sleeveLength: '', armhole: '' },
+            dhoti: { length: '', waist: '', hip: '', sideLength: '', foldLength: '' },
+            custom: ''
+          },
+          photo: null
+        });
+        setPhotoPreview(null);
+        setErrors({});
+        setEditingCustomer(null);
+        setMeasurementProfiles([]);
+        setShowEditModal(false);
+      }
     } catch (error) {
       console.error('Error updating customer measurements:', error);
       setErrors({ api: error.message || 'Failed to update customer measurements' });
