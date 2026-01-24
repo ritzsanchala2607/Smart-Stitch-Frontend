@@ -690,131 +690,143 @@ const Ratings = () => {
             {/* Worker Ratings Tab */}
             {activeTab === 'workers' && (
               <div className="space-y-6">
-                {/* Top 5 Workers */}
-                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-                  <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
-                    <Award className="w-5 h-5 text-orange-500" />
-                    Top 5 Workers by Rating
-                  </h2>
-                  <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                    {workerRatings.slice(0, 5).map((worker, index) => (
-                      <div key={worker.id} className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                        <div className="relative inline-block mb-3">
-                          <img
-                            src={worker.avatar}
-                            alt={worker.name}
-                            className="w-16 h-16 rounded-full mx-auto"
-                          />
-                          {index === 0 && (
-                            <div className="absolute -top-2 -right-2 bg-yellow-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">
-                              1
-                            </div>
-                          )}
-                        </div>
-                        <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">{worker.name}</h3>
-                        <div className="flex items-center justify-center gap-1 mt-2">
-                          <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                          <span className="font-bold text-lg text-gray-900 dark:text-gray-100">{worker.avgRating}</span>
-                        </div>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{worker.feedbackCount} reviews</p>
-                      </div>
-                    ))}
+                {loading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader className="w-8 h-8 text-orange-500 animate-spin" />
+                    <span className="ml-3 text-gray-600 dark:text-gray-400">Loading worker ratings...</span>
                   </div>
-                </div>
-
-                {/* All Workers List */}
-                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
-                  <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-                    <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Worker Performance</h2>
-                  </div>
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead className="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
-                        <tr>
-                          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">Worker</th>
-                          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">Specialization</th>
-                          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">Avg Rating</th>
-                          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">Reviews</th>
-                          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">Performance</th>
-                          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">Status</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                        {workerRatings.map(worker => (
-                          <tr key={worker.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                            <td className="px-6 py-4">
-                              <div className="flex items-center gap-3">
-                                <img
-                                  src={worker.avatar}
-                                  alt={worker.name}
-                                  className="w-10 h-10 rounded-full"
-                                />
-                                <span className="font-medium text-gray-900 dark:text-gray-100">{worker.name}</span>
+                ) : workerRatings.length > 0 ? (
+                  <>
+                    {/* Top 5 Workers */}
+                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                      <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
+                        <Award className="w-5 h-5 text-orange-500" />
+                        Top 5 Workers by Rating
+                      </h2>
+                      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                        {workerRatings
+                          .filter(w => w.totalRatings > 0)
+                          .sort((a, b) => b.averageRating - a.averageRating)
+                          .slice(0, 5)
+                          .map((worker, index) => (
+                          <div key={worker.workerId} className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                            <div className="relative inline-block mb-3">
+                              <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-2xl mx-auto">
+                                {worker.workerName?.charAt(0).toUpperCase() || 'W'}
                               </div>
-                            </td>
-                            <td className="px-6 py-4 text-gray-600 dark:text-gray-400">{worker.specialization}</td>
-                            <td className="px-6 py-4">
-                              <div className="flex items-center gap-1">
-                                <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                                <span className="font-semibold text-gray-900 dark:text-gray-100">{worker.avgRating}</span>
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 text-gray-600 dark:text-gray-400">{worker.feedbackCount}</td>
-                            <td className="px-6 py-4">
-                              <div className="flex items-center gap-2">
-                                <div className="w-24 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                                  <div
-                                    className={`h-full rounded-full ${
-                                      worker.performance >= 90 ? 'bg-green-500' :
-                                      worker.performance >= 70 ? 'bg-blue-500' :
-                                      worker.performance >= 50 ? 'bg-yellow-500' :
-                                      'bg-red-500'
-                                    }`}
-                                    style={{ width: `${worker.performance}%` }}
-                                  />
+                              {index === 0 && (
+                                <div className="absolute -top-2 -right-2 bg-yellow-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">
+                                  1
                                 </div>
-                                <span className="text-sm text-gray-600 dark:text-gray-400">{worker.performance}%</span>
-                              </div>
-                            </td>
-                            <td className="px-6 py-4">
-                              <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                                worker.avgRating >= 4.5 ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' :
-                                worker.avgRating >= 3.5 ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' :
-                                worker.avgRating >= 2.5 ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400' :
-                                'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
-                              }`}>
-                                {worker.avgRating >= 4.5 ? 'Excellent' :
-                                 worker.avgRating >= 3.5 ? 'Good' :
-                                 worker.avgRating >= 2.5 ? 'Average' :
-                                 'Needs Improvement'}
-                              </span>
-                            </td>
-                          </tr>
+                              )}
+                            </div>
+                            <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">{worker.workerName}</h3>
+                            <div className="flex items-center justify-center gap-1 mt-2">
+                              <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                              <span className="font-bold text-lg text-gray-900 dark:text-gray-100">{worker.averageRating.toFixed(1)}</span>
+                            </div>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{worker.totalRatings} reviews</p>
+                          </div>
                         ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-
-                {/* Low Performance Warning */}
-                {workerRatings.filter(w => w.avgRating < 3.5).length > 0 && (
-                  <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-lg p-6">
-                    <div className="flex items-start gap-3">
-                      <AlertCircle className="w-6 h-6 text-red-600 dark:text-red-400 flex-shrink-0 mt-1" />
-                      <div>
-                        <h3 className="font-semibold text-red-900 dark:text-red-300 mb-2">Low Performance Alert</h3>
-                        <p className="text-red-700 dark:text-red-400 text-sm mb-3">
-                          The following workers have ratings below 3.5 and may need additional training or support:
-                        </p>
-                        <ul className="space-y-1">
-                          {workerRatings.filter(w => w.avgRating < 3.5).map(worker => (
-                            <li key={worker.id} className="text-red-700 dark:text-red-400 text-sm">
-                              • {worker.name} - {worker.avgRating} stars ({worker.feedbackCount} reviews)
-                            </li>
-                          ))}
-                        </ul>
                       </div>
                     </div>
+
+                    {/* All Workers List */}
+                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+                      <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+                        <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Worker Performance</h2>
+                      </div>
+                      <div className="overflow-x-auto">
+                        <table className="w-full">
+                          <thead className="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
+                            <tr>
+                              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">Worker</th>
+                              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">Avg Rating</th>
+                              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">Total Reviews</th>
+                              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">Status</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                            {workerRatings
+                              .sort((a, b) => b.averageRating - a.averageRating)
+                              .map(worker => (
+                              <tr key={worker.workerId} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                                <td className="px-6 py-4">
+                                  <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
+                                      {worker.workerName?.charAt(0).toUpperCase() || 'W'}
+                                    </div>
+                                    <span className="font-medium text-gray-900 dark:text-gray-100">{worker.workerName}</span>
+                                  </div>
+                                </td>
+                                <td className="px-6 py-4">
+                                  <div className="flex items-center gap-1">
+                                    <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                                    <span className="font-semibold text-gray-900 dark:text-gray-100">
+                                      {worker.averageRating > 0 ? worker.averageRating.toFixed(1) : 'N/A'}
+                                    </span>
+                                  </div>
+                                </td>
+                                <td className="px-6 py-4 text-gray-600 dark:text-gray-400">{worker.totalRatings}</td>
+                                <td className="px-6 py-4">
+                                  {worker.totalRatings > 0 ? (
+                                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                                      worker.averageRating >= 4.5 ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' :
+                                      worker.averageRating >= 3.5 ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' :
+                                      worker.averageRating >= 2.5 ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400' :
+                                      'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
+                                    }`}>
+                                      {worker.averageRating >= 4.5 ? 'Excellent' :
+                                       worker.averageRating >= 3.5 ? 'Good' :
+                                       worker.averageRating >= 2.5 ? 'Average' :
+                                       'Needs Improvement'}
+                                    </span>
+                                  ) : (
+                                    <span className="px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-gray-300">
+                                      No Ratings Yet
+                                    </span>
+                                  )}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    {/* Low Performance Warning */}
+                    {workerRatings.filter(w => w.totalRatings > 0 && w.averageRating < 3.5).length > 0 && (
+                      <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-lg p-6">
+                        <div className="flex items-start gap-3">
+                          <AlertCircle className="w-6 h-6 text-red-600 dark:text-red-400 flex-shrink-0 mt-1" />
+                          <div>
+                            <h3 className="font-semibold text-red-900 dark:text-red-300 mb-2">Low Performance Alert</h3>
+                            <p className="text-red-700 dark:text-red-400 text-sm mb-3">
+                              The following workers have ratings below 3.5 and may need additional training or support:
+                            </p>
+                            <ul className="space-y-1">
+                              {workerRatings.filter(w => w.totalRatings > 0 && w.averageRating < 3.5).map(worker => (
+                                <li key={worker.workerId} className="text-red-700 dark:text-red-400 text-sm">
+                                  • {worker.workerName} - {worker.averageRating.toFixed(1)} stars ({worker.totalRatings} reviews)
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-12 text-center">
+                    <div className="w-20 h-20 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Users className="w-10 h-10 text-gray-400" />
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+                      No Workers Found
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-400">
+                      Add workers to your shop to see their ratings here.
+                    </p>
                   </div>
                 )}
               </div>
