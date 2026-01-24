@@ -6,7 +6,7 @@ import { UserPlus, X, Upload, CheckCircle, Search, Eye, EyeOff, AlertCircle } fr
 import { useState, useEffect } from 'react';
 import { validateCustomerForm } from '../../utils/validation';
 import CustomerCard from '../../components/common/CustomerCard';
-import { customerAPI } from '../../services/api';
+import { customerAPI, orderAPI } from '../../services/api';
 import MeasurementInputs from '../../components/common/MeasurementInputs';
 
 const Customers = () => {
@@ -75,85 +75,112 @@ const Customers = () => {
     }
 
     try {
+      // Fetch customers
       const result = await customerAPI.getCustomers(token);
       
-      if (result.success) {
-        console.log('Customers fetched:', result.data);
-        
-        // Map API response to component format
-        const mappedCustomers = (result.data || []).map(customer => {
-          // Extract userId from the nested user object
-          const userId = customer.user?.userId || customer.userId;
-          
-          console.log('Mapping customer:', {
-            customerId: customer.customerId,
-            userId: userId,
-            userObject: customer.user
-          });
-          
-          return {
-            id: customer.customerId || customer.id,
-            userId: userId, // Extract from user.userId
-            name: customer.user?.name || customer.name,
-            email: customer.user?.email || customer.email,
-            phone: customer.user?.contactNumber || customer.phone,
-            address: '',
-            joinDate: customer.createdAt ? new Date(customer.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to fetch customers');
+      }
+
+      console.log('Customers fetched:', result.data);
+
+      // Fetch all orders to calculate customer stats
+      const ordersResult = await orderAPI.getOrders(token);
+      const orders = ordersResult.success ? (ordersResult.data || []) : [];
+      console.log('Orders fetched for stats:', orders);
+
+      // Calculate stats for each customer
+      const customerStats = {};
+      orders.forEach(order => {
+        const customerId = order.customer?.customerId || order.customerId;
+        if (!customerId) return;
+
+        if (!customerStats[customerId]) {
+          customerStats[customerId] = {
             totalOrders: 0,
-            totalSpent: 0,
-            measurements: {
-              pant: {
-                length: customer.measurements?.pantLength || '',
-                waist: customer.measurements?.pantWaist || '',
-                seatHip: customer.measurements?.seatHip || '',
-                thigh: customer.measurements?.thigh || '',
-                knee: customer.measurements?.knee || '',
-                bottom: customer.measurements?.bottom || '',
-                flyLength: customer.measurements?.flyLength || ''
-              },
-              shirt: {
-                length: customer.measurements?.shirtLength || '',
-                chest: customer.measurements?.chest || '',
-                waist: customer.measurements?.shirtWaist || '',
-                shoulder: customer.measurements?.shoulder || '',
-                sleeveLength: customer.measurements?.sleeveLength || '',
-                armhole: customer.measurements?.armhole || '',
-                collar: customer.measurements?.collar || ''
-              },
-              coat: {
-                length: customer.measurements?.coatLength || '',
-                chest: customer.measurements?.coatChest || '',
-                waist: customer.measurements?.coatWaist || '',
-                shoulder: customer.measurements?.coatShoulder || '',
-                sleeveLength: customer.measurements?.coatSleeveLength || '',
-                armhole: customer.measurements?.coatArmhole || ''
-              },
-              kurta: {
-                length: customer.measurements?.kurtaLength || '',
-                chest: customer.measurements?.kurtaChest || '',
-                waist: customer.measurements?.kurtaWaist || '',
-                shoulder: customer.measurements?.kurtaShoulder || '',
-                sleeveLength: customer.measurements?.kurtaSleeveLength || '',
-                armhole: customer.measurements?.kurtaArmhole || ''
-              },
-              dhoti: {
-                length: customer.measurements?.dhotiLength || '',
-                waist: customer.measurements?.dhotiWaist || '',
-                hip: customer.measurements?.dhotiHip || '',
-                sideLength: customer.measurements?.sideLength || '',
-                foldLength: customer.measurements?.foldLength || ''
-              },
-              custom: customer.measurements?.customMeasurements || ''
-            },
-            avatar: customer.user?.profilePicture || `https://i.pravatar.cc/150?img=${customer.customerId || Math.floor(Math.random() * 70)}`
+            totalSpent: 0
           };
+        }
+
+        customerStats[customerId].totalOrders++;
+        customerStats[customerId].totalSpent += order.totalPrice || 0;
+      });
+
+      console.log('Customer stats calculated:', customerStats);
+      
+      // Map API response to component format
+      const mappedCustomers = (result.data || []).map(customer => {
+        // Extract userId from the nested user object
+        const userId = customer.user?.userId || customer.userId;
+        const customerId = customer.customerId || customer.id;
+        const stats = customerStats[customerId] || { totalOrders: 0, totalSpent: 0 };
+        
+        console.log('Mapping customer:', {
+          customerId: customerId,
+          userId: userId,
+          stats: stats,
+          userObject: customer.user
         });
         
-        setCustomers(mappedCustomers);
-      } else {
-        console.error('Failed to fetch customers:', result.error);
-        setFetchError(result.error || 'Failed to load customers');
-      }
+        return {
+          id: customerId,
+          userId: userId, // Extract from user.userId
+          name: customer.user?.name || customer.name,
+          email: customer.user?.email || customer.email,
+          phone: customer.user?.contactNumber || customer.phone,
+          address: '',
+          joinDate: customer.createdAt ? new Date(customer.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+          totalOrders: stats.totalOrders,
+          totalSpent: stats.totalSpent,
+          measurements: {
+            pant: {
+              length: customer.measurements?.pantLength || '',
+              waist: customer.measurements?.pantWaist || '',
+              seatHip: customer.measurements?.seatHip || '',
+              thigh: customer.measurements?.thigh || '',
+              knee: customer.measurements?.knee || '',
+              bottom: customer.measurements?.bottom || '',
+              flyLength: customer.measurements?.flyLength || ''
+            },
+            shirt: {
+              length: customer.measurements?.shirtLength || '',
+              chest: customer.measurements?.chest || '',
+              waist: customer.measurements?.shirtWaist || '',
+              shoulder: customer.measurements?.shoulder || '',
+              sleeveLength: customer.measurements?.sleeveLength || '',
+              armhole: customer.measurements?.armhole || '',
+              collar: customer.measurements?.collar || ''
+            },
+            coat: {
+              length: customer.measurements?.coatLength || '',
+              chest: customer.measurements?.coatChest || '',
+              waist: customer.measurements?.coatWaist || '',
+              shoulder: customer.measurements?.coatShoulder || '',
+              sleeveLength: customer.measurements?.coatSleeveLength || '',
+              armhole: customer.measurements?.coatArmhole || ''
+            },
+            kurta: {
+              length: customer.measurements?.kurtaLength || '',
+              chest: customer.measurements?.kurtaChest || '',
+              waist: customer.measurements?.kurtaWaist || '',
+              shoulder: customer.measurements?.kurtaShoulder || '',
+              sleeveLength: customer.measurements?.kurtaSleeveLength || '',
+              armhole: customer.measurements?.kurtaArmhole || ''
+            },
+            dhoti: {
+              length: customer.measurements?.dhotiLength || '',
+              waist: customer.measurements?.dhotiWaist || '',
+              hip: customer.measurements?.dhotiHip || '',
+              sideLength: customer.measurements?.sideLength || '',
+              foldLength: customer.measurements?.foldLength || ''
+            },
+            custom: customer.measurements?.customMeasurements || ''
+          },
+          avatar: customer.user?.profilePicture || `https://i.pravatar.cc/150?img=${customerId || Math.floor(Math.random() * 70)}`
+        };
+      });
+        
+      setCustomers(mappedCustomers);
     } catch (error) {
       console.error('Error fetching customers:', error);
       setFetchError('Failed to load customers. Please try again.');
