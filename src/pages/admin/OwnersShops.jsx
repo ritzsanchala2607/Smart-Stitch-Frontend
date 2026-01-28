@@ -3,6 +3,7 @@ import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
 import { motion, AnimatePresence } from 'framer-motion';
 import usePageTitle from '../../hooks/usePageTitle';
+import { API_URL } from '../../config';
 import {
   Store,
   Users,
@@ -156,7 +157,7 @@ const OwnersShops = () => {
         headers['Authorization'] = `Bearer ${token}`;
       }
 
-      const response = await fetch('http://localhost:8080/api/owners/create', {
+      const response = await fetch(`${API_URL}/api/owners/create`, {
         method: 'POST',
         headers: headers,
         body: JSON.stringify(payload)
