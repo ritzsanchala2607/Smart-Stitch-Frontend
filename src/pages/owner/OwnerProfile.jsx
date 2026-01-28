@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import usePageTitle from '../../hooks/usePageTitle';
+import { API_URL } from '../../config';
 import { 
   User, 
   Mail, 
@@ -69,10 +70,10 @@ const OwnerProfile = () => {
       }
 
       try {
-        console.log('Fetching profile from: http://localhost:8080/api/owners/my-shop');
+        console.log('Fetching profile from:', `${API_URL}/api/owners/my-shop`);
         console.log('Authorization header:', `Bearer ${token.substring(0, 20)}...`);
         
-        const response = await fetch(`http://localhost:8080/api/owners/my-shop`, {
+        const response = await fetch(`${API_URL}/api/owners/my-shop`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -271,7 +272,7 @@ const OwnerProfile = () => {
 
       console.log('Updating profile with payload:', payload);
 
-      const response = await fetch(`http://localhost:8080/api/owners/my-shop`, {
+      const response = await fetch(`${API_URL}/api/owners/my-shop`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

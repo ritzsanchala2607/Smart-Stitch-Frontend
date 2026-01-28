@@ -138,15 +138,11 @@ const handleGoogleSignUp = async () => {
     // sessionStorage is used so the value survives redirect but clears when the tab closes.
     sessionStorage.setItem('pre_oauth_role', 'Customer');
 
-    // Determine backend origin: use API_URL if provided, otherwise fallback to localhost:8080
-    const backendOrigin = (typeof API_URL !== 'undefined' && API_URL) ? API_URL : 'http://localhost:8080';
-
     // Kick off the OAuth2 flow on the backend which will redirect to Google.
-    // Option A: simple redirect (backend reads nothing from frontend)
-    const authUrl = `${backendOrigin}/oauth2/authorization/google`;
+    const authUrl = `${API_URL}/oauth2/authorization/google`;
 
     // Option B (uncomment if you want to send role as a query param and handle it on backend):
-    // const authUrl = `${backendOrigin}/login/oauth2/authorization/google?role=${encodeURIComponent(formData.role)}`;
+    // const authUrl = `${API_URL}/login/oauth2/authorization/google?role=${encodeURIComponent(formData.role)}`;
 
     // Navigate to backend endpoint to begin OAuth flow
     window.location.href = authUrl;

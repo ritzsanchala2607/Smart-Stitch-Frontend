@@ -127,9 +127,7 @@ function Login() {
     sessionStorage.setItem('pre_oauth_role', 'customer');
 
     // Kick off the OAuth2 flow on the backend which will redirect to Google.
-    // Replace API_URL if you have one; otherwise use hard-coded backend origin.
-    const backendOrigin = (typeof API_URL !== 'undefined' && API_URL) ? API_URL : 'http://localhost:8080';
-    const authUrl = `${backendOrigin}/oauth2/authorization/google`;
+    const authUrl = `${API_URL}/oauth2/authorization/google`;
 
     // Navigate the whole page to the backend endpoint (Spring Boot will redirect to Google).
     window.location.href = authUrl;
