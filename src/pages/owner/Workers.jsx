@@ -56,6 +56,7 @@ const Workers = () => {
   const [currentRate, setCurrentRate] = useState('');
   const [errors, setErrors] = useState({});
   const [photoPreview, setPhotoPreview] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false); // Prevent double-click submissions
 
   // Fetch workers on component mount
   useEffect(() => {
@@ -293,6 +294,12 @@ const Workers = () => {
   };
 
   const handleAddWorker = async () => {
+    // Prevent double submission
+    if (isSubmitting) {
+      console.log('Submission already in progress, ignoring duplicate click');
+      return;
+    }
+
     const validationErrors = validateWorkerForm(workerForm);
     
     if (Object.keys(validationErrors).length > 0) {
@@ -329,6 +336,9 @@ const Workers = () => {
       setErrors({ api: 'User not authenticated. Please login again.' });
       return;
     }
+
+    // Set submitting state to disable button
+    setIsSubmitting(true);
 
     try {
       // Prepare API payload
@@ -394,6 +404,9 @@ const Workers = () => {
     } catch (error) {
       console.error('Error creating worker:', error);
       setErrors({ api: error.message || 'Failed to create worker' });
+    } finally {
+      // Always reset submitting state, even if there's an error
+      setIsSubmitting(false);
     }
   };
 
@@ -1009,12 +1022,27 @@ const Workers = () => {
                     Cancel
                   </motion.button>
                   <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
+                    whileHover={{ scale: isSubmitting ? 1 : 1.02 }}
+                    whileTap={{ scale: isSubmitting ? 1 : 0.98 }}
                     onClick={handleAddWorker}
-                    className="flex-1 py-3 rounded-lg font-semibold text-white bg-orange-500 hover:bg-orange-600 transition-colors"
+                    disabled={isSubmitting}
+                    className={`flex-1 py-3 rounded-lg font-semibold text-white transition-colors flex items-center justify-center gap-2 ${
+                      isSubmitting 
+                        ? 'bg-orange-400 cursor-not-allowed opacity-70' 
+                        : 'bg-orange-500 hover:bg-orange-600'
+                    }`}
                   >
-                    Add Worker
+                    {isSubmitting ? (
+                      <>
+                        <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Adding...
+                      </>
+                    ) : (
+                      'Add Worker'
+                    )}
                   </motion.button>
                 </div>
               </div>
