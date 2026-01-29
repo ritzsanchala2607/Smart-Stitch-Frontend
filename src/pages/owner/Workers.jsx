@@ -29,6 +29,10 @@ const Workers = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [workerToDelete, setWorkerToDelete] = useState(null);
   const [selectedWorker, setSelectedWorker] = useState(null);
   const [editingWorker, setEditingWorker] = useState(null);
   const [assignedOrders, setAssignedOrders] = useState([]);
@@ -482,43 +486,59 @@ const Workers = () => {
     setShowEditModal(false);
   };
 
-  const handleDeleteWorker = async (workerId) => {
-    if (window.confirm('Are you sure you want to delete this worker?')) {
-      // Get token
-      let token = localStorage.getItem('token');
-      if (!token) {
-        const userDataString = localStorage.getItem('user');
-        if (userDataString) {
-          try {
-            const userData = JSON.parse(userDataString);
-            token = userData.jwt || userData.token;
-          } catch (e) {
-            console.error('Error parsing user data:', e);
-          }
+  const handleDeleteWorker = (workerId) => {
+    // Show custom confirmation modal instead of window.confirm
+    setWorkerToDelete(workerId);
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDeleteWorker = async () => {
+    if (!workerToDelete) return;
+
+    // Get token
+    let token = localStorage.getItem('token');
+    if (!token) {
+      const userDataString = localStorage.getItem('user');
+      if (userDataString) {
+        try {
+          const userData = JSON.parse(userDataString);
+          token = userData.jwt || userData.token;
+        } catch (e) {
+          console.error('Error parsing user data:', e);
         }
       }
+    }
 
-      if (!token) {
-        alert('Authentication required. Please login again.');
-        return;
-      }
+    if (!token) {
+      setErrorMessage('Authentication required. Please login again.');
+      setShowDeleteConfirm(false);
+      setShowErrorModal(true);
+      return;
+    }
 
-      try {
-        // Call API to delete worker from database
-        const result = await workerAPI.deleteWorker(workerId, token);
-        
-        if (result.success) {
-          // Remove from local state only after successful API call
-          setWorkers(prev => prev.filter(w => w.id !== workerId));
-          setShowSuccess(true);
-          setTimeout(() => setShowSuccess(false), 3000);
-        } else {
-          alert(`Failed to delete worker: ${result.error}`);
-        }
-      } catch (error) {
-        console.error('Error deleting worker:', error);
-        alert('Failed to delete worker. Please try again.');
+    try {
+      // Call API to delete worker from database
+      const result = await workerAPI.deleteWorker(workerToDelete, token);
+      
+      if (result.success) {
+        // Remove from local state only after successful API call
+        setWorkers(prev => prev.filter(w => w.id !== workerToDelete));
+        setShowDeleteConfirm(false);
+        setWorkerToDelete(null);
+        setShowSuccess(true);
+        setTimeout(() => setShowSuccess(false), 3000);
+      } else {
+        setErrorMessage(result.error || 'Failed to delete worker');
+        setShowDeleteConfirm(false);
+        setShowErrorModal(true);
       }
+    } catch (error) {
+      console.error('Error deleting worker:', error);
+      setErrorMessage('Failed to delete worker. Please try again.');
+      setShowDeleteConfirm(false);
+      setShowErrorModal(true);
+    } finally {
+      setWorkerToDelete(null);
     }
   };
 
@@ -1681,6 +1701,104 @@ const Workers = () => {
                   </button>
                 </div>
               </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Delete Confirmation Modal */}
+      <AnimatePresence>
+        {showDeleteConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+            onClick={() => {
+              setShowDeleteConfirm(false);
+              setWorkerToDelete(null);
+            }}
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full p-6"
+            >
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
+                  <X className="w-6 h-6 text-red-600 dark:text-red-400" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">Delete Worker</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">This action cannot be undone</p>
+                </div>
+              </div>
+
+              <p className="text-gray-700 dark:text-gray-300 mb-6">
+                Are you sure you want to delete this worker? All associated data will be permanently removed.
+              </p>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setShowDeleteConfirm(false);
+                    setWorkerToDelete(null);
+                  }}
+                  className="flex-1 px-6 py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg transition-colors font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDeleteWorker}
+                  className="flex-1 px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors font-medium"
+                >
+                  Delete
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Error Modal */}
+      <AnimatePresence>
+        {showErrorModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+            onClick={() => setShowErrorModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full p-6"
+            >
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
+                  <X className="w-6 h-6 text-red-600 dark:text-red-400" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">Error</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Something went wrong</p>
+                </div>
+              </div>
+
+              <p className="text-gray-700 dark:text-gray-300 mb-6">
+                {errorMessage}
+              </p>
+
+              <button
+                onClick={() => setShowErrorModal(false)}
+                className="w-full px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors font-medium"
+              >
+                Close
+              </button>
             </motion.div>
           </motion.div>
         )}
