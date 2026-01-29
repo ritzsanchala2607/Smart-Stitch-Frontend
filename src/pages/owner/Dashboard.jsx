@@ -36,19 +36,13 @@ const OwnerDashboard = () => {
   const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
   const weeklyOrders = orders.filter(o => o.orderDate >= weekAgo);
 
-  // Fetch daily and weekly orders count on mount
+  // Fetch all dashboard data in parallel on mount
   useEffect(() => {
-    fetchDailyOrdersCount();
-    fetchWeeklyOrdersCount();
-    fetchPendingOrdersCount();
-    fetchWeeklyChartData();
-    fetchRecentOrders();
+    loadDashboardData();
   }, []);
 
-  const fetchDailyOrdersCount = async () => {
-    setIsLoadingDailyOrders(true);
-
-    // Get token
+  const loadDashboardData = async () => {
+    // Get token once
     let token = localStorage.getItem('token');
     if (!token) {
       const userDataString = localStorage.getItem('user');
@@ -63,171 +57,81 @@ const OwnerDashboard = () => {
     }
 
     if (!token) {
-      console.error('No token found for fetching daily orders');
+      console.error('No token found for dashboard');
+      // Set all loading states to false
       setIsLoadingDailyOrders(false);
+      setIsLoadingWeeklyOrders(false);
+      setIsLoadingPendingOrders(false);
+      setIsLoadingWeeklyChart(false);
+      setIsLoadingRecentOrders(false);
       return;
     }
 
-    try {
-      const today = new Date().toISOString().split('T')[0];
-      const result = await orderAPI.getDailyOrders(today, token);
+    // Set all loading states to true
+    setIsLoadingDailyOrders(true);
+    setIsLoadingWeeklyOrders(true);
+    setIsLoadingPendingOrders(true);
+    setIsLoadingWeeklyChart(true);
+    setIsLoadingRecentOrders(true);
 
-      if (result.success) {
-        const responseData = result.data.data || result.data;
+    // Load all data in parallel
+    const today = new Date().toISOString().split('T')[0];
+    
+    try {
+      const [dailyResult, weeklyResult, allOrdersResult] = await Promise.all([
+        orderAPI.getDailyOrders(today, token).catch(err => ({ success: false, error: err })),
+        orderAPI.getWeeklyOrders(token).catch(err => ({ success: false, error: err })),
+        orderAPI.getOrders(token).catch(err => ({ success: false, error: err }))
+      ]);
+
+      // Process daily orders
+      if (dailyResult.success) {
+        const responseData = dailyResult.data.data || dailyResult.data;
         setDailyOrdersCount(responseData.totalOrders || 0);
       } else {
-        console.error('Failed to fetch daily orders count:', result.error);
-        // Fallback to dummy data count
+        console.error('Failed to fetch daily orders:', dailyResult.error);
         setDailyOrdersCount(todayOrders.length);
       }
-    } catch (error) {
-      console.error('Error fetching daily orders count:', error);
-      // Fallback to dummy data count
-      setDailyOrdersCount(todayOrders.length);
-    } finally {
       setIsLoadingDailyOrders(false);
-    }
-  };
 
-  const fetchWeeklyOrdersCount = async () => {
-    setIsLoadingWeeklyOrders(true);
-
-    // Get token
-    let token = localStorage.getItem('token');
-    if (!token) {
-      const userDataString = localStorage.getItem('user');
-      if (userDataString) {
-        try {
-          const userData = JSON.parse(userDataString);
-          token = userData.jwt || userData.token;
-        } catch (e) {
-          console.error('Error parsing user data:', e);
-        }
-      }
-    }
-
-    if (!token) {
-      console.error('No token found for fetching weekly orders');
-      setIsLoadingWeeklyOrders(false);
-      return;
-    }
-
-    try {
-      const result = await orderAPI.getWeeklyOrders(token);
-
-      if (result.success) {
-        const responseData = result.data.data || result.data;
+      // Process weekly orders
+      if (weeklyResult.success) {
+        const responseData = weeklyResult.data.data || weeklyResult.data;
         setWeeklyOrdersCount(responseData.totalOrders || 0);
       } else {
-        console.error('Failed to fetch weekly orders count:', result.error);
-        // Fallback to dummy data count
+        console.error('Failed to fetch weekly orders:', weeklyResult.error);
         setWeeklyOrdersCount(weeklyOrders.length);
       }
-    } catch (error) {
-      console.error('Error fetching weekly orders count:', error);
-      // Fallback to dummy data count
-      setWeeklyOrdersCount(weeklyOrders.length);
-    } finally {
       setIsLoadingWeeklyOrders(false);
-    }
-  };
 
-  const fetchPendingOrdersCount = async () => {
-    setIsLoadingPendingOrders(true);
+      // Process all orders for pending count, chart, and recent orders
+      if (allOrdersResult.success) {
+        const allOrders = allOrdersResult.data || [];
 
-    // Get token
-    let token = localStorage.getItem('token');
-    if (!token) {
-      const userDataString = localStorage.getItem('user');
-      if (userDataString) {
-        try {
-          const userData = JSON.parse(userDataString);
-          token = userData.jwt || userData.token;
-        } catch (e) {
-          console.error('Error parsing user data:', e);
-        }
-      }
-    }
-
-    if (!token) {
-      console.error('No token found for fetching pending orders');
-      setIsLoadingPendingOrders(false);
-      return;
-    }
-
-    try {
-      const result = await orderAPI.getOrders(token);
-
-      if (result.success) {
-        // Filter pending orders (not ready or delivered)
-        const allOrders = result.data || [];
+        // Calculate pending orders
         const pending = allOrders.filter(order => {
           const status = (order.status || '').toLowerCase();
           return status !== 'ready' && status !== 'delivered' && status !== 'completed';
         });
         setPendingOrdersCount(pending.length);
-      } else {
-        console.error('Failed to fetch pending orders count:', result.error);
-        // Fallback to dummy data count
-        setPendingOrdersCount(pendingOrders.length);
-      }
-    } catch (error) {
-      console.error('Error fetching pending orders count:', error);
-      // Fallback to dummy data count
-      setPendingOrdersCount(pendingOrders.length);
-    } finally {
-      setIsLoadingPendingOrders(false);
-    }
-  };
+        setIsLoadingPendingOrders(false);
 
-  const fetchWeeklyChartData = async () => {
-    setIsLoadingWeeklyChart(true);
-
-    // Get token
-    let token = localStorage.getItem('token');
-    if (!token) {
-      const userDataString = localStorage.getItem('user');
-      if (userDataString) {
-        try {
-          const userData = JSON.parse(userDataString);
-          token = userData.jwt || userData.token;
-        } catch (e) {
-          console.error('Error parsing user data:', e);
-        }
-      }
-    }
-
-    if (!token) {
-      console.error('No token found for fetching weekly chart data');
-      setIsLoadingWeeklyChart(false);
-      return;
-    }
-
-    try {
-      // Fetch orders for the last 7 days
-      const result = await orderAPI.getOrders(token);
-
-      if (result.success) {
-        const allOrders = result.data || [];
-        
-        // Get last 7 days
+        // Calculate weekly chart data
         const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-        const today = new Date();
+        const todayDate = new Date();
         const last7Days = [];
         
         for (let i = 6; i >= 0; i--) {
-          const date = new Date(today);
+          const date = new Date(todayDate);
           date.setDate(date.getDate() - i);
           const dayName = days[date.getDay()];
           const dateStr = date.toISOString().split('T')[0];
           
-          // Count orders for this day
           const dayOrders = allOrders.filter(order => {
             const orderDate = order.createdAt ? new Date(order.createdAt).toISOString().split('T')[0] : null;
             return orderDate === dateStr;
           });
           
-          // Calculate revenue for this day
           const dayRevenue = dayOrders.reduce((sum, order) => sum + (order.totalPrice || 0), 0);
           
           last7Days.push({
@@ -236,77 +140,18 @@ const OwnerDashboard = () => {
             revenue: dayRevenue
           });
         }
-        
         setWeeklyChartData(last7Days);
-      } else {
-        console.error('Failed to fetch weekly chart data:', result.error);
-        // Fallback to dummy data
-        setWeeklyChartData([
-          { day: 'Mon', orders: 12, revenue: 15000 },
-          { day: 'Tue', orders: 15, revenue: 18000 },
-          { day: 'Wed', orders: 18, revenue: 22000 },
-          { day: 'Thu', orders: 14, revenue: 17000 },
-          { day: 'Fri', orders: 20, revenue: 25000 },
-          { day: 'Sat', orders: 17, revenue: 21000 },
-          { day: 'Sun', orders: 22, revenue: 28000 }
-        ]);
-      }
-    } catch (error) {
-      console.error('Error fetching weekly chart data:', error);
-      // Fallback to dummy data
-      setWeeklyChartData([
-        { day: 'Mon', orders: 12, revenue: 15000 },
-        { day: 'Tue', orders: 15, revenue: 18000 },
-        { day: 'Wed', orders: 18, revenue: 22000 },
-        { day: 'Thu', orders: 14, revenue: 17000 },
-        { day: 'Fri', orders: 20, revenue: 25000 },
-        { day: 'Sat', orders: 17, revenue: 21000 },
-        { day: 'Sun', orders: 22, revenue: 28000 }
-      ]);
-    } finally {
-      setIsLoadingWeeklyChart(false);
-    }
-  };
+        setIsLoadingWeeklyChart(false);
 
-  const fetchRecentOrders = async () => {
-    setIsLoadingRecentOrders(true);
-
-    // Get token
-    let token = localStorage.getItem('token');
-    if (!token) {
-      const userDataString = localStorage.getItem('user');
-      if (userDataString) {
-        try {
-          const userData = JSON.parse(userDataString);
-          token = userData.jwt || userData.token;
-        } catch (e) {
-          console.error('Error parsing user data:', e);
-        }
-      }
-    }
-
-    if (!token) {
-      console.error('No token found for fetching recent orders');
-      setIsLoadingRecentOrders(false);
-      return;
-    }
-
-    try {
-      const result = await orderAPI.getOrders(token);
-
-      if (result.success) {
-        const allOrders = result.data || [];
-        
-        // Sort by creation date (most recent first) and take top 5
+        // Get recent orders
         const sortedOrders = allOrders
           .sort((a, b) => {
             const dateA = new Date(a.createdAt || 0);
             const dateB = new Date(b.createdAt || 0);
-            return dateB - dateA; // Descending order
+            return dateB - dateA;
           })
           .slice(0, 5);
         
-        // Map to component format
         const mappedOrders = sortedOrders.map(order => ({
           id: `ORD${String(order.orderId).padStart(3, '0')}`,
           orderId: order.orderId,
@@ -320,18 +165,57 @@ const OwnerDashboard = () => {
         }));
         
         setRecentOrdersData(mappedOrders);
+        setIsLoadingRecentOrders(false);
       } else {
-        console.error('Failed to fetch recent orders:', result.error);
-        // Fallback to dummy data
+        console.error('Failed to fetch orders:', allOrdersResult.error);
+        // Set fallback data
+        setPendingOrdersCount(pendingOrders.length);
+        setIsLoadingPendingOrders(false);
+        
+        setWeeklyChartData([
+          { day: 'Mon', orders: 12, revenue: 15000 },
+          { day: 'Tue', orders: 15, revenue: 18000 },
+          { day: 'Wed', orders: 18, revenue: 22000 },
+          { day: 'Thu', orders: 14, revenue: 17000 },
+          { day: 'Fri', orders: 20, revenue: 25000 },
+          { day: 'Sat', orders: 17, revenue: 21000 },
+          { day: 'Sun', orders: 22, revenue: 28000 }
+        ]);
+        setIsLoadingWeeklyChart(false);
+        
         setRecentOrdersData(orders.slice(0, 5));
+        setIsLoadingRecentOrders(false);
       }
     } catch (error) {
-      console.error('Error fetching recent orders:', error);
-      // Fallback to dummy data
-      setRecentOrdersData(orders.slice(0, 5));
-    } finally {
+      console.error('Error loading dashboard data:', error);
+      // Set all loading states to false
+      setIsLoadingDailyOrders(false);
+      setIsLoadingWeeklyOrders(false);
+      setIsLoadingPendingOrders(false);
+      setIsLoadingWeeklyChart(false);
       setIsLoadingRecentOrders(false);
     }
+  };
+
+  // Remove individual fetch functions - they're now part of loadDashboardData
+  const fetchDailyOrdersCount = async () => {
+    // Deprecated - now handled by loadDashboardData
+  };
+
+  const fetchWeeklyOrdersCount = async () => {
+    // Deprecated - now handled by loadDashboardData
+  };
+
+  const fetchPendingOrdersCount = async () => {
+    // Deprecated - now handled by loadDashboardData
+  };
+
+  const fetchWeeklyChartData = async () => {
+    // Deprecated - now handled by loadDashboardData
+  };
+
+  const fetchRecentOrders = async () => {
+    // Deprecated - now handled by loadDashboardData
   };
   
   // Pending work with urgency

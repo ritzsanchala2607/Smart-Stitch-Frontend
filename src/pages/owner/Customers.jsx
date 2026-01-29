@@ -75,7 +75,7 @@ const Customers = () => {
     }
 
     try {
-      // Fetch customers
+      // Fetch customers first - this is fast
       const result = await customerAPI.getCustomers(token);
       
       if (!result.success) {
@@ -84,54 +84,22 @@ const Customers = () => {
 
       console.log('Customers fetched:', result.data);
 
-      // Fetch all orders to calculate customer stats
-      const ordersResult = await orderAPI.getOrders(token);
-      const orders = ordersResult.success ? (ordersResult.data || []) : [];
-      console.log('Orders fetched for stats:', orders);
-
-      // Calculate stats for each customer
-      const customerStats = {};
-      orders.forEach(order => {
-        const customerId = order.customer?.customerId || order.customerId;
-        if (!customerId) return;
-
-        if (!customerStats[customerId]) {
-          customerStats[customerId] = {
-            totalOrders: 0,
-            totalSpent: 0
-          };
-        }
-
-        customerStats[customerId].totalOrders++;
-        customerStats[customerId].totalSpent += order.totalPrice || 0;
-      });
-
-      console.log('Customer stats calculated:', customerStats);
-      
-      // Map API response to component format
+      // Map customers immediately with default stats (0 orders, $0 spent)
+      // This makes the UI responsive immediately
       const mappedCustomers = (result.data || []).map(customer => {
-        // Extract userId from the nested user object
         const userId = customer.user?.userId || customer.userId;
         const customerId = customer.customerId || customer.id;
-        const stats = customerStats[customerId] || { totalOrders: 0, totalSpent: 0 };
-        
-        console.log('Mapping customer:', {
-          customerId: customerId,
-          userId: userId,
-          stats: stats,
-          userObject: customer.user
-        });
         
         return {
           id: customerId,
-          userId: userId, // Extract from user.userId
+          userId: userId,
           name: customer.user?.name || customer.name,
           email: customer.user?.email || customer.email,
           phone: customer.user?.contactNumber || customer.phone,
           address: '',
           joinDate: customer.createdAt ? new Date(customer.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-          totalOrders: stats.totalOrders,
-          totalSpent: stats.totalSpent,
+          totalOrders: 0, // Default to 0, will update later
+          totalSpent: 0,  // Default to 0, will update later
           measurements: {
             pant: {
               length: customer.measurements?.pantLength || '',
@@ -180,11 +148,53 @@ const Customers = () => {
         };
       });
         
+      // Set customers immediately so UI shows quickly
       setCustomers(mappedCustomers);
+      setIsLoading(false); // Stop loading spinner here!
+
+      // Fetch orders in background to update stats (non-blocking)
+      // This happens after the UI is already showing
+      orderAPI.getOrders(token).then(ordersResult => {
+        if (ordersResult.success) {
+          const orders = ordersResult.data || [];
+          console.log('Orders fetched for stats (background):', orders.length, 'orders');
+
+          // Calculate stats for each customer
+          const customerStats = {};
+          orders.forEach(order => {
+            const customerId = order.customer?.customerId || order.customerId;
+            if (!customerId) return;
+
+            if (!customerStats[customerId]) {
+              customerStats[customerId] = {
+                totalOrders: 0,
+                totalSpent: 0
+              };
+            }
+
+            customerStats[customerId].totalOrders++;
+            customerStats[customerId].totalSpent += order.totalPrice || 0;
+          });
+
+          console.log('Customer stats calculated:', customerStats);
+
+          // Update customers with stats
+          setCustomers(prevCustomers => 
+            prevCustomers.map(customer => ({
+              ...customer,
+              totalOrders: customerStats[customer.id]?.totalOrders || 0,
+              totalSpent: customerStats[customer.id]?.totalSpent || 0
+            }))
+          );
+        }
+      }).catch(error => {
+        console.error('Error fetching order stats (non-critical):', error);
+        // Don't show error to user - stats just stay at 0
+      });
+
     } catch (error) {
       console.error('Error fetching customers:', error);
       setFetchError('Failed to load customers. Please try again.');
-    } finally {
       setIsLoading(false);
     }
   };
@@ -1020,10 +1030,15 @@ const Customers = () => {
       } else {
         console.error('Failed to delete customer:', result.error);
         
-        // Check if it's a "method not supported" error
+        // Check for specific error types
         if (result.error.includes('DELETE') && result.error.includes('not supported')) {
           setErrors({ 
             api: `Backend Error: The DELETE endpoint is not implemented yet.\n\n${result.error}\n\nPlease contact the backend team.` 
+          });
+        } else if (result.error.includes('foreign key constraint') || result.error.includes('measurement_profiles')) {
+          // Foreign key constraint error
+          setErrors({ 
+            api: `Cannot delete customer: This customer has associated measurement profiles.\n\nThis is a backend database issue. The backend needs to implement cascade delete or manually delete related records first.\n\nPlease contact the backend team to fix this issue.\n\nTechnical details: ${result.error}` 
           });
         } else {
           setErrors({ api: result.error });

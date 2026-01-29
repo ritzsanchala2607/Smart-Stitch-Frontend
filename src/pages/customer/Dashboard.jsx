@@ -66,28 +66,38 @@ const Dashboard = () => {
     return 'Customer';
   };
 
-  // Fetch customer statistics
+  // Load all dashboard data in parallel on mount
   useEffect(() => {
-    fetchCustomerStats();
-    fetchActiveOrders();
-    fetchRecentActivities();
+    loadDashboardData();
   }, []);
 
-  const fetchCustomerStats = async () => {
-    setStatsLoading(true);
+  const loadDashboardData = async () => {
     const token = getToken();
     
     if (!token) {
       console.error('No token found');
       setStatsLoading(false);
+      setOrdersLoading(false);
+      setActivitiesLoading(false);
       return;
     }
 
+    // Set all loading states
+    setStatsLoading(true);
+    setOrdersLoading(true);
+    setActivitiesLoading(true);
+
     try {
-      const response = await customerAPI.getCustomerStats(token);
-      
-      if (response.success) {
-        const stats = response.data;
+      // Fetch all data in parallel
+      const [statsResult, ordersResult, activitiesResult] = await Promise.all([
+        customerAPI.getCustomerStats(token).catch(err => ({ success: false, error: err })),
+        customerAPI.getMyOrders(token).catch(err => ({ success: false, error: err })),
+        customerAPI.getRecentActivities(token, 5).catch(err => ({ success: false, error: err }))
+      ]);
+
+      // Process stats
+      if (statsResult.success) {
+        const stats = statsResult.data;
         setCustomerData(prev => ({
           ...prev,
           name: getCustomerName(),
@@ -98,31 +108,13 @@ const Dashboard = () => {
           paymentDue: stats.pendingPayment || 0
         }));
       } else {
-        console.error('Failed to fetch stats:', response.error);
+        console.error('Failed to fetch stats:', statsResult.error);
       }
-    } catch (error) {
-      console.error('Error fetching customer stats:', error);
-    }
-    
-    setStatsLoading(false);
-  };
+      setStatsLoading(false);
 
-  // Fetch active orders
-  const fetchActiveOrders = async () => {
-    setOrdersLoading(true);
-    const token = getToken();
-    
-    if (!token) {
-      console.error('No token found');
-      setOrdersLoading(false);
-      return;
-    }
-
-    try {
-      const response = await customerAPI.getMyOrders(token);
-      
-      if (response.success) {
-        const orders = response.data || [];
+      // Process orders (reuse for multiple purposes)
+      if (ordersResult.success) {
+        const orders = ordersResult.data || [];
         console.log('All orders from API:', orders);
         
         // Calculate category distribution from orders
@@ -131,67 +123,47 @@ const Dashboard = () => {
         // Calculate order trend from orders
         calculateOrderTrend(orders);
         
-        // Don't filter - show all orders including delivered
         // Sort by order ID descending to get most recent orders first
         const sortedOrders = [...orders].sort((a, b) => b.orderId - a.orderId);
 
         // Transform orders to match component structure
         const transformedOrders = sortedOrders.map(order => {
-          // Get all items from taskStatuses
           const taskStatuses = order.taskStatuses || [];
           const itemNames = taskStatuses.map(ts => {
             const taskType = ts.split('_')[0];
             return taskType.charAt(0) + taskType.slice(1).toLowerCase();
           }).join(', ') || 'Order Items';
           
-          // Get order status from orderStatus field
           const orderStatus = (order.orderStatus || 'PENDING').toUpperCase();
           console.log(`Order ${order.orderId} orderStatus: ${orderStatus}`);
           
-          // Define stage progression based on order status
           const stages = [
-            { 
-              name: 'Ordered', 
-              completed: true
-            },
+            { name: 'Ordered', completed: true },
             { 
               name: 'Cutting', 
-              completed: orderStatus.includes('CUTTING') || 
-                         orderStatus.includes('STITCHING') || 
-                         orderStatus.includes('IRONING') || 
-                         orderStatus === 'READY' || 
-                         orderStatus === 'COMPLETED' ||
-                         orderStatus === 'DELIVERED'
+              completed: orderStatus.includes('CUTTING') || orderStatus.includes('STITCHING') || 
+                         orderStatus.includes('IRONING') || orderStatus === 'READY' || 
+                         orderStatus === 'COMPLETED' || orderStatus === 'DELIVERED'
             },
             { 
               name: 'Stitching', 
-              completed: orderStatus.includes('STITCHING') || 
-                         orderStatus.includes('IRONING') || 
-                         orderStatus === 'READY' || 
-                         orderStatus === 'COMPLETED' ||
-                         orderStatus === 'DELIVERED'
+              completed: orderStatus.includes('STITCHING') || orderStatus.includes('IRONING') || 
+                         orderStatus === 'READY' || orderStatus === 'COMPLETED' || orderStatus === 'DELIVERED'
             },
             { 
               name: 'Ironing', 
-              completed: orderStatus.includes('IRONING') || 
-                         orderStatus === 'READY' || 
-                         orderStatus === 'COMPLETED' ||
-                         orderStatus === 'DELIVERED'
+              completed: orderStatus.includes('IRONING') || orderStatus === 'READY' || 
+                         orderStatus === 'COMPLETED' || orderStatus === 'DELIVERED'
             },
             { 
               name: 'Ready', 
-              completed: orderStatus === 'READY' || 
-                         orderStatus === 'COMPLETED' ||
-                         orderStatus === 'DELIVERED'
+              completed: orderStatus === 'READY' || orderStatus === 'COMPLETED' || orderStatus === 'DELIVERED'
             }
           ];
           
-          // Calculate progress based on completed stages
           const completedStagesCount = stages.filter(s => s.completed).length;
           const totalStagesCount = stages.length;
           const progress = Math.round((completedStagesCount / totalStagesCount) * 100);
-          
-          // Determine current status for display
           const displayStatus = orderStatus.toLowerCase().replace('in_', '').replace('_', ' ');
 
           return {
@@ -210,38 +182,59 @@ const Dashboard = () => {
 
         setActiveOrders(transformedOrders.slice(0, 3));
       } else {
-        console.error('Failed to fetch orders:', response.error);
+        console.error('Failed to fetch orders:', ordersResult.error);
       }
+      setOrdersLoading(false);
+
+      // Process activities
+      if (activitiesResult.success) {
+        const activities = activitiesResult.data || [];
+        console.log('Recent activities from API:', activities);
+        
+        const transformedActivities = activities.map(activity => {
+          return activity.description || 'Activity update';
+        });
+        
+        setRecentActivities(transformedActivities);
+      } else {
+        console.error('Failed to fetch activities:', activitiesResult.error);
+        setRecentActivities([
+          'No recent activities',
+          'Check back later for updates'
+        ]);
+      }
+      setActivitiesLoading(false);
+
     } catch (error) {
-      console.error('Error fetching active orders:', error);
+      console.error('Error loading dashboard data:', error);
+      setStatsLoading(false);
+      setOrdersLoading(false);
+      setActivitiesLoading(false);
     }
-    
-    setOrdersLoading(false);
   };
 
   // Calculate category distribution from orders
   const calculateCategoryDistribution = (orders) => {
     const categoryCount = {};
     const categoryColors = {
-      'CUTTING': '#3b82f6',    // Blue
-      'STITCHING': '#10b981',  // Green
-      'IRONING': '#f59e0b',    // Orange
-      'SHIRT': '#8b5cf6',      // Purple
-      'PANT': '#ec4899',       // Pink
-      'COAT': '#14b8a6',       // Teal
-      'KURTA': '#f97316',      // Orange-Red
-      'DHOTI': '#06b6d4'       // Cyan
+      'CUTTING': '#3b82f6',
+      'STITCHING': '#10b981',
+      'IRONING': '#f59e0b',
+      'SHIRT': '#8b5cf6',
+      'PANT': '#ec4899',
+      'COAT': '#14b8a6',
+      'KURTA': '#f97316',
+      'DHOTI': '#06b6d4'
     };
     
     orders.forEach(order => {
       const taskStatuses = order.taskStatuses || [];
       taskStatuses.forEach(ts => {
-        const taskType = ts.split('_')[0]; // "CUTTING_IN_PROGRESS" → "CUTTING"
+        const taskType = ts.split('_')[0];
         categoryCount[taskType] = (categoryCount[taskType] || 0) + 1;
       });
     });
     
-    // Convert to array with colors
     const categories = Object.entries(categoryCount).map(([category, count]) => ({
       category: category.charAt(0) + category.slice(1).toLowerCase() + 's',
       count: count,
@@ -254,7 +247,6 @@ const Dashboard = () => {
 
   // Calculate order trend for last 6 months
   const calculateOrderTrend = (orders) => {
-    // Generate last 6 months
     const months = [];
     const now = new Date();
     for (let i = 5; i >= 0; i--) {
@@ -267,7 +259,6 @@ const Dashboard = () => {
       });
     }
     
-    // Count orders per month
     orders.forEach(order => {
       if (order.createdAt) {
         const orderDate = new Date(order.createdAt);
@@ -285,49 +276,6 @@ const Dashboard = () => {
     
     console.log('Order trend calculated:', months);
     setOrderTrendData(months);
-  };
-
-  // Fetch recent activities
-  const fetchRecentActivities = async () => {
-    setActivitiesLoading(true);
-    const token = getToken();
-    
-    if (!token) {
-      console.error('No token found');
-      setActivitiesLoading(false);
-      return;
-    }
-
-    try {
-      const response = await customerAPI.getRecentActivities(token, 5); // Get last 5 activities
-      
-      if (response.success) {
-        const activities = response.data || [];
-        console.log('Recent activities from API:', activities);
-        
-        // Transform activities to display format
-        const transformedActivities = activities.map(activity => {
-          return activity.description || 'Activity update';
-        });
-        
-        setRecentActivities(transformedActivities);
-      } else {
-        console.error('Failed to fetch activities:', response.error);
-        // Set default activities on error
-        setRecentActivities([
-          'No recent activities',
-          'Check back later for updates'
-        ]);
-      }
-    } catch (error) {
-      console.error('Error fetching recent activities:', error);
-      setRecentActivities([
-        'Unable to load activities',
-        'Please try again later'
-      ]);
-    }
-    
-    setActivitiesLoading(false);
   };
 
 
