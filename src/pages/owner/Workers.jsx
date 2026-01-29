@@ -482,11 +482,43 @@ const Workers = () => {
     setShowEditModal(false);
   };
 
-  const handleDeleteWorker = (workerId) => {
+  const handleDeleteWorker = async (workerId) => {
     if (window.confirm('Are you sure you want to delete this worker?')) {
-      setWorkers(prev => prev.filter(w => w.id !== workerId));
-      setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 3000);
+      // Get token
+      let token = localStorage.getItem('token');
+      if (!token) {
+        const userDataString = localStorage.getItem('user');
+        if (userDataString) {
+          try {
+            const userData = JSON.parse(userDataString);
+            token = userData.jwt || userData.token;
+          } catch (e) {
+            console.error('Error parsing user data:', e);
+          }
+        }
+      }
+
+      if (!token) {
+        alert('Authentication required. Please login again.');
+        return;
+      }
+
+      try {
+        // Call API to delete worker from database
+        const result = await workerAPI.deleteWorker(workerId, token);
+        
+        if (result.success) {
+          // Remove from local state only after successful API call
+          setWorkers(prev => prev.filter(w => w.id !== workerId));
+          setShowSuccess(true);
+          setTimeout(() => setShowSuccess(false), 3000);
+        } else {
+          alert(`Failed to delete worker: ${result.error}`);
+        }
+      } catch (error) {
+        console.error('Error deleting worker:', error);
+        alert('Failed to delete worker. Please try again.');
+      }
     }
   };
 
