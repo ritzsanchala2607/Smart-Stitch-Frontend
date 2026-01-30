@@ -173,13 +173,14 @@ const Measurements = () => {
     } else if (dressTypeKey === 'kurta') {
       result.kurta = {
         length: measurements.length || '',
+        chest: measurements.chest || '',
         waist: measurements.waist || '',
         seatHips: measurements.hip || measurements.seatHips || '',
-        sleeve: measurements.sleeve || measurements.sleeveLength || '',
+        flare: measurements.flare || '',
         shoulder: measurements.shoulder || '',
         armhole: measurements.armhole || '',
+        sleeve: measurements.sleeve || measurements.sleeveLength || '',
         bottomOpening: measurements.bottomOpening || '',
-        flare: measurements.flare || '',
         frontNeck: measurements.frontNeck || '',
         backNeck: measurements.backNeck || ''
       };
@@ -241,13 +242,14 @@ const Measurements = () => {
       icon: '🥻',
       fields: [
         { key: 'length', label: 'Length', unit: 'inches', placeholder: 'e.g., 42' },
+        { key: 'chest', label: 'Chest', unit: 'inches', placeholder: 'e.g., 38' },
         { key: 'waist', label: 'Waist', unit: 'inches', placeholder: 'e.g., 32' },
         { key: 'seatHips', label: 'Seat / Hips', unit: 'inches', placeholder: 'e.g., 38' },
-        { key: 'sleeve', label: 'Sleeve', unit: 'inches', placeholder: 'e.g., 24' },
+        { key: 'flare', label: 'Flare / Circumference', unit: 'inches', placeholder: 'e.g., 44' },
         { key: 'shoulder', label: 'Shoulder', unit: 'inches', placeholder: 'e.g., 16' },
         { key: 'armhole', label: 'Armhole', unit: 'inches', placeholder: 'e.g., 18' },
+        { key: 'sleeve', label: 'Sleeve', unit: 'inches', placeholder: 'e.g., 24' },
         { key: 'bottomOpening', label: 'Bottom Opening / Cuff', unit: 'inches', placeholder: 'e.g., 12' },
-        { key: 'flare', label: 'Flare / Circumference', unit: 'inches', placeholder: 'e.g., 44' },
         { key: 'frontNeck', label: 'Front Neck', unit: 'inches', placeholder: 'e.g., 8' },
         { key: 'backNeck', label: 'Back Neck', unit: 'inches', placeholder: 'e.g., 6' }
       ]

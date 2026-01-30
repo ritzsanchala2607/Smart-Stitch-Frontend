@@ -34,7 +34,7 @@ const Customers = () => {
       pant: { length: '', waist: '', seatHips: '', knee: '', bottomOpening: '', thighCircumference: '', thigh: '' },
       shirt: { length: '', chest: '', waist: '', shoulder: '', sleeveLength: '', armhole: '', collar: '' },
       coat: { length: '', chest: '', waist: '', shoulder: '', sleeveLength: '', armhole: '' },
-      kurta: { length: '', waist: '', seatHips: '', sleeve: '', shoulder: '', armhole: '', bottomOpening: '', flare: '', frontNeck: '', backNeck: '' },
+      kurta: { length: '', chest: '', waist: '', seatHips: '', flare: '', shoulder: '', armhole: '', sleeve: '', bottomOpening: '', frontNeck: '', backNeck: '' },
       dhoti: { length: '', waist: '', hip: '', sideLength: '', foldLength: '' },
       custom: ''
     },
@@ -130,13 +130,14 @@ const Customers = () => {
             },
             kurta: {
               length: customer.measurements?.kurtaLength || '',
+              chest: customer.measurements?.kurtaChest || '',
               waist: customer.measurements?.kurtaWaist || '',
               seatHips: customer.measurements?.kurtaSeatHips || customer.measurements?.kurtaHip || '',
-              sleeve: customer.measurements?.kurtaSleeve || customer.measurements?.kurtaSleeveLength || '',
+              flare: customer.measurements?.kurtaFlare || '',
               shoulder: customer.measurements?.kurtaShoulder || '',
               armhole: customer.measurements?.kurtaArmhole || '',
+              sleeve: customer.measurements?.kurtaSleeve || customer.measurements?.kurtaSleeveLength || '',
               bottomOpening: customer.measurements?.kurtaBottomOpening || '',
-              flare: customer.measurements?.kurtaFlare || '',
               frontNeck: customer.measurements?.kurtaFrontNeck || '',
               backNeck: customer.measurements?.kurtaBackNeck || ''
             },
@@ -423,14 +424,15 @@ const Customers = () => {
           measurements: {}
         };
         
-        if (customerForm.measurements.kurta.waist) kurtaMeasurements.measurements.waist = parseFloat(customerForm.measurements.kurta.waist);
-        if (customerForm.measurements.kurta.shoulder) kurtaMeasurements.measurements.shoulder = parseFloat(customerForm.measurements.kurta.shoulder);
         if (customerForm.measurements.kurta.length) kurtaMeasurements.measurements.length = parseFloat(customerForm.measurements.kurta.length);
-        if (customerForm.measurements.kurta.sleeve) kurtaMeasurements.measurements.sleeve = parseFloat(customerForm.measurements.kurta.sleeve);
+        if (customerForm.measurements.kurta.chest) kurtaMeasurements.measurements.chest = parseFloat(customerForm.measurements.kurta.chest);
+        if (customerForm.measurements.kurta.waist) kurtaMeasurements.measurements.waist = parseFloat(customerForm.measurements.kurta.waist);
         if (customerForm.measurements.kurta.seatHips) kurtaMeasurements.measurements.hip = parseFloat(customerForm.measurements.kurta.seatHips);
-        if (customerForm.measurements.kurta.armhole) kurtaMeasurements.measurements.armhole = parseFloat(customerForm.measurements.kurta.armhole);
-        if (customerForm.measurements.kurta.bottomOpening) kurtaMeasurements.measurements.bottomOpening = parseFloat(customerForm.measurements.kurta.bottomOpening);
         if (customerForm.measurements.kurta.flare) kurtaMeasurements.measurements.flare = parseFloat(customerForm.measurements.kurta.flare);
+        if (customerForm.measurements.kurta.shoulder) kurtaMeasurements.measurements.shoulder = parseFloat(customerForm.measurements.kurta.shoulder);
+        if (customerForm.measurements.kurta.armhole) kurtaMeasurements.measurements.armhole = parseFloat(customerForm.measurements.kurta.armhole);
+        if (customerForm.measurements.kurta.sleeve) kurtaMeasurements.measurements.sleeve = parseFloat(customerForm.measurements.kurta.sleeve);
+        if (customerForm.measurements.kurta.bottomOpening) kurtaMeasurements.measurements.bottomOpening = parseFloat(customerForm.measurements.kurta.bottomOpening);
         if (customerForm.measurements.kurta.frontNeck) kurtaMeasurements.measurements.frontNeck = parseFloat(customerForm.measurements.kurta.frontNeck);
         if (customerForm.measurements.kurta.backNeck) kurtaMeasurements.measurements.backNeck = parseFloat(customerForm.measurements.kurta.backNeck);
         
@@ -506,7 +508,7 @@ const Customers = () => {
           pant: { length: '', waist: '', seatHips: '', knee: '', bottomOpening: '', thighCircumference: '', thigh: '' },
           shirt: { length: '', chest: '', waist: '', shoulder: '', sleeveLength: '', armhole: '', collar: '' },
           coat: { length: '', chest: '', waist: '', shoulder: '', sleeveLength: '', armhole: '' },
-          kurta: { length: '', waist: '', seatHips: '', sleeve: '', shoulder: '', armhole: '', bottomOpening: '', flare: '', frontNeck: '', backNeck: '' },
+          kurta: { length: '', chest: '', waist: '', seatHips: '', flare: '', shoulder: '', armhole: '', sleeve: '', bottomOpening: '', frontNeck: '', backNeck: '' },
           dhoti: { length: '', waist: '', hip: '', sideLength: '', foldLength: '' },
           custom: ''
         },
@@ -600,7 +602,7 @@ const Customers = () => {
         pant: { length: '', waist: '', seatHips: '', knee: '', bottomOpening: '', thighCircumference: '', thigh: '' },
         shirt: { length: '', chest: '', waist: '', shoulder: '', sleeveLength: '', armhole: '', collar: '' },
         coat: { length: '', chest: '', waist: '', shoulder: '', sleeveLength: '', armhole: '' },
-        kurta: { length: '', waist: '', seatHips: '', sleeve: '', shoulder: '', armhole: '', bottomOpening: '', flare: '', frontNeck: '', backNeck: '' },
+        kurta: { length: '', chest: '', waist: '', seatHips: '', flare: '', shoulder: '', armhole: '', sleeve: '', bottomOpening: '', frontNeck: '', backNeck: '' },
         dhoti: { length: '', waist: '', hip: '', sideLength: '', foldLength: '' },
         custom: ''
       },
@@ -690,13 +692,14 @@ const Customers = () => {
               case 'KURTA':
                 updatedMeasurements.kurta = {
                   length: measurements.length || '',
+                  chest: measurements.chest || '',
                   waist: measurements.waist || '',
                   seatHips: measurements.hip || '',
-                  sleeve: measurements.sleeve || '',
+                  flare: measurements.flare || '',
                   shoulder: measurements.shoulder || '',
                   armhole: measurements.armhole || '',
+                  sleeve: measurements.sleeve || '',
                   bottomOpening: measurements.bottomOpening || '',
-                  flare: measurements.flare || '',
                   frontNeck: measurements.frontNeck || '',
                   backNeck: measurements.backNeck || ''
                 };
@@ -840,14 +843,15 @@ const Customers = () => {
           type: 'KURTA',
           formData: customerForm.measurements.kurta,
           apiData: {
-            waist: parseFloat(customerForm.measurements.kurta.waist) || undefined,
-            shoulder: parseFloat(customerForm.measurements.kurta.shoulder) || undefined,
             length: parseFloat(customerForm.measurements.kurta.length) || undefined,
-            sleeve: parseFloat(customerForm.measurements.kurta.sleeve) || undefined,
+            chest: parseFloat(customerForm.measurements.kurta.chest) || undefined,
+            waist: parseFloat(customerForm.measurements.kurta.waist) || undefined,
             hip: parseFloat(customerForm.measurements.kurta.seatHips) || undefined,
-            armhole: parseFloat(customerForm.measurements.kurta.armhole) || undefined,
-            bottomOpening: parseFloat(customerForm.measurements.kurta.bottomOpening) || undefined,
             flare: parseFloat(customerForm.measurements.kurta.flare) || undefined,
+            shoulder: parseFloat(customerForm.measurements.kurta.shoulder) || undefined,
+            armhole: parseFloat(customerForm.measurements.kurta.armhole) || undefined,
+            sleeve: parseFloat(customerForm.measurements.kurta.sleeve) || undefined,
+            bottomOpening: parseFloat(customerForm.measurements.kurta.bottomOpening) || undefined,
             frontNeck: parseFloat(customerForm.measurements.kurta.frontNeck) || undefined,
             backNeck: parseFloat(customerForm.measurements.kurta.backNeck) || undefined
           }
@@ -982,7 +986,7 @@ const Customers = () => {
             pant: { length: '', waist: '', seatHips: '', knee: '', bottomOpening: '', thighCircumference: '', thigh: '' },
             shirt: { length: '', chest: '', waist: '', shoulder: '', sleeveLength: '', armhole: '', collar: '' },
             coat: { length: '', chest: '', waist: '', shoulder: '', sleeveLength: '', armhole: '' },
-            kurta: { length: '', waist: '', seatHips: '', sleeve: '', shoulder: '', armhole: '', bottomOpening: '', flare: '', frontNeck: '', backNeck: '' },
+            kurta: { length: '', chest: '', waist: '', seatHips: '', flare: '', shoulder: '', armhole: '', sleeve: '', bottomOpening: '', frontNeck: '', backNeck: '' },
             dhoti: { length: '', waist: '', hip: '', sideLength: '', foldLength: '' },
             custom: ''
           },
