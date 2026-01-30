@@ -35,6 +35,7 @@ const Orders = () => {
   const [showCustomerModal, setShowCustomerModal] = useState(false);
   const [customerList, setCustomerList] = useState(customers);
   const [deliveryDate, setDeliveryDate] = useState('');
+  const [orderStatus, setOrderStatus] = useState('PENDING'); // Add order status state
   const [advancePayment, setAdvancePayment] = useState('');
   const [notes, setNotes] = useState('');
   const [measurements, setMeasurements] = useState({
@@ -450,12 +451,23 @@ const Orders = () => {
     }
 
     // Prepare order payload for API
+    const paidAmount = advancePayment ? Number(advancePayment) : 0;
+    
+    // Calculate payment status based on paid amount
+    let paymentStatus = 'PENDING';
+    if (paidAmount >= totalAmount) {
+      paymentStatus = 'PAID';
+    } else if (paidAmount > 0) {
+      paymentStatus = 'PARTIAL';
+    }
+    
     const orderPayload = {
       customerId: selectedCustomer.id,
       deadline: deliveryDate,
       totalPrice: totalAmount,
-      advancePayment: advancePayment ? Number(advancePayment) : 0,
-      additionalNotes: notes || '',
+      paidAmount: paidAmount, // Backend expects paidAmount
+      paymentStatus: paymentStatus, // Backend expects paymentStatus
+      notes: notes || '', // Backend expects notes (not additionalNotes)
       items: orderItems.map(item => ({
         itemName: item.name,
         quantity: Number(item.quantity),
@@ -673,6 +685,7 @@ const Orders = () => {
         
         // Pre-fill editable fields with order data from API
         setDeliveryDate(orderDetails.deadline || order.deliveryDate);
+        setOrderStatus(orderDetails.status || order.status || 'PENDING'); // Set order status
         setAdvancePayment((orderDetails.advancePayment || order.paidAmount || 0).toString());
         setNotes(orderDetails.additionalNotes || order.notes || '');
         
@@ -742,12 +755,24 @@ const Orders = () => {
     }
 
     // Prepare order payload for API - use existing customer ID
+    const paidAmount = advancePayment ? Number(advancePayment) : 0;
+    
+    // Calculate payment status based on paid amount
+    let paymentStatus = 'PENDING';
+    if (paidAmount >= totalAmount) {
+      paymentStatus = 'PAID';
+    } else if (paidAmount > 0) {
+      paymentStatus = 'PARTIAL';
+    }
+    
     const orderPayload = {
       customerId: editingOrder.customerId, // Keep the original customer
       deadline: deliveryDate,
       totalPrice: totalAmount,
-      advancePayment: advancePayment ? Number(advancePayment) : 0,
-      additionalNotes: notes || '',
+      paidAmount: paidAmount, // Backend expects paidAmount
+      paymentStatus: paymentStatus, // Backend expects paymentStatus
+      notes: notes || '', // Backend expects notes (not additionalNotes)
+      status: orderStatus, // Include order status in update
       items: orderItems.map(item => ({
         itemName: item.name,
         quantity: Number(item.quantity),
@@ -1783,6 +1808,27 @@ const Orders = () => {
                       )}
                     </div>
 
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Order Status <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        value={orderStatus}
+                        onChange={(e) => setOrderStatus(e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                      >
+                        <option value="PENDING">Pending</option>
+                        <option value="IN_CUTTING">In Cutting</option>
+                        <option value="IN_STITCHING">In Stitching</option>
+                        <option value="IN_IRONING">In Ironing</option>
+                        <option value="READY">Ready</option>
+                        <option value="COMPLETED">Completed</option>
+                        <option value="DELIVERED">Delivered</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Advance Payment
