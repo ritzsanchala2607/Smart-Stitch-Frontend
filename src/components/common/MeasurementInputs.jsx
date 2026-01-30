@@ -66,23 +66,11 @@ const MeasurementInputs = ({ measurements, onChange }) => {
                 />
               </div>
               <div>
-                <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Seat/Hip</label>
+                <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Seat / Hips</label>
                 <input
                   type="number"
-                  value={measurements.pant.seatHip}
-                  onChange={(e) => handleChange('pant', 'seatHip', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
-                  placeholder="0"
-                  min="0"
-                  step="0.1"
-                />
-              </div>
-              <div>
-                <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Thigh</label>
-                <input
-                  type="number"
-                  value={measurements.pant.thigh}
-                  onChange={(e) => handleChange('pant', 'thigh', e.target.value)}
+                  value={measurements.pant.seatHips}
+                  onChange={(e) => handleChange('pant', 'seatHips', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
                   placeholder="0"
                   min="0"
@@ -102,11 +90,11 @@ const MeasurementInputs = ({ measurements, onChange }) => {
                 />
               </div>
               <div>
-                <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Bottom</label>
+                <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Bottom Opening / Ankle</label>
                 <input
                   type="number"
-                  value={measurements.pant.bottom}
-                  onChange={(e) => handleChange('pant', 'bottom', e.target.value)}
+                  value={measurements.pant.bottomOpening}
+                  onChange={(e) => handleChange('pant', 'bottomOpening', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
                   placeholder="0"
                   min="0"
@@ -114,11 +102,23 @@ const MeasurementInputs = ({ measurements, onChange }) => {
                 />
               </div>
               <div>
-                <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Fly Length</label>
+                <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Thigh Circumference / Flare</label>
                 <input
                   type="number"
-                  value={measurements.pant.flyLength}
-                  onChange={(e) => handleChange('pant', 'flyLength', e.target.value)}
+                  value={measurements.pant.thighCircumference}
+                  onChange={(e) => handleChange('pant', 'thighCircumference', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
+                  placeholder="0"
+                  min="0"
+                  step="0.1"
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Thigh</label>
+                <input
+                  type="number"
+                  value={measurements.pant.thigh}
+                  onChange={(e) => handleChange('pant', 'thigh', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
                   placeholder="0"
                   min="0"
@@ -366,11 +366,11 @@ const MeasurementInputs = ({ measurements, onChange }) => {
                 />
               </div>
               <div>
-                <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Chest</label>
+                <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Waist</label>
                 <input
                   type="number"
-                  value={measurements.kurta.chest}
-                  onChange={(e) => handleChange('kurta', 'chest', e.target.value)}
+                  value={measurements.kurta.waist}
+                  onChange={(e) => handleChange('kurta', 'waist', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
                   placeholder="0"
                   min="0"
@@ -378,11 +378,23 @@ const MeasurementInputs = ({ measurements, onChange }) => {
                 />
               </div>
               <div>
-                <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Waist</label>
+                <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Seat / Hips</label>
                 <input
                   type="number"
-                  value={measurements.kurta.waist}
-                  onChange={(e) => handleChange('kurta', 'waist', e.target.value)}
+                  value={measurements.kurta.seatHips}
+                  onChange={(e) => handleChange('kurta', 'seatHips', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
+                  placeholder="0"
+                  min="0"
+                  step="0.1"
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Sleeve</label>
+                <input
+                  type="number"
+                  value={measurements.kurta.sleeve}
+                  onChange={(e) => handleChange('kurta', 'sleeve', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
                   placeholder="0"
                   min="0"
@@ -402,11 +414,11 @@ const MeasurementInputs = ({ measurements, onChange }) => {
                 />
               </div>
               <div>
-                <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Sleeve Length</label>
+                <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Armhole</label>
                 <input
                   type="number"
-                  value={measurements.kurta.sleeveLength}
-                  onChange={(e) => handleChange('kurta', 'sleeveLength', e.target.value)}
+                  value={measurements.kurta.armhole}
+                  onChange={(e) => handleChange('kurta', 'armhole', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
                   placeholder="0"
                   min="0"
@@ -414,11 +426,47 @@ const MeasurementInputs = ({ measurements, onChange }) => {
                 />
               </div>
               <div>
-                <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Armhole</label>
+                <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Bottom Opening / Cuff</label>
                 <input
                   type="number"
-                  value={measurements.kurta.armhole}
-                  onChange={(e) => handleChange('kurta', 'armhole', e.target.value)}
+                  value={measurements.kurta.bottomOpening}
+                  onChange={(e) => handleChange('kurta', 'bottomOpening', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
+                  placeholder="0"
+                  min="0"
+                  step="0.1"
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Flare / Circumference</label>
+                <input
+                  type="number"
+                  value={measurements.kurta.flare}
+                  onChange={(e) => handleChange('kurta', 'flare', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
+                  placeholder="0"
+                  min="0"
+                  step="0.1"
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Front Neck</label>
+                <input
+                  type="number"
+                  value={measurements.kurta.frontNeck}
+                  onChange={(e) => handleChange('kurta', 'frontNeck', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
+                  placeholder="0"
+                  min="0"
+                  step="0.1"
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Back Neck</label>
+                <input
+                  type="number"
+                  value={measurements.kurta.backNeck}
+                  onChange={(e) => handleChange('kurta', 'backNeck', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
                   placeholder="0"
                   min="0"

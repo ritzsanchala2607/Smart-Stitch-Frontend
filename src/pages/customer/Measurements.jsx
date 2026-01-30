@@ -145,11 +145,11 @@ const Measurements = () => {
       result.pant = {
         length: measurements.length || '',
         waist: measurements.waist || '',
-        seatHip: measurements.hip || measurements.seatHip || '',
+        seatHips: measurements.hip || measurements.seatHips || '',
         thigh: measurements.thigh || '',
         knee: measurements.knee || '',
-        bottom: measurements.bottom || '',
-        flyLength: measurements.flyLength || ''
+        bottomOpening: measurements.bottom || measurements.bottomOpening || '',
+        thighCircumference: measurements.thighCircumference || ''
       };
     } else if (dressTypeKey === 'shirt') {
       result.shirt = {
@@ -173,11 +173,15 @@ const Measurements = () => {
     } else if (dressTypeKey === 'kurta') {
       result.kurta = {
         length: measurements.length || '',
-        chest: measurements.chest || '',
         waist: measurements.waist || '',
+        seatHips: measurements.hip || measurements.seatHips || '',
+        sleeve: measurements.sleeve || measurements.sleeveLength || '',
         shoulder: measurements.shoulder || '',
-        sleeveLength: measurements.sleeve || measurements.sleeveLength || '',
-        armhole: measurements.armhole || ''
+        armhole: measurements.armhole || '',
+        bottomOpening: measurements.bottomOpening || '',
+        flare: measurements.flare || '',
+        frontNeck: measurements.frontNeck || '',
+        backNeck: measurements.backNeck || ''
       };
     } else if (dressTypeKey === 'dhoti') {
       result.dhoti = {
@@ -200,11 +204,11 @@ const Measurements = () => {
       fields: [
         { key: 'length', label: 'Length', unit: 'inches', placeholder: 'e.g., 40' },
         { key: 'waist', label: 'Waist', unit: 'inches', placeholder: 'e.g., 32' },
-        { key: 'seatHip', label: 'Seat/Hip', unit: 'inches', placeholder: 'e.g., 38' },
-        { key: 'thigh', label: 'Thigh', unit: 'inches', placeholder: 'e.g., 22' },
+        { key: 'seatHips', label: 'Seat / Hips', unit: 'inches', placeholder: 'e.g., 38' },
         { key: 'knee', label: 'Knee', unit: 'inches', placeholder: 'e.g., 16' },
-        { key: 'bottom', label: 'Bottom', unit: 'inches', placeholder: 'e.g., 14' },
-        { key: 'flyLength', label: 'Fly Length', unit: 'inches', placeholder: 'e.g., 7' }
+        { key: 'bottomOpening', label: 'Bottom Opening / Ankle', unit: 'inches', placeholder: 'e.g., 14' },
+        { key: 'thighCircumference', label: 'Thigh Circumference / Flare', unit: 'inches', placeholder: 'e.g., 24' },
+        { key: 'thigh', label: 'Thigh', unit: 'inches', placeholder: 'e.g., 22' }
       ]
     },
     shirt: {
@@ -237,11 +241,15 @@ const Measurements = () => {
       icon: '🥻',
       fields: [
         { key: 'length', label: 'Length', unit: 'inches', placeholder: 'e.g., 42' },
-        { key: 'chest', label: 'Chest', unit: 'inches', placeholder: 'e.g., 38' },
         { key: 'waist', label: 'Waist', unit: 'inches', placeholder: 'e.g., 32' },
+        { key: 'seatHips', label: 'Seat / Hips', unit: 'inches', placeholder: 'e.g., 38' },
+        { key: 'sleeve', label: 'Sleeve', unit: 'inches', placeholder: 'e.g., 24' },
         { key: 'shoulder', label: 'Shoulder', unit: 'inches', placeholder: 'e.g., 16' },
-        { key: 'sleeveLength', label: 'Sleeve Length', unit: 'inches', placeholder: 'e.g., 24' },
-        { key: 'armhole', label: 'Armhole', unit: 'inches', placeholder: 'e.g., 18' }
+        { key: 'armhole', label: 'Armhole', unit: 'inches', placeholder: 'e.g., 18' },
+        { key: 'bottomOpening', label: 'Bottom Opening / Cuff', unit: 'inches', placeholder: 'e.g., 12' },
+        { key: 'flare', label: 'Flare / Circumference', unit: 'inches', placeholder: 'e.g., 44' },
+        { key: 'frontNeck', label: 'Front Neck', unit: 'inches', placeholder: 'e.g., 8' },
+        { key: 'backNeck', label: 'Back Neck', unit: 'inches', placeholder: 'e.g., 6' }
       ]
     },
     dhoti: {
