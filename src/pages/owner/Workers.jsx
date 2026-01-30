@@ -113,7 +113,11 @@ const Workers = () => {
           completedOrders: 0,
           rating: worker.ratings || 0,
           performance: 0,
-          garmentTypes: [],
+          // Map rates array to garmentTypes format
+          garmentTypes: (worker.rates || []).map(rate => ({
+            type: rate.workType.toLowerCase(), // Convert "KURTA" to "kurta"
+            rate: rate.rate
+          })),
           avatar: `https://i.pravatar.cc/150?img=${worker.workerId || Math.floor(Math.random() * 70)}`
         }));
         
