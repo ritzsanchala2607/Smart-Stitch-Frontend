@@ -699,9 +699,9 @@ const Customers = () => {
                   shoulder: measurements.shoulder || '',
                   armhole: measurements.armhole || '',
                   sleeve: measurements.sleeve || '',
-                  bottomOpening: measurements.bottomOpening || '',
-                  frontNeck: measurements.frontNeck || '',
-                  backNeck: measurements.backNeck || ''
+                  bottomOpening: measurements.bottomopening || measurements.bottomOpening || '',
+                  frontNeck: measurements.frontneck || measurements.frontNeck || '',
+                  backNeck: measurements.backneck || measurements.backNeck || ''
                 };
                 break;
               case 'DHOTI':

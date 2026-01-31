@@ -48,7 +48,7 @@ const MeasurementInputs = ({ measurements, onChange }) => {
                   value={measurements.pant.length}
                   onChange={(e) => handleChange('pant', 'length', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
-                  placeholder="0"
+                  placeholder=""
                   min="0"
                   step="0.1"
                 />
@@ -60,7 +60,7 @@ const MeasurementInputs = ({ measurements, onChange }) => {
                   value={measurements.pant.waist}
                   onChange={(e) => handleChange('pant', 'waist', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
-                  placeholder="0"
+                  placeholder=""
                   min="0"
                   step="0.1"
                 />
@@ -72,7 +72,7 @@ const MeasurementInputs = ({ measurements, onChange }) => {
                   value={measurements.pant.seatHips}
                   onChange={(e) => handleChange('pant', 'seatHips', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
-                  placeholder="0"
+                  placeholder=""
                   min="0"
                   step="0.1"
                 />
@@ -84,7 +84,7 @@ const MeasurementInputs = ({ measurements, onChange }) => {
                   value={measurements.pant.knee}
                   onChange={(e) => handleChange('pant', 'knee', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
-                  placeholder="0"
+                  placeholder=""
                   min="0"
                   step="0.1"
                 />
@@ -96,7 +96,7 @@ const MeasurementInputs = ({ measurements, onChange }) => {
                   value={measurements.pant.bottomOpening}
                   onChange={(e) => handleChange('pant', 'bottomOpening', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
-                  placeholder="0"
+                  placeholder=""
                   min="0"
                   step="0.1"
                 />
@@ -108,7 +108,7 @@ const MeasurementInputs = ({ measurements, onChange }) => {
                   value={measurements.pant.thighCircumference}
                   onChange={(e) => handleChange('pant', 'thighCircumference', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
-                  placeholder="0"
+                  placeholder=""
                   min="0"
                   step="0.1"
                 />
@@ -120,7 +120,7 @@ const MeasurementInputs = ({ measurements, onChange }) => {
                   value={measurements.pant.thigh}
                   onChange={(e) => handleChange('pant', 'thigh', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
-                  placeholder="0"
+                  placeholder=""
                   min="0"
                   step="0.1"
                 />
@@ -156,7 +156,7 @@ const MeasurementInputs = ({ measurements, onChange }) => {
                   value={measurements.shirt.length}
                   onChange={(e) => handleChange('shirt', 'length', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
-                  placeholder="0"
+                  placeholder=""
                   min="0"
                   step="0.1"
                 />
@@ -168,7 +168,7 @@ const MeasurementInputs = ({ measurements, onChange }) => {
                   value={measurements.shirt.chest}
                   onChange={(e) => handleChange('shirt', 'chest', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
-                  placeholder="0"
+                  placeholder=""
                   min="0"
                   step="0.1"
                 />
@@ -180,7 +180,7 @@ const MeasurementInputs = ({ measurements, onChange }) => {
                   value={measurements.shirt.waist}
                   onChange={(e) => handleChange('shirt', 'waist', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
-                  placeholder="0"
+                  placeholder=""
                   min="0"
                   step="0.1"
                 />
@@ -192,7 +192,7 @@ const MeasurementInputs = ({ measurements, onChange }) => {
                   value={measurements.shirt.shoulder}
                   onChange={(e) => handleChange('shirt', 'shoulder', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
-                  placeholder="0"
+                  placeholder=""
                   min="0"
                   step="0.1"
                 />
@@ -204,7 +204,7 @@ const MeasurementInputs = ({ measurements, onChange }) => {
                   value={measurements.shirt.sleeveLength}
                   onChange={(e) => handleChange('shirt', 'sleeveLength', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
-                  placeholder="0"
+                  placeholder=""
                   min="0"
                   step="0.1"
                 />
@@ -216,7 +216,7 @@ const MeasurementInputs = ({ measurements, onChange }) => {
                   value={measurements.shirt.armhole}
                   onChange={(e) => handleChange('shirt', 'armhole', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
-                  placeholder="0"
+                  placeholder=""
                   min="0"
                   step="0.1"
                 />
@@ -228,7 +228,7 @@ const MeasurementInputs = ({ measurements, onChange }) => {
                   value={measurements.shirt.collar}
                   onChange={(e) => handleChange('shirt', 'collar', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
-                  placeholder="0"
+                  placeholder=""
                   min="0"
                   step="0.1"
                 />
@@ -264,7 +264,7 @@ const MeasurementInputs = ({ measurements, onChange }) => {
                   value={measurements.coat.length}
                   onChange={(e) => handleChange('coat', 'length', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
-                  placeholder="0"
+                  placeholder=""
                   min="0"
                   step="0.1"
                 />
@@ -276,7 +276,7 @@ const MeasurementInputs = ({ measurements, onChange }) => {
                   value={measurements.coat.chest}
                   onChange={(e) => handleChange('coat', 'chest', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
-                  placeholder="0"
+                  placeholder=""
                   min="0"
                   step="0.1"
                 />
@@ -288,7 +288,7 @@ const MeasurementInputs = ({ measurements, onChange }) => {
                   value={measurements.coat.waist}
                   onChange={(e) => handleChange('coat', 'waist', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
-                  placeholder="0"
+                  placeholder=""
                   min="0"
                   step="0.1"
                 />
@@ -300,7 +300,7 @@ const MeasurementInputs = ({ measurements, onChange }) => {
                   value={measurements.coat.shoulder}
                   onChange={(e) => handleChange('coat', 'shoulder', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
-                  placeholder="0"
+                  placeholder=""
                   min="0"
                   step="0.1"
                 />
@@ -312,7 +312,7 @@ const MeasurementInputs = ({ measurements, onChange }) => {
                   value={measurements.coat.sleeveLength}
                   onChange={(e) => handleChange('coat', 'sleeveLength', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
-                  placeholder="0"
+                  placeholder=""
                   min="0"
                   step="0.1"
                 />
@@ -324,7 +324,7 @@ const MeasurementInputs = ({ measurements, onChange }) => {
                   value={measurements.coat.armhole}
                   onChange={(e) => handleChange('coat', 'armhole', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
-                  placeholder="0"
+                  placeholder=""
                   min="0"
                   step="0.1"
                 />
@@ -360,7 +360,7 @@ const MeasurementInputs = ({ measurements, onChange }) => {
                   value={measurements.kurta.length}
                   onChange={(e) => handleChange('kurta', 'length', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
-                  placeholder="0"
+                  placeholder=""
                   min="0"
                   step="0.1"
                 />
@@ -372,7 +372,7 @@ const MeasurementInputs = ({ measurements, onChange }) => {
                   value={measurements.kurta.chest}
                   onChange={(e) => handleChange('kurta', 'chest', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
-                  placeholder="0"
+                  placeholder=""
                   min="0"
                   step="0.1"
                 />
@@ -384,7 +384,7 @@ const MeasurementInputs = ({ measurements, onChange }) => {
                   value={measurements.kurta.waist}
                   onChange={(e) => handleChange('kurta', 'waist', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
-                  placeholder="0"
+                  placeholder=""
                   min="0"
                   step="0.1"
                 />
@@ -396,7 +396,7 @@ const MeasurementInputs = ({ measurements, onChange }) => {
                   value={measurements.kurta.seatHips}
                   onChange={(e) => handleChange('kurta', 'seatHips', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
-                  placeholder="0"
+                  placeholder=""
                   min="0"
                   step="0.1"
                 />
@@ -408,7 +408,7 @@ const MeasurementInputs = ({ measurements, onChange }) => {
                   value={measurements.kurta.flare}
                   onChange={(e) => handleChange('kurta', 'flare', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
-                  placeholder="0"
+                  placeholder=""
                   min="0"
                   step="0.1"
                 />
@@ -420,7 +420,7 @@ const MeasurementInputs = ({ measurements, onChange }) => {
                   value={measurements.kurta.shoulder}
                   onChange={(e) => handleChange('kurta', 'shoulder', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
-                  placeholder="0"
+                  placeholder=""
                   min="0"
                   step="0.1"
                 />
@@ -432,7 +432,7 @@ const MeasurementInputs = ({ measurements, onChange }) => {
                   value={measurements.kurta.armhole}
                   onChange={(e) => handleChange('kurta', 'armhole', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
-                  placeholder="0"
+                  placeholder=""
                   min="0"
                   step="0.1"
                 />
@@ -444,7 +444,7 @@ const MeasurementInputs = ({ measurements, onChange }) => {
                   value={measurements.kurta.sleeve}
                   onChange={(e) => handleChange('kurta', 'sleeve', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
-                  placeholder="0"
+                  placeholder=""
                   min="0"
                   step="0.1"
                 />
@@ -456,7 +456,7 @@ const MeasurementInputs = ({ measurements, onChange }) => {
                   value={measurements.kurta.bottomOpening}
                   onChange={(e) => handleChange('kurta', 'bottomOpening', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
-                  placeholder="0"
+                  placeholder=""
                   min="0"
                   step="0.1"
                 />
@@ -468,7 +468,7 @@ const MeasurementInputs = ({ measurements, onChange }) => {
                   value={measurements.kurta.frontNeck}
                   onChange={(e) => handleChange('kurta', 'frontNeck', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
-                  placeholder="0"
+                  placeholder=""
                   min="0"
                   step="0.1"
                 />
@@ -480,7 +480,7 @@ const MeasurementInputs = ({ measurements, onChange }) => {
                   value={measurements.kurta.backNeck}
                   onChange={(e) => handleChange('kurta', 'backNeck', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
-                  placeholder="0"
+                  placeholder=""
                   min="0"
                   step="0.1"
                 />
@@ -516,7 +516,7 @@ const MeasurementInputs = ({ measurements, onChange }) => {
                   value={measurements.dhoti.length}
                   onChange={(e) => handleChange('dhoti', 'length', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
-                  placeholder="0"
+                  placeholder=""
                   min="0"
                   step="0.1"
                 />
@@ -528,7 +528,7 @@ const MeasurementInputs = ({ measurements, onChange }) => {
                   value={measurements.dhoti.waist}
                   onChange={(e) => handleChange('dhoti', 'waist', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
-                  placeholder="0"
+                  placeholder=""
                   min="0"
                   step="0.1"
                 />
@@ -540,7 +540,7 @@ const MeasurementInputs = ({ measurements, onChange }) => {
                   value={measurements.dhoti.hip}
                   onChange={(e) => handleChange('dhoti', 'hip', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
-                  placeholder="0"
+                  placeholder=""
                   min="0"
                   step="0.1"
                 />
@@ -552,7 +552,7 @@ const MeasurementInputs = ({ measurements, onChange }) => {
                   value={measurements.dhoti.sideLength}
                   onChange={(e) => handleChange('dhoti', 'sideLength', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
-                  placeholder="0"
+                  placeholder=""
                   min="0"
                   step="0.1"
                 />
@@ -564,7 +564,7 @@ const MeasurementInputs = ({ measurements, onChange }) => {
                   value={measurements.dhoti.foldLength}
                   onChange={(e) => handleChange('dhoti', 'foldLength', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
-                  placeholder="0"
+                  placeholder=""
                   min="0"
                   step="0.1"
                 />
@@ -592,3 +592,4 @@ const MeasurementInputs = ({ measurements, onChange }) => {
 };
 
 export default MeasurementInputs;
+

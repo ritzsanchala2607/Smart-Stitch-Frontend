@@ -28,6 +28,7 @@ const Workers = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState(''); // Add success message state
   const [showViewModal, setShowViewModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
@@ -389,6 +390,7 @@ const Workers = () => {
       // Refresh the workers list from the backend
       await fetchWorkers();
 
+      setSuccessMessage('Worker Added Successfully!');
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 5000);
 
@@ -467,6 +469,7 @@ const Workers = () => {
     };
 
     setWorkers(prev => prev.map(w => w.id === editingWorker.id ? updatedWorker : w));
+    setSuccessMessage('Worker Updated Successfully!');
     setShowSuccess(true);
     setTimeout(() => setShowSuccess(false), 3000);
 
@@ -529,6 +532,7 @@ const Workers = () => {
         setWorkers(prev => prev.filter(w => w.id !== workerToDelete));
         setShowDeleteConfirm(false);
         setWorkerToDelete(null);
+        setSuccessMessage('Worker Deleted Successfully!');
         setShowSuccess(true);
         setTimeout(() => setShowSuccess(false), 3000);
       } else {
@@ -590,10 +594,12 @@ const Workers = () => {
                     </div>
                     <div className="flex-1">
                       <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-1">
-                        Worker Added Successfully!
+                        {successMessage || 'Success!'}
                       </h3>
                       <p className="text-sm text-gray-600 dark:text-gray-400">
-                        The worker has been added to your team and can now be assigned to orders.
+                        {successMessage.includes('deleted') 
+                          ? 'The worker has been removed from your team.'
+                          : 'The worker has been added to your team and can now be assigned to orders.'}
                       </p>
                     </div>
                     <button

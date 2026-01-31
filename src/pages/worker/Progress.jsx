@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
 import { motion } from 'framer-motion';
@@ -15,77 +15,200 @@ import {
   Trophy,
   Star
 } from 'lucide-react';
-import { orders, workers, dashboardStats } from '../../data/dummyData';
+import { workerAPI } from '../../services/api';
 
 const WorkerProgress = () => {
   usePageTitle('Work Progress');
-  // Mock worker ID
-  const currentWorkerId = 'WORK001';
-  const currentWorker = workers.find(w => w.id === currentWorkerId);
-  const workerTasks = orders.filter(o => o.assignedWorker === currentWorkerId);
+  
+  // State management
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [workerProfile, setWorkerProfile] = useState(null);
+  const [tasks, setTasks] = useState([]);
+  const [statistics, setStatistics] = useState({
+    totalTasks: 0,
+    completedTasks: 0,
+    onTimeCompletions: 0,
+    onTimePercentage: 0,
+    avgCompletionTime: '0 days',
+    thisWeekCompleted: 0,
+    accuracyRating: 0,
+    performance: 0,
+    rating: 0
+  });
 
-  // Calculate metrics
-  const completedTasks = workerTasks.filter(o => o.status === 'ready').length;
-  const totalTasks = workerTasks.length;
-  const onTimeCompletions = Math.floor(completedTasks * 0.92); // 92% on-time rate
-  const onTimePercentage = totalTasks > 0 ? Math.round((onTimeCompletions / completedTasks) * 100) : 0;
-  const avgCompletionTime = '3.5 days';
-  const thisWeekCompleted = 8;
-  const accuracyRating = 4.8;
+  // Fetch worker data on mount
+  useEffect(() => {
+    fetchWorkerData();
+  }, []);
 
-  // Weekly data (last 4 weeks)
-  const weeklyData = [
-    { week: 'Week 1', assigned: 12, completed: 10 },
-    { week: 'Week 2', assigned: 15, completed: 14 },
-    { week: 'Week 3', assigned: 13, completed: 12 },
-    { week: 'Week 4', assigned: 14, completed: 13 }
-  ];
+  const fetchWorkerData = async () => {
+    setIsLoading(true);
+    setError(null);
 
-  // Monthly data (last 6 months)
-  const monthlyData = [
-    { month: 'Jul', completed: 42 },
-    { month: 'Aug', completed: 48 },
-    { month: 'Sep', completed: 45 },
-    { month: 'Oct', completed: 52 },
-    { month: 'Nov', completed: 49 },
-    { month: 'Dec', completed: 38 }
-  ];
-
-  // Error/Redo tasks
-  const errorTasks = [
-    {
-      id: 'ORD015',
-      customer: 'John Smith',
-      issue: 'Measurement mismatch',
-      date: '2024-01-10',
-      status: 'Fixed'
-    },
-    {
-      id: 'ORD023',
-      customer: 'Sarah Johnson',
-      issue: 'Wrong fabric used',
-      date: '2024-01-05',
-      status: 'Fixed'
-    },
-    {
-      id: 'ORD031',
-      customer: 'Mike Brown',
-      issue: 'Stitching quality issue',
-      date: '2023-12-28',
-      status: 'Fixed'
+    // Get token
+    let token = localStorage.getItem('token');
+    if (!token) {
+      const userDataString = localStorage.getItem('user');
+      if (userDataString) {
+        try {
+          const userData = JSON.parse(userDataString);
+          token = userData.jwt || userData.token;
+        } catch (e) {
+          console.error('Error parsing user data:', e);
+        }
+      }
     }
-  ];
 
-  // Worker rankings
-  const workerRankings = workers
-    .filter(w => w.status === 'active')
-    .sort((a, b) => b.performance - a.performance)
-    .map((worker, index) => ({
-      ...worker,
-      rank: index + 1
-    }));
+    if (!token) {
+      setError('Authentication required. Please login again.');
+      setIsLoading(false);
+      return;
+    }
 
-  const currentWorkerRank = workerRankings.find(w => w.id === currentWorkerId);
+    try {
+      // Fetch worker profile and tasks in parallel
+      const [profileResult, tasksResult] = await Promise.all([
+        workerAPI.getWorkerProfile(token),
+        workerAPI.getMyTasks(token)
+      ]);
+
+      if (profileResult.success) {
+        setWorkerProfile(profileResult.data);
+      }
+
+      if (tasksResult.success) {
+        const taskData = tasksResult.data || [];
+        setTasks(taskData);
+        
+        // Calculate statistics from tasks
+        calculateStatistics(taskData);
+      }
+    } catch (error) {
+      console.error('Error fetching worker data:', error);
+      setError('Failed to load worker data. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const calculateStatistics = (taskData) => {
+    const totalTasks = taskData.length;
+    const completedTasks = taskData.filter(t => t.status === 'COMPLETED').length;
+    
+    // Calculate on-time completions (assuming 92% for now, can be enhanced with deadline data)
+    const onTimeCompletions = Math.floor(completedTasks * 0.92);
+    const onTimePercentage = completedTasks > 0 ? Math.round((onTimeCompletions / completedTasks) * 100) : 0;
+    
+    // Calculate this week's completed tasks
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+    const thisWeekCompleted = taskData.filter(t => {
+      if (t.status === 'COMPLETED' && t.completedAt) {
+        const completedDate = new Date(t.completedAt);
+        return completedDate >= oneWeekAgo;
+      }
+      return false;
+    }).length;
+
+    // Calculate average completion time (simplified)
+    const avgCompletionTime = '3.5 days'; // TODO: Calculate from actual task data
+
+    // Calculate accuracy rating (based on completed vs total)
+    const accuracyRating = totalTasks > 0 ? ((completedTasks / totalTasks) * 5).toFixed(1) : 0;
+
+    // Calculate performance percentage
+    const performance = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
+    setStatistics({
+      totalTasks,
+      completedTasks,
+      onTimeCompletions,
+      onTimePercentage,
+      avgCompletionTime,
+      thisWeekCompleted,
+      accuracyRating: parseFloat(accuracyRating),
+      performance,
+      rating: workerProfile?.ratings || 0
+    });
+  };
+
+  // Monthly data (calculated from tasks)
+  const monthlyData = calculateMonthlyData(tasks);
+
+  // Error/Redo tasks (filter from actual tasks)
+  const errorTasks = tasks.filter(t => t.status === 'REDO' || t.hasIssue).slice(0, 5);
+
+  // Worker rankings - TODO: This needs a backend API endpoint
+  // For now, show placeholder
+  const currentWorkerRank = 1; // Placeholder
+
+  // Helper function to calculate monthly data
+  function calculateMonthlyData(taskData) {
+    const months = [];
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    
+    for (let i = 5; i >= 0; i--) {
+      const date = new Date();
+      date.setMonth(date.getMonth() - i);
+      const monthIndex = date.getMonth();
+      
+      const monthTasks = taskData.filter(t => {
+        const taskDate = new Date(t.completedAt || t.createdAt);
+        return taskDate.getMonth() === monthIndex && taskDate.getFullYear() === date.getFullYear();
+      });
+
+      const completed = monthTasks.filter(t => t.status === 'COMPLETED').length;
+
+      months.push({
+        month: monthNames[monthIndex],
+        completed
+      });
+    }
+    return months;
+  }
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
+        <Sidebar role="worker" />
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <Topbar />
+          <main className="flex-1 overflow-y-auto p-6 flex items-center justify-center">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-500 mx-auto mb-4"></div>
+              <p className="text-gray-600 dark:text-gray-400">Loading your progress data...</p>
+            </div>
+          </main>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
+        <Sidebar role="worker" />
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <Topbar />
+          <main className="flex-1 overflow-y-auto p-6 flex items-center justify-center">
+            <div className="text-center">
+              <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+              <p className="text-red-600 dark:text-red-400 mb-4">{error}</p>
+              <button
+                onClick={fetchWorkerData}
+                className="px-6 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
+              >
+                Retry
+              </button>
+            </div>
+          </main>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
@@ -113,7 +236,7 @@ const WorkerProgress = () => {
                 <div className="px-4 py-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg shadow-md">
                   <div className="flex items-center gap-2">
                     <Trophy className="w-5 h-5" />
-                    <span className="font-bold">Rank #{currentWorkerRank?.rank}</span>
+                    <span className="font-bold">Rank #{currentWorkerRank}</span>
                   </div>
                 </div>
               </div>
@@ -123,28 +246,28 @@ const WorkerProgress = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <MetricCard
                 title="On-Time Completion"
-                value={`${onTimePercentage}%`}
+                value={`${statistics.onTimePercentage}%`}
                 icon={CheckCircle}
                 color="bg-green-500"
-                subtitle={`${onTimeCompletions} of ${completedTasks} tasks`}
+                subtitle={`${statistics.onTimeCompletions} of ${statistics.completedTasks} tasks`}
               />
               <MetricCard
                 title="Avg Completion Time"
-                value={avgCompletionTime}
+                value={statistics.avgCompletionTime}
                 icon={Clock}
                 color="bg-blue-500"
                 subtitle="Per task"
               />
               <MetricCard
                 title="This Week Completed"
-                value={thisWeekCompleted}
+                value={statistics.thisWeekCompleted}
                 icon={Target}
                 color="bg-purple-500"
                 subtitle="Tasks finished"
               />
               <MetricCard
                 title="Accuracy Rating"
-                value={accuracyRating}
+                value={statistics.accuracyRating}
                 icon={Star}
                 color="bg-yellow-500"
                 subtitle="Out of 5.0"
@@ -152,23 +275,12 @@ const WorkerProgress = () => {
             </div>
 
             {/* Charts Section */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Task Completion Timeline Chart */}
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.1 }}
-                className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"
-              >
-                <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-6">Weekly Task Timeline</h2>
-                <WeeklyTimelineChart data={weeklyData} />
-              </motion.div>
-
+            <div className="grid grid-cols-1 gap-6">
               {/* Monthly Workload Bar Chart */}
               <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.2 }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
                 className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"
               >
                 <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-6">Monthly Workload</h2>
@@ -190,28 +302,28 @@ const WorkerProgress = () => {
               <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <div className="text-center">
                   <p className="text-purple-100 text-sm mb-2">Total Tasks</p>
-                  <p className="text-4xl font-bold">{totalTasks}</p>
+                  <p className="text-4xl font-bold">{statistics.totalTasks}</p>
                 </div>
                 <div className="text-center">
                   <p className="text-purple-100 text-sm mb-2">Completed</p>
-                  <p className="text-4xl font-bold">{completedTasks}</p>
+                  <p className="text-4xl font-bold">{statistics.completedTasks}</p>
                 </div>
                 <div className="text-center">
                   <p className="text-purple-100 text-sm mb-2">Success Rate</p>
-                  <p className="text-4xl font-bold">{currentWorker?.performance}%</p>
+                  <p className="text-4xl font-bold">{statistics.performance}%</p>
                 </div>
                 <div className="text-center">
                   <p className="text-purple-100 text-sm mb-2">Rating</p>
                   <div className="flex items-center justify-center gap-1">
-                    <p className="text-4xl font-bold">{currentWorker?.rating}</p>
-                    <Star className="w-6 h-6 fill-yellow-300 text-yellow-300" />
+                    <p className="text-4xl font-bold">{statistics.rating || 'N/A'}</p>
+                    {statistics.rating > 0 && <Star className="w-6 h-6 fill-yellow-300 text-yellow-300" />}
                   </div>
                 </div>
               </div>
             </motion.div>
 
-            {/* Error/Redo Tasks Log & Worker Ranking */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Error/Redo Tasks Log */}
+            <div className="grid grid-cols-1 gap-6">
               {/* Error/Redo Tasks Log */}
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
@@ -221,136 +333,68 @@ const WorkerProgress = () => {
               >
                 <div className="p-6 border-b border-gray-200 dark:border-gray-700">
                   <div className="flex items-center justify-between">
-                    <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Error/Redo Tasks</h2>
-                    <div className="px-3 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-full text-sm font-semibold">
-                      {errorTasks.length} Issues
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Recent Tasks</h2>
+                    <div className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full text-sm font-semibold">
+                      {tasks.length} Total
                     </div>
                   </div>
                 </div>
                 <div className="p-6">
-                  {errorTasks.length > 0 ? (
+                  {tasks.length > 0 ? (
                     <div className="space-y-4">
-                      {errorTasks.map((error, index) => (
+                      {tasks.slice(0, 5).map((task, index) => (
                         <div
                           key={index}
-                          className="p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg"
+                          className={`p-4 border rounded-lg ${
+                            task.status === 'COMPLETED'
+                              ? 'bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-800'
+                              : task.status === 'IN_PROGRESS'
+                              ? 'bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-800'
+                              : 'bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600'
+                          }`}
                         >
                           <div className="flex items-start justify-between mb-2">
                             <div className="flex items-center gap-2">
-                              <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0" />
-                              <span className="font-semibold text-gray-900 dark:text-gray-100">{error.id}</span>
+                              {task.status === 'COMPLETED' ? (
+                                <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0" />
+                              ) : task.status === 'IN_PROGRESS' ? (
+                                <Clock className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+                              ) : (
+                                <AlertTriangle className="w-5 h-5 text-orange-600 dark:text-orange-400 flex-shrink-0" />
+                              )}
+                              <span className="font-semibold text-gray-900 dark:text-gray-100">
+                                {task.taskType || 'Task'}
+                              </span>
                             </div>
                             <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                              error.status === 'Fixed' 
-                                ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' 
-                                : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400'
+                              task.status === 'COMPLETED'
+                                ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                                : task.status === 'IN_PROGRESS'
+                                ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
+                                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-400'
                             }`}>
-                              {error.status}
+                              {task.status}
                             </span>
                           </div>
                           <p className="text-sm text-gray-700 dark:text-gray-300 mb-1">
-                            <span className="font-medium">Customer:</span> {error.customer}
+                            <span className="font-medium">Order ID:</span> {task.orderId ? `ORD${String(task.orderId).padStart(3, '0')}` : 'N/A'}
                           </p>
-                          <p className="text-sm text-gray-700 dark:text-gray-300 mb-1">
-                            <span className="font-medium">Issue:</span> {error.issue}
-                          </p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">
-                            <Calendar className="w-3 h-3 inline mr-1" />
-                            {error.date}
-                          </p>
+                          {task.deadline && (
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                              <Calendar className="w-3 h-3 inline mr-1" />
+                              Deadline: {new Date(task.deadline).toLocaleDateString()}
+                            </p>
+                          )}
                         </div>
                       ))}
                     </div>
                   ) : (
                     <div className="text-center py-8">
-                      <CheckCircle className="w-12 h-12 mx-auto mb-3 text-green-500 dark:text-green-400" />
-                      <p className="text-gray-600 dark:text-gray-400">No errors or redo tasks!</p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Keep up the great work!</p>
+                      <CheckCircle className="w-12 h-12 mx-auto mb-3 text-gray-400 dark:text-gray-500" />
+                      <p className="text-gray-600 dark:text-gray-400">No tasks assigned yet</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Tasks will appear here when assigned</p>
                     </div>
                   )}
-                </div>
-              </motion.div>
-
-              {/* Worker Ranking */}
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.5 }}
-                className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden"
-              >
-                <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-                  <div className="flex items-center justify-between">
-                    <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Worker Rankings</h2>
-                    <Trophy className="w-6 h-6 text-yellow-500 dark:text-yellow-400" />
-                  </div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Based on completion rate & quality</p>
-                </div>
-                <div className="p-6">
-                  <div className="space-y-3">
-                    {workerRankings.map((worker, index) => {
-                      const isCurrentWorker = worker.id === currentWorkerId;
-                      return (
-                        <div
-                          key={worker.id}
-                          className={`p-4 rounded-lg border-2 transition-all ${
-                            isCurrentWorker
-                              ? 'bg-purple-50 dark:bg-purple-900/30 border-purple-500 dark:border-purple-600 shadow-md'
-                              : 'bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600'
-                          }`}
-                        >
-                          <div className="flex items-center gap-4">
-                            {/* Rank Badge */}
-                            <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg ${
-                              index === 0 ? 'bg-yellow-400 text-yellow-900' :
-                              index === 1 ? 'bg-gray-300 text-gray-700' :
-                              index === 2 ? 'bg-orange-400 text-orange-900' :
-                              'bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300'
-                            }`}>
-                              {worker.rank}
-                            </div>
-
-                            {/* Worker Info */}
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1">
-                                <span className={`font-semibold ${
-                                  isCurrentWorker ? 'text-purple-900 dark:text-purple-400' : 'text-gray-900 dark:text-gray-100'
-                                }`}>
-                                  {worker.name}
-                                </span>
-                                {isCurrentWorker && (
-                                  <span className="px-2 py-0.5 bg-purple-500 text-white text-xs font-semibold rounded-full">
-                                    You
-                                  </span>
-                                )}
-                              </div>
-                              <p className="text-xs text-gray-600 dark:text-gray-400">{worker.specialization}</p>
-                            </div>
-
-                            {/* Performance Score */}
-                            <div className="text-right">
-                              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{worker.performance}%</p>
-                              <div className="flex items-center gap-1 justify-end">
-                                <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                                <span className="text-sm text-gray-600 dark:text-gray-400">{worker.rating}</span>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Progress Bar */}
-                          <div className="mt-3">
-                            <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2">
-                              <div
-                                className={`h-2 rounded-full transition-all ${
-                                  isCurrentWorker ? 'bg-purple-500' : 'bg-blue-500'
-                                }`}
-                                style={{ width: `${worker.performance}%` }}
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
                 </div>
               </motion.div>
             </div>
@@ -371,20 +415,24 @@ const WorkerProgress = () => {
                   <ul className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
                     <li className="flex items-start gap-2">
                       <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
-                      <span>Your on-time completion rate is excellent at {onTimePercentage}%</span>
+                      <span>Your on-time completion rate is {statistics.onTimePercentage >= 90 ? 'excellent' : 'good'} at {statistics.onTimePercentage}%</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
-                      <span>You're ranked #{currentWorkerRank?.rank} among all active workers</span>
+                      <span>You have completed {statistics.completedTasks} out of {statistics.totalTasks} assigned tasks</span>
                     </li>
-                    <li className="flex items-start gap-2">
-                      <AlertTriangle className="w-4 h-4 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" />
-                      <span>Focus on reducing errors to improve your accuracy rating</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <Target className="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-                      <span>Complete {15 - thisWeekCompleted} more tasks this week to reach your target</span>
-                    </li>
+                    {statistics.thisWeekCompleted > 0 && (
+                      <li className="flex items-start gap-2">
+                        <Target className="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                        <span>Great job! You completed {statistics.thisWeekCompleted} tasks this week</span>
+                      </li>
+                    )}
+                    {statistics.performance < 100 && (
+                      <li className="flex items-start gap-2">
+                        <AlertTriangle className="w-4 h-4 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" />
+                        <span>Complete {statistics.totalTasks - statistics.completedTasks} more tasks to reach 100% completion rate</span>
+                      </li>
+                    )}
                   </ul>
                 </div>
               </div>
@@ -412,113 +460,6 @@ const MetricCard = ({ title, value, icon: Icon, color, subtitle }) => {
       <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-2">{value}</p>
       {subtitle && <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{subtitle}</p>}
     </motion.div>
-  );
-};
-
-// Weekly Timeline Chart Component
-const WeeklyTimelineChart = ({ data }) => {
-  const maxValue = Math.max(...data.flatMap(d => [d.assigned, d.completed]));
-
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-end gap-4 text-sm mb-4">
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-          <span className="text-gray-600 dark:text-gray-400">Assigned</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-          <span className="text-gray-600 dark:text-gray-400">Completed</span>
-        </div>
-      </div>
-
-      {/* Line Chart */}
-      <div className="relative h-64">
-        <svg className="w-full h-full">
-          {/* Grid lines */}
-          {[0, 25, 50, 75, 100].map((percent) => (
-            <line
-              key={percent}
-              x1="0"
-              y1={`${percent}%`}
-              x2="100%"
-              y2={`${percent}%`}
-              stroke="#e5e7eb"
-              strokeWidth="1"
-            />
-          ))}
-
-          {/* Assigned line */}
-          <polyline
-            points={data.map((d, i) => {
-              const x = (i / (data.length - 1)) * 100;
-              const y = 100 - (d.assigned / maxValue) * 90;
-              return `${x}%,${y}%`;
-            }).join(' ')}
-            fill="none"
-            stroke="#3b82f6"
-            strokeWidth="3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-
-          {/* Completed line */}
-          <polyline
-            points={data.map((d, i) => {
-              const x = (i / (data.length - 1)) * 100;
-              const y = 100 - (d.completed / maxValue) * 90;
-              return `${x}%,${y}%`;
-            }).join(' ')}
-            fill="none"
-            stroke="#10b981"
-            strokeWidth="3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-
-          {/* Data points - Assigned */}
-          {data.map((d, i) => {
-            const x = (i / (data.length - 1)) * 100;
-            const y = 100 - (d.assigned / maxValue) * 90;
-            return (
-              <circle
-                key={`assigned-${i}`}
-                cx={`${x}%`}
-                cy={`${y}%`}
-                r="5"
-                fill="#3b82f6"
-                stroke="white"
-                strokeWidth="2"
-              />
-            );
-          })}
-
-          {/* Data points - Completed */}
-          {data.map((d, i) => {
-            const x = (i / (data.length - 1)) * 100;
-            const y = 100 - (d.completed / maxValue) * 90;
-            return (
-              <circle
-                key={`completed-${i}`}
-                cx={`${x}%`}
-                cy={`${y}%`}
-                r="5"
-                fill="#10b981"
-                stroke="white"
-                strokeWidth="2"
-              />
-            );
-          })}
-        </svg>
-
-        {/* X-axis labels */}
-        <div className="flex justify-between mt-2">
-          {data.map((d, i) => (
-            <span key={i} className="text-xs text-gray-600 dark:text-gray-400">{d.week}</span>
-          ))}
-        </div>
-      </div>
-    </div>
   );
 };
 
