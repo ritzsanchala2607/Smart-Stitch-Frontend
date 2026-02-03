@@ -2218,5 +2218,91 @@ export const adminAPI = {
                 error: error.message || 'Server error. Please try again later.'
             };
         }
+    },
+
+    /**
+     * Update shop details
+     * @param {number} shopId - Shop ID to update
+     * @param {Object} updateData - Shop and owner data to update
+     * @param {Object} updateData.shop - Shop details (shopName, shopAddress, etc.)
+     * @param {Object} updateData.owner - Owner details (name, email, contactNumber)
+     * @param {string} token - JWT token for authentication (admin role required)
+     * @returns {Promise} Response with update status
+     */
+    updateShop: async (shopId, updateData, token) => {
+        try {
+            console.log('API Request - URL:', `${API_URL}/api/admin/shops/${shopId}`);
+            console.log('API Request - Payload:', JSON.stringify(updateData, null, 2));
+
+            const response = await fetch(`${API_URL}/api/admin/shops/${shopId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(updateData)
+            });
+
+            console.log('API Response - Status:', response.status, response.statusText);
+
+            const data = await response.json();
+            console.log('API Response - Data:', data);
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to update shop');
+            }
+
+            return {
+                success: true,
+                data: data.data || null,
+                message: data.message || 'Shop updated successfully'
+            };
+        } catch (error) {
+            console.error('Update Shop API Error:', error);
+            return {
+                success: false,
+                error: error.message || 'Server error. Please try again later.'
+            };
+        }
+    },
+
+    /**
+     * Delete shop (cascade delete all related data)
+     * @param {number} shopId - Shop ID to delete
+     * @param {string} token - JWT token for authentication (admin role required)
+     * @returns {Promise} Response with deletion status
+     */
+    deleteShop: async (shopId, token) => {
+        try {
+            console.log('API Request - URL:', `${API_URL}/api/admin/shops/${shopId}`);
+
+            const response = await fetch(`${API_URL}/api/admin/shops/${shopId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            console.log('API Response - Status:', response.status, response.statusText);
+
+            const data = await response.json();
+            console.log('API Response - Data:', data);
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to delete shop');
+            }
+
+            return {
+                success: true,
+                data: data.data || null,
+                message: data.message || 'Shop and all related data deleted successfully'
+            };
+        } catch (error) {
+            console.error('Delete Shop API Error:', error);
+            return {
+                success: false,
+                error: error.message || 'Server error. Please try again later.'
+            };
+        }
     }
 };

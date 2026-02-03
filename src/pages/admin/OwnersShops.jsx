@@ -22,7 +22,10 @@ import {
   Package, 
   TrendingUp,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  Edit,
+  Trash2,
+  MoreVertical
 } from 'lucide-react';
 
 const OwnersShops = () => {
@@ -31,12 +34,15 @@ const OwnersShops = () => {
   const [error, setError] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [selectedShop, setSelectedShop] = useState(null);
   const [createdData, setCreatedData] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [actionMenuOpen, setActionMenuOpen] = useState(null);
 
   // Shops data from API
   const [shops, setShops] = useState([]);
@@ -107,6 +113,17 @@ const OwnersShops = () => {
     shopEmail: '',
     shopPhone: '',
     shopAddress: ''
+  });
+
+  // Form state for editing shop
+  const [editForm, setEditForm] = useState({
+    shopName: '',
+    shopEmail: '',
+    shopPhone: '',
+    shopAddress: '',
+    ownerName: '',
+    ownerEmail: '',
+    ownerPhone: ''
   });
 
   // Generate random password
@@ -261,6 +278,131 @@ const OwnersShops = () => {
   const handleViewShop = (shop) => {
     setSelectedShop(shop);
     setShowViewModal(true);
+    setActionMenuOpen(null);
+  };
+
+  // Handle edit shop
+  const handleEditShop = (shop) => {
+    setSelectedShop(shop);
+    setEditForm({
+      shopName: shop.shopName,
+      shopEmail: shop.email,
+      shopPhone: shop.phone,
+      shopAddress: shop.address,
+      ownerName: shop.ownerName,
+      ownerEmail: shop.email,
+      ownerPhone: shop.phone
+    });
+    setShowEditModal(true);
+    setActionMenuOpen(null);
+  };
+
+  // Handle delete shop
+  const handleDeleteShop = (shop) => {
+    setSelectedShop(shop);
+    setShowDeleteModal(true);
+    setActionMenuOpen(null);
+  };
+
+  // Confirm delete shop
+  const confirmDeleteShop = async () => {
+    try {
+      // Get token from localStorage
+      const userData = JSON.parse(localStorage.getItem('user') || '{}');
+      const token = userData.jwt || localStorage.getItem('token');
+
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      // Call backend API to delete shop
+      const response = await adminAPI.deleteShop(selectedShop.id, token);
+      
+      if (!response.success) {
+        throw new Error(response.error);
+      }
+      
+      // Remove from local state
+      setShops(shops.filter(shop => shop.id !== selectedShop.id));
+      setShowDeleteModal(false);
+      setSelectedShop(null);
+      
+      // Show success message
+      setCreatedData({
+        owner: { name: selectedShop.ownerName },
+        shop: { name: selectedShop.shopName }
+      });
+      setShowSuccessModal(true);
+    } catch (error) {
+      console.error('Delete shop error:', error);
+      setErrorMessage(error.message || 'Failed to delete shop');
+      setShowDeleteModal(false);
+      setShowErrorModal(true);
+    }
+  };
+
+  // Save edited shop
+  const handleSaveEdit = async () => {
+    try {
+      // Get token from localStorage
+      const userData = JSON.parse(localStorage.getItem('user') || '{}');
+      const token = userData.jwt || localStorage.getItem('token');
+
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      // Prepare update payload according to backend API format
+      const updatePayload = {
+        shop: {
+          shopName: editForm.shopName,
+          shopAddress: editForm.shopAddress,
+          shopEmail: editForm.shopEmail,
+          shopContactNumber: editForm.shopPhone
+        },
+        owner: {
+          name: editForm.ownerName,
+          email: editForm.ownerEmail,
+          contactNumber: editForm.ownerPhone
+        }
+      };
+
+      // Call backend API to update shop
+      const response = await adminAPI.updateShop(selectedShop.id, updatePayload, token);
+      
+      if (!response.success) {
+        throw new Error(response.error);
+      }
+      
+      // Update local state
+      setShops(shops.map(shop =>
+        shop.id === selectedShop.id
+          ? {
+              ...shop,
+              shopName: editForm.shopName,
+              email: editForm.ownerEmail,
+              phone: editForm.ownerPhone,
+              address: editForm.shopAddress,
+              ownerName: editForm.ownerName
+            }
+          : shop
+      ));
+      
+      setShowEditModal(false);
+      setSelectedShop(null);
+      
+      // Show success message
+      setCreatedData({
+        owner: { name: editForm.ownerName },
+        shop: { name: editForm.shopName }
+      });
+      setShowSuccessModal(true);
+    } catch (error) {
+      console.error('Update shop error:', error);
+      setErrorMessage(error.message || 'Failed to update shop');
+      setShowEditModal(false);
+      setShowErrorModal(true);
+    }
   };
 
   // Handle toggle shop status
@@ -411,15 +553,18 @@ const OwnersShops = () => {
                               <Eye className="w-4 h-4" />
                             </button>
                             <button
-                              onClick={() => handleToggleStatus(shop.id)}
-                              className={`p-2 rounded-lg transition-colors ${
-                                shop.status === 'Active'
-                                  ? 'text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30'
-                                  : 'text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/30'
-                              }`}
-                              title={shop.status === 'Active' ? 'Deactivate' : 'Activate'}
+                              onClick={() => handleEditShop(shop)}
+                              className="p-2 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-lg transition-colors"
+                              title="Edit Shop"
                             >
-                              {shop.status === 'Active' ? <XCircle className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />}
+                              <Edit className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteShop(shop)}
+                              className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+                              title="Delete Shop"
+                            >
+                              <Trash2 className="w-4 h-4" />
                             </button>
                           </div>
                         </td>
@@ -847,72 +992,88 @@ const OwnersShops = () => {
                     <CheckCircle className="w-8 h-8 text-white" />
                   </div>
                   <div>
-                    <h2 className="text-2xl font-bold text-white">Successfully Created!</h2>
-                    <p className="text-green-50">Owner account and shop have been created</p>
+                    <h2 className="text-2xl font-bold text-white">Success!</h2>
+                    <p className="text-green-50">Operation completed successfully</p>
                   </div>
                 </div>
               </div>
 
               {/* Success Body */}
               <div className="p-6 space-y-6">
-                {/* Owner Details */}
-                <div>
-                  <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
-                    <Users className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                    Owner Details
-                  </h3>
-                  <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600 dark:text-gray-400">Name:</span>
-                      <span className="font-semibold text-gray-900 dark:text-gray-100">{createdData.owner.name}</span>
+                {createdData.owner.password ? (
+                  // Show full details for new owner creation
+                  <>
+                    {/* Owner Details */}
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
+                        <Users className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                        Owner Details
+                      </h3>
+                      <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 space-y-3">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-gray-600 dark:text-gray-400">Name:</span>
+                          <span className="font-semibold text-gray-900 dark:text-gray-100">{createdData.owner.name}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-gray-600 dark:text-gray-400">Email:</span>
+                          <span className="font-semibold text-gray-900 dark:text-gray-100">{createdData.owner.email}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-gray-600 dark:text-gray-400">Phone:</span>
+                          <span className="font-semibold text-gray-900 dark:text-gray-100">{createdData.owner.phone}</span>
+                        </div>
+                        <div className="flex justify-between items-center pt-2 border-t border-blue-200 dark:border-blue-700">
+                          <span className="text-sm text-gray-600 dark:text-gray-400">Temporary Password:</span>
+                          <span className="font-mono font-semibold text-blue-600 dark:text-blue-400">{createdData.owner.password}</span>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600 dark:text-gray-400">Email:</span>
-                      <span className="font-semibold text-gray-900 dark:text-gray-100">{createdData.owner.email}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600 dark:text-gray-400">Phone:</span>
-                      <span className="font-semibold text-gray-900 dark:text-gray-100">{createdData.owner.phone}</span>
-                    </div>
-                    <div className="flex justify-between items-center pt-2 border-t border-blue-200 dark:border-blue-700">
-                      <span className="text-sm text-gray-600 dark:text-gray-400">Temporary Password:</span>
-                      <span className="font-mono font-semibold text-blue-600 dark:text-blue-400">{createdData.owner.password}</span>
-                    </div>
-                  </div>
-                </div>
 
-                {/* Shop Details */}
-                <div>
-                  <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
-                    <Store className="w-5 h-5 text-orange-600 dark:text-orange-400" />
-                    Shop Details
-                  </h3>
-                  <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-4 space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600 dark:text-gray-400">Shop Name:</span>
-                      <span className="font-semibold text-gray-900 dark:text-gray-100">{createdData.shop.name}</span>
+                    {/* Shop Details */}
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
+                        <Store className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                        Shop Details
+                      </h3>
+                      <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-4 space-y-3">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-gray-600 dark:text-gray-400">Shop Name:</span>
+                          <span className="font-semibold text-gray-900 dark:text-gray-100">{createdData.shop.name}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-gray-600 dark:text-gray-400">Shop Email:</span>
+                          <span className="font-semibold text-gray-900 dark:text-gray-100">{createdData.shop.email}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-gray-600 dark:text-gray-400">Shop Phone:</span>
+                          <span className="font-semibold text-gray-900 dark:text-gray-100">{createdData.shop.phone}</span>
+                        </div>
+                        <div className="pt-2 border-t border-orange-200 dark:border-orange-700">
+                          <span className="text-sm text-gray-600 dark:text-gray-400 block mb-1">Address:</span>
+                          <span className="font-semibold text-gray-900 dark:text-gray-100">{createdData.shop.address}</span>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600 dark:text-gray-400">Shop Email:</span>
-                      <span className="font-semibold text-gray-900 dark:text-gray-100">{createdData.shop.email}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600 dark:text-gray-400">Shop Phone:</span>
-                      <span className="font-semibold text-gray-900 dark:text-gray-100">{createdData.shop.phone}</span>
-                    </div>
-                    <div className="pt-2 border-t border-orange-200 dark:border-orange-700">
-                      <span className="text-sm text-gray-600 dark:text-gray-400 block mb-1">Address:</span>
-                      <span className="font-semibold text-gray-900 dark:text-gray-100">{createdData.shop.address}</span>
-                    </div>
-                  </div>
-                </div>
 
-                {/* Note */}
-                <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg p-4">
-                  <p className="text-sm text-yellow-800 dark:text-yellow-200">
-                    <strong>Note:</strong> Please share the login credentials with the owner. They should change their password after first login.
-                  </p>
-                </div>
+                    {/* Note */}
+                    <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg p-4">
+                      <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                        <strong>Note:</strong> Please share the login credentials with the owner. They should change their password after first login.
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  // Show simple success message for edit/delete
+                  <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 rounded-lg p-6 text-center">
+                    <CheckCircle className="w-16 h-16 text-green-600 dark:text-green-400 mx-auto mb-4" />
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+                      {createdData.shop.name}
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-400">
+                      Shop has been updated successfully
+                    </p>
+                  </div>
+                )}
 
                 {/* Close Button */}
                 <button
@@ -974,6 +1135,262 @@ const OwnersShops = () => {
                 >
                   Close
                 </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Edit Shop Modal */}
+      <AnimatePresence>
+        {showEditModal && selectedShop && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            onClick={() => setShowEditModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+            >
+              {/* Modal Header */}
+              <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between rounded-t-2xl z-10">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
+                    <Edit className="w-6 h-6 text-green-600 dark:text-green-400" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Edit Shop Details</h2>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Update shop and owner information</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowEditModal(false)}
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                >
+                  <X className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+                </button>
+              </div>
+
+              {/* Modal Body */}
+              <div className="p-6 space-y-6">
+                {/* Shop Details Section */}
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
+                    <Store className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                    Shop Details
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Shop Name <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={editForm.shopName}
+                        onChange={(e) => setEditForm({ ...editForm, shopName: e.target.value })}
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                        placeholder="Enter shop name"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Shop Email <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                        <input
+                          type="email"
+                          value={editForm.shopEmail}
+                          onChange={(e) => setEditForm({ ...editForm, shopEmail: e.target.value })}
+                          className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                          placeholder="shop@example.com"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Shop Contact Number <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                        <input
+                          type="tel"
+                          value={editForm.shopPhone}
+                          onChange={(e) => setEditForm({ ...editForm, shopPhone: e.target.value })}
+                          className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                          placeholder="9123456789"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Shop Address <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <MapPin className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+                        <textarea
+                          value={editForm.shopAddress}
+                          onChange={(e) => setEditForm({ ...editForm, shopAddress: e.target.value })}
+                          rows={3}
+                          className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                          placeholder="Enter complete shop address"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Owner Details Section */}
+                <div className="pt-6 border-t border-gray-200 dark:border-gray-700">
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
+                    <Users className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                    Owner Details
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Owner Name <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={editForm.ownerName}
+                        onChange={(e) => setEditForm({ ...editForm, ownerName: e.target.value })}
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                        placeholder="Enter owner's full name"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Owner Email <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                        <input
+                          type="email"
+                          value={editForm.ownerEmail}
+                          onChange={(e) => setEditForm({ ...editForm, ownerEmail: e.target.value })}
+                          className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                          placeholder="owner@example.com"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Owner Phone <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                        <input
+                          type="tel"
+                          value={editForm.ownerPhone}
+                          onChange={(e) => setEditForm({ ...editForm, ownerPhone: e.target.value })}
+                          className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                          placeholder="+91 98765 43210"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
+                  <button
+                    onClick={() => setShowEditModal(false)}
+                    className="flex-1 px-6 py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg transition-colors font-medium"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSaveEdit}
+                    className="flex-1 px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors font-medium flex items-center justify-center gap-2"
+                  >
+                    <CheckCircle className="w-5 h-5" />
+                    Save Changes
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Delete Confirmation Modal */}
+      <AnimatePresence>
+        {showDeleteModal && selectedShop && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            onClick={() => setShowDeleteModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full"
+            >
+              {/* Delete Header */}
+              <div className="bg-gradient-to-r from-red-500 to-red-600 px-6 py-4 rounded-t-2xl">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                    <Trash2 className="w-8 h-8 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold text-white">Delete Shop</h2>
+                    <p className="text-red-50">This action cannot be undone</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Delete Body */}
+              <div className="p-6 space-y-4">
+                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-lg p-4">
+                  <p className="text-red-800 dark:text-red-200 font-medium mb-2">
+                    Are you sure you want to delete this shop?
+                  </p>
+                  <div className="space-y-1 text-sm text-red-700 dark:text-red-300">
+                    <p><strong>Shop:</strong> {selectedShop.shopName}</p>
+                    <p><strong>Owner:</strong> {selectedShop.ownerName}</p>
+                    <p><strong>Total Orders:</strong> {selectedShop.totalOrders}</p>
+                    <p><strong>Total Workers:</strong> {selectedShop.totalWorkers}</p>
+                  </div>
+                </div>
+
+                <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg p-4">
+                  <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                    <strong>Warning:</strong> Deleting this shop will also remove all associated data including workers, orders, and customer information.
+                  </p>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-3 pt-2">
+                  <button
+                    onClick={() => setShowDeleteModal(false)}
+                    className="flex-1 px-6 py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg transition-colors font-medium"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={confirmDeleteShop}
+                    className="flex-1 px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors font-medium flex items-center justify-center gap-2"
+                  >
+                    <Trash2 className="w-5 h-5" />
+                    Delete Shop
+                  </button>
+                </div>
               </div>
             </motion.div>
           </motion.div>
