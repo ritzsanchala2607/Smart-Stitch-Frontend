@@ -449,7 +449,7 @@ const OwnerDashboard = () => {
               />
               <StatCard 
                 title="Monthly Revenue" 
-                value={`$${stats.totalRevenue.toLocaleString()}`} 
+                value={`₹${stats.totalRevenue.toLocaleString()}`} 
                 icon={DollarSign}
                 color="bg-green-500"
                 subtitle="This month"

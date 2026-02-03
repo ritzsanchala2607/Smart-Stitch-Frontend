@@ -176,7 +176,7 @@ const WorkerDetails = () => {
                     <DollarSign className="w-5 h-5 text-orange-500 mt-1" />
                     <div>
                       <p className="text-sm text-gray-600 dark:text-gray-400">Salary</p>
-                      <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">${worker.salary}</p>
+                      <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">₹{worker.salary}</p>
                     </div>
                   </div>
 
@@ -348,7 +348,7 @@ const WorkerDetails = () => {
                         </div>
 
                         <div className="flex flex-col items-end gap-2">
-                          <p className="text-lg font-bold text-gray-900 dark:text-gray-100">${order.totalAmount}</p>
+                          <p className="text-lg font-bold text-gray-900 dark:text-gray-100">₹{order.totalAmount}</p>
                           <span
                             className={`px-3 py-1 rounded-full text-xs font-medium ${
                               order.priority === 'high'

@@ -1140,7 +1140,7 @@ const Orders = () => {
                             </span>
                           </td>
                           <td className="px-6 py-4">
-                            <span className="font-semibold text-gray-900 dark:text-gray-100">${order.totalAmount}</span>
+                            <span className="font-semibold text-gray-900 dark:text-gray-100">₹{order.totalAmount}</span>
                           </td>
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-2">
@@ -1603,7 +1603,7 @@ const Orders = () => {
                   
                   <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg border-2 border-orange-500 dark:border-orange-600">
                     <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2">TOTAL AMOUNT</p>
-                    <p className="text-xl font-bold text-orange-600 dark:text-orange-500">${selectedOrderForView.totalAmount}</p>
+                    <p className="text-xl font-bold text-orange-600 dark:text-orange-500">₹{selectedOrderForView.totalAmount}</p>
                   </div>
                 </div>
 
@@ -1620,11 +1620,11 @@ const Orders = () => {
                         <div key={index} className="bg-white dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-orange-300 dark:hover:border-orange-700 transition-colors">
                           <div className="flex justify-between items-start mb-1">
                             <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{item.type}</p>
-                            <p className="text-sm font-bold text-gray-900 dark:text-gray-100">${item.quantity * item.price}</p>
+                            <p className="text-sm font-bold text-gray-900 dark:text-gray-100">₹{item.quantity * item.price}</p>
                           </div>
                           <div className="flex justify-between items-center text-xs text-gray-600 dark:text-gray-400">
                             <span>Fabric: {item.fabric}</span>
-                            <span>Qty: {item.quantity} × ${item.price}</span>
+                            <span>Qty: {item.quantity} × ₹{item.price}</span>
                           </div>
                         </div>
                       ))}
@@ -1642,15 +1642,15 @@ const Orders = () => {
                       <div className="space-y-2.5">
                         <div className="flex justify-between items-center p-2.5 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
                           <span className="text-sm text-gray-600 dark:text-gray-400">Total Amount</span>
-                          <span className="text-sm font-bold text-gray-900 dark:text-gray-100">${selectedOrderForView.totalAmount}</span>
+                          <span className="text-sm font-bold text-gray-900 dark:text-gray-100">₹{selectedOrderForView.totalAmount}</span>
                         </div>
                         <div className="flex justify-between items-center p-2.5 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
                           <span className="text-sm text-gray-600 dark:text-gray-400">Paid Amount</span>
-                          <span className="text-sm font-bold text-green-600 dark:text-green-500">${selectedOrderForView.paidAmount}</span>
+                          <span className="text-sm font-bold text-green-600 dark:text-green-500">₹{selectedOrderForView.paidAmount}</span>
                         </div>
                         <div className="flex justify-between items-center p-2.5 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
                           <span className="text-sm text-gray-600 dark:text-gray-400">Balance Due</span>
-                          <span className="text-sm font-bold text-orange-600 dark:text-orange-500">${selectedOrderForView.balanceAmount}</span>
+                          <span className="text-sm font-bold text-orange-600 dark:text-orange-500">₹{selectedOrderForView.balanceAmount}</span>
                         </div>
                       </div>
                     </div>

@@ -892,7 +892,7 @@ const Inventory = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                   <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                     <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Purchase Price</p>
-                    <p className="text-xl font-bold text-gray-900 dark:text-gray-100">${selectedItem.purchasePrice}</p>
+                    <p className="text-xl font-bold text-gray-900 dark:text-gray-100">₹{selectedItem.purchasePrice}</p>
                   </div>
                   <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                     <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Last Updated</p>

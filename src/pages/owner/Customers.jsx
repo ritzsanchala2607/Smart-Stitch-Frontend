@@ -1367,7 +1367,7 @@ const Customers = () => {
                   </div>
                   <div className="p-4 bg-green-50 dark:bg-green-900/30 rounded-lg">
                     <p className="text-sm text-gray-600 dark:text-gray-400">Total Spent</p>
-                    <p className="text-2xl font-bold text-green-600 dark:text-green-400">${selectedCustomerForView.totalSpent}</p>
+                    <p className="text-2xl font-bold text-green-600 dark:text-green-400">₹{selectedCustomerForView.totalSpent}</p>
                   </div>
                 </div>
 

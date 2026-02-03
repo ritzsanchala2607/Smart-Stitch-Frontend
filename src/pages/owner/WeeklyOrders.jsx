@@ -155,7 +155,7 @@ const WeeklyOrders = () => {
               />
               <StatCard
                 title="Total Revenue"
-                value={`$${totalRevenue.toLocaleString()}`}
+                value={`₹${totalRevenue.toLocaleString()}`}
                 icon={DollarSign}
                 color="bg-blue-500"
               />
@@ -170,7 +170,7 @@ const WeeklyOrders = () => {
                   </div>
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Average Order Value</h3>
                 </div>
-                <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">${avgOrderValue.toFixed(2)}</p>
+                <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">₹{avgOrderValue.toFixed(2)}</p>
                 <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Per order this week</p>
               </div>
 
