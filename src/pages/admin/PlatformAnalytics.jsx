@@ -1,7 +1,9 @@
+import { useState, useEffect } from 'react';
 import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
 import { motion } from 'framer-motion';
 import usePageTitle from '../../hooks/usePageTitle';
+import { adminAPI } from '../../services/api';
 import {
   BarChart3,
   TrendingUp,
@@ -9,7 +11,9 @@ import {
   Package,
   Store,
   Users,
-  Activity
+  Activity,
+  Loader2,
+  AlertCircle
 } from 'lucide-react';
 import {
   BarChart,
@@ -31,37 +35,62 @@ import {
 
 const PlatformAnalytics = () => {
   usePageTitle('Platform Analytics');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   
   // System Metrics Data
-  const systemMetrics = {
-    ordersToday: 45,
-    ordersThisWeek: 287,
-    ordersThisMonth: 1234,
-    avgOrdersPerShop: 27.4,
-    avgWorkersPerShop: 5.2
-  };
+  const [systemMetrics, setSystemMetrics] = useState({
+    ordersToday: 0,
+    ordersThisWeek: 0,
+    ordersThisMonth: 0,
+    averageOrdersPerShop: 0,
+    averageWorkersPerShop: 0
+  });
 
   // Orders vs Shops Growth Data
-  const ordersVsShopsGrowth = [
-    { month: 'Jan', orders: 320, shops: 35 },
-    { month: 'Feb', orders: 450, shops: 37 },
-    { month: 'Mar', orders: 580, shops: 39 },
-    { month: 'Apr', orders: 520, shops: 40 },
-    { month: 'May', orders: 670, shops: 42 },
-    { month: 'Jun', orders: 750, shops: 43 },
-    { month: 'Jul', orders: 820, shops: 45 }
-  ];
+  const [ordersVsShopsGrowth, setOrdersVsShopsGrowth] = useState([]);
 
   // Monthly Active Users Data
-  const monthlyActiveUsers = [
-    { month: 'Jan', owners: 32, workers: 180 },
-    { month: 'Feb', owners: 35, workers: 195 },
-    { month: 'Mar', owners: 37, workers: 205 },
-    { month: 'Apr', owners: 38, workers: 210 },
-    { month: 'May', owners: 40, workers: 220 },
-    { month: 'Jun', owners: 42, workers: 228 },
-    { month: 'Jul', owners: 43, workers: 234 }
-  ];
+  const [monthlyActiveUsers, setMonthlyActiveUsers] = useState([]);
+
+  // Fetch platform analytics on component mount
+  useEffect(() => {
+    const fetchAnalytics = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Get token from localStorage
+        const userData = JSON.parse(localStorage.getItem('user') || '{}');
+        const token = userData.jwt || localStorage.getItem('token');
+
+        if (!token) {
+          throw new Error('No authentication token found');
+        }
+
+        // Fetch platform analytics
+        const response = await adminAPI.getPlatformAnalytics(token);
+        if (!response.success) {
+          throw new Error(response.error);
+        }
+
+        const data = response.data;
+
+        // Update state with fetched data
+        setSystemMetrics(data.systemMetrics);
+        setOrdersVsShopsGrowth(data.ordersVsShopsGrowth);
+        setMonthlyActiveUsers(data.monthlyActiveUsers);
+
+      } catch (err) {
+        console.error('Error fetching platform analytics:', err);
+        setError(err.message || 'Failed to load analytics data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAnalytics();
+  }, []);
 
   // Orders Category Split Data
   const ordersCategorySplit = [
@@ -80,6 +109,49 @@ const PlatformAnalytics = () => {
     { range: '41-60 orders', shops: 12, color: '#10b981' },
     { range: '60+ orders', shops: 10, color: '#3b82f6' }
   ];
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
+        <Sidebar role="admin" />
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <Topbar />
+          <main className="flex-1 overflow-y-auto p-6 flex items-center justify-center">
+            <div className="text-center">
+              <Loader2 className="w-12 h-12 text-blue-600 dark:text-blue-400 animate-spin mx-auto mb-4" />
+              <p className="text-gray-600 dark:text-gray-400">Loading analytics data...</p>
+            </div>
+          </main>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
+        <Sidebar role="admin" />
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <Topbar />
+          <main className="flex-1 overflow-y-auto p-6 flex items-center justify-center">
+            <div className="text-center">
+              <AlertCircle className="w-12 h-12 text-red-600 dark:text-red-400 mx-auto mb-4" />
+              <p className="text-gray-900 dark:text-gray-100 font-semibold mb-2">Failed to load analytics</p>
+              <p className="text-gray-600 dark:text-gray-400">{error}</p>
+              <button
+                onClick={() => window.location.reload()}
+                className="mt-4 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+              >
+                Retry
+              </button>
+            </div>
+          </main>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
@@ -161,7 +233,7 @@ const PlatformAnalytics = () => {
                     <Store className="w-8 h-8 text-orange-600 dark:text-orange-400" />
                     <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Average</span>
                   </div>
-                  <h3 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-1">{systemMetrics.avgOrdersPerShop}</h3>
+                  <h3 className="text-3xl font-bold mb-1">{systemMetrics.averageOrdersPerShop}</h3>
                   <p className="text-sm text-gray-600 dark:text-gray-400">Orders Per Shop</p>
                 </motion.div>
 
@@ -174,7 +246,7 @@ const PlatformAnalytics = () => {
                     <Users className="w-8 h-8 text-indigo-600 dark:text-indigo-400" />
                     <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Average</span>
                   </div>
-                  <h3 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-1">{systemMetrics.avgWorkersPerShop}</h3>
+                  <h3 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-1">{systemMetrics.averageWorkersPerShop}</h3>
                   <p className="text-sm text-gray-600 dark:text-gray-400">Workers Per Shop</p>
                 </motion.div>
               </div>

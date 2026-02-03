@@ -2053,3 +2053,170 @@ export const shopAPI = {
         }
     }
 };
+
+/**
+ * API Service for admin endpoints
+ * Handles all admin-related requests to the backend
+ */
+export const adminAPI = {
+    /**
+     * Get admin dashboard overview
+     * @param {string} token - JWT token for authentication (admin role required)
+     * @returns {Promise} Response with platform statistics
+     */
+    getDashboard: async (token) => {
+        try {
+            console.log('API Request - URL:', `${API_URL}/api/admin/dashboard`);
+
+            const response = await fetch(`${API_URL}/api/admin/dashboard`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            console.log('API Response - Status:', response.status, response.statusText);
+
+            const data = await response.json();
+            console.log('API Response - Data:', data);
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to fetch admin dashboard');
+            }
+
+            return {
+                success: true,
+                data: data.data || data,
+                message: data.message || 'Dashboard data fetched successfully'
+            };
+        } catch (error) {
+            console.error('Admin Dashboard API Error:', error);
+            return {
+                success: false,
+                error: error.message || 'Server error. Please try again later.'
+            };
+        }
+    },
+
+    /**
+     * Get platform analytics
+     * @param {string} token - JWT token for authentication (admin role required)
+     * @returns {Promise} Response with platform analytics data
+     */
+    getPlatformAnalytics: async (token) => {
+        try {
+            console.log('API Request - URL:', `${API_URL}/api/admin/analytics/platform`);
+
+            const response = await fetch(`${API_URL}/api/admin/analytics/platform`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            console.log('API Response - Status:', response.status, response.statusText);
+
+            const data = await response.json();
+            console.log('API Response - Data:', data);
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to fetch platform analytics');
+            }
+
+            return {
+                success: true,
+                data: data.data || data,
+                message: data.message || 'Platform analytics fetched successfully'
+            };
+        } catch (error) {
+            console.error('Platform Analytics API Error:', error);
+            return {
+                success: false,
+                error: error.message || 'Server error. Please try again later.'
+            };
+        }
+    },
+
+    /**
+     * Get shop analytics
+     * @param {string} token - JWT token for authentication (admin role required)
+     * @returns {Promise} Response with shop analytics data
+     */
+    getShopAnalytics: async (token) => {
+        try {
+            console.log('API Request - URL:', `${API_URL}/api/admin/analytics/shops`);
+
+            const response = await fetch(`${API_URL}/api/admin/analytics/shops`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            console.log('API Response - Status:', response.status, response.statusText);
+
+            const data = await response.json();
+            console.log('API Response - Data:', data);
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to fetch shop analytics');
+            }
+
+            return {
+                success: true,
+                data: data.data || data,
+                message: data.message || 'Shop analytics fetched successfully'
+            };
+        } catch (error) {
+            console.error('Shop Analytics API Error:', error);
+            return {
+                success: false,
+                error: error.message || 'Server error. Please try again later.'
+            };
+        }
+    },
+
+    /**
+     * Get all shops
+     * @param {string} searchQuery - Optional search query for shop name or address
+     * @param {string} token - JWT token for authentication (admin role required)
+     * @returns {Promise} Response with shops list
+     */
+    getAllShops: async (searchQuery, token) => {
+        try {
+            const url = searchQuery ?
+                `${API_URL}/api/admin/shops?search=${encodeURIComponent(searchQuery)}` :
+                `${API_URL}/api/admin/shops`;
+
+            console.log('API Request - URL:', url);
+
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            console.log('API Response - Status:', response.status, response.statusText);
+
+            const data = await response.json();
+            console.log('API Response - Data:', data);
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to fetch shops');
+            }
+
+            return {
+                success: true,
+                data: data.data || data,
+                message: data.message || 'Shops fetched successfully'
+            };
+        } catch (error) {
+            console.error('Get All Shops API Error:', error);
+            return {
+                success: false,
+                error: error.message || 'Server error. Please try again later.'
+            };
+        }
+    }
+};

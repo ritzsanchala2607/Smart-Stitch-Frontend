@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
 import { motion, AnimatePresence } from 'framer-motion';
 import usePageTitle from '../../hooks/usePageTitle';
 import { API_URL } from '../../config';
+import { adminAPI } from '../../services/api';
 import {
   Store,
   Users,
@@ -19,11 +20,15 @@ import {
   RefreshCw,
   X,
   Package, 
-  TrendingUp
+  TrendingUp,
+  Loader2,
+  AlertCircle
 } from 'lucide-react';
 
 const OwnersShops = () => {
   usePageTitle('Owners & Shops');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -33,54 +38,64 @@ const OwnersShops = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Mock shops data
-  const [shops, setShops] = useState([
-    {
-      id: 1,
-      shopName: 'Elite Tailors',
-      ownerName: 'Rajesh Kumar',
-      email: 'rajesh@elitetailors.com',
-      phone: '+91 98765 43210',
-      city: 'Mumbai',
-      address: '123 Fashion Street, Andheri West, Mumbai - 400058',
-      gstNumber: '27AABCU9603R1ZM',
-      shopType: 'Tailoring',
-      totalOrders: 456,
-      totalWorkers: 8,
-      status: 'Active',
-      registrationDate: '2023-01-15'
-    },
-    {
-      id: 2,
-      shopName: 'Modern Stitching',
-      ownerName: 'Priya Sharma',
-      email: 'priya@modernstitching.com',
-      phone: '+91 98765 43211',
-      city: 'Delhi',
-      address: '456 Connaught Place, New Delhi - 110001',
-      gstNumber: '07AABCU9603R1ZN',
-      shopType: 'Both',
-      totalOrders: 678,
-      totalWorkers: 12,
-      status: 'Active',
-      registrationDate: '2023-02-20'
-    },
-    {
-      id: 3,
-      shopName: 'Classic Tailoring',
-      ownerName: 'Amit Patel',
-      email: 'amit@classictailoring.com',
-      phone: '+91 98765 43212',
-      city: 'Ahmedabad',
-      address: '789 CG Road, Ahmedabad - 380009',
-      gstNumber: '24AABCU9603R1ZO',
-      shopType: 'Showroom',
-      totalOrders: 234,
-      totalWorkers: 5,
-      status: 'Inactive',
-      registrationDate: '2023-03-10'
-    }
-  ]);
+  // Shops data from API
+  const [shops, setShops] = useState([]);
+
+  // Fetch shops data on component mount and when search changes
+  useEffect(() => {
+    const fetchShops = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Get token from localStorage
+        const userData = JSON.parse(localStorage.getItem('user') || '{}');
+        const token = userData.jwt || localStorage.getItem('token');
+
+        if (!token) {
+          throw new Error('No authentication token found');
+        }
+
+        // Fetch shops with optional search query
+        const response = await adminAPI.getAllShops(searchQuery, token);
+        if (!response.success) {
+          throw new Error(response.error);
+        }
+
+        // Transform API data to match component structure
+        const transformedShops = response.data.map(shop => ({
+          id: shop.shopId,
+          shopName: shop.shopName,
+          ownerName: shop.ownerName,
+          email: shop.ownerEmail,
+          phone: shop.ownerContact,
+          city: 'N/A', // Not provided by API
+          address: shop.shopAddress,
+          gstNumber: 'N/A', // Not provided by API
+          shopType: 'N/A', // Not provided by API
+          totalOrders: shop.totalOrders,
+          totalWorkers: shop.totalWorkers,
+          status: shop.isActive ? 'Active' : 'Inactive',
+          registrationDate: shop.createdAt || 'N/A'
+        }));
+
+        setShops(transformedShops);
+
+      } catch (err) {
+        console.error('Error fetching shops:', err);
+        setError(err.message || 'Failed to load shops data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    // Debounce search
+    const timeoutId = setTimeout(() => {
+      fetchShops();
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery]);
 
   // Form state for adding new owner/shop
   const [ownerForm, setOwnerForm] = useState({
@@ -257,12 +272,23 @@ const OwnersShops = () => {
     ));
   };
 
-  // Filter shops
-  const filteredShops = shops.filter(shop =>
-    shop.shopName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    shop.ownerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    shop.city.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Show loading state
+  if (loading && shops.length === 0) {
+    return (
+      <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
+        <Sidebar role="admin" />
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <Topbar />
+          <main className="flex-1 overflow-y-auto p-6 flex items-center justify-center">
+            <div className="text-center">
+              <Loader2 className="w-12 h-12 text-blue-600 dark:text-blue-400 animate-spin mx-auto mb-4" />
+              <p className="text-gray-600 dark:text-gray-400">Loading shops data...</p>
+            </div>
+          </main>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
@@ -333,7 +359,32 @@ const OwnersShops = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                    {filteredShops.map((shop) => (
+                    {loading ? (
+                      <tr>
+                        <td colSpan="5" className="px-6 py-8 text-center">
+                          <Loader2 className="w-8 h-8 text-blue-600 dark:text-blue-400 animate-spin mx-auto mb-2" />
+                          <p className="text-gray-600 dark:text-gray-400">Searching...</p>
+                        </td>
+                      </tr>
+                    ) : error ? (
+                      <tr>
+                        <td colSpan="5" className="px-6 py-8 text-center">
+                          <AlertCircle className="w-8 h-8 text-red-600 dark:text-red-400 mx-auto mb-2" />
+                          <p className="text-gray-900 dark:text-gray-100 font-semibold mb-1">Failed to load shops</p>
+                          <p className="text-gray-600 dark:text-gray-400">{error}</p>
+                        </td>
+                      </tr>
+                    ) : shops.length === 0 ? (
+                      <tr>
+                        <td colSpan="5" className="px-6 py-8 text-center">
+                          <Store className="w-12 h-12 text-gray-400 mx-auto mb-2" />
+                          <p className="text-gray-600 dark:text-gray-400">
+                            {searchQuery ? 'No shops found matching your search' : 'No shops registered yet'}
+                          </p>
+                        </td>
+                      </tr>
+                    ) : (
+                      shops.map((shop) => (
                       <tr key={shop.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
@@ -373,7 +424,8 @@ const OwnersShops = () => {
                           </div>
                         </td>
                       </tr>
-                    ))}
+                    ))
+                    )}
                   </tbody>
                 </table>
               </div>

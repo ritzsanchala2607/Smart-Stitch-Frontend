@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
 import { motion } from 'framer-motion';
 import usePageTitle from '../../hooks/usePageTitle';
+import { adminAPI } from '../../services/api';
 import {
   Store,
   Users,
@@ -15,7 +16,8 @@ import {
   Calendar,
   AlertCircle,
   CheckCircle,
-  XCircle
+  XCircle,
+  Loader2
 } from 'lucide-react';
 import {
   BarChart,
@@ -35,50 +37,106 @@ import {
 
 const AdminDashboard = () => {
   usePageTitle('Admin Dashboard');
-  // Mock data for KPI cards
-  const kpiData = {
-    totalShops: 45,
-    totalOwners: 45,
-    totalWorkers: 234,
-    totalOrders: 3456,
-    activeShops: 38,
-    systemGrowth: 23.5
-  };
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
+  // State for dashboard data
+  const [kpiData, setKpiData] = useState({
+    totalShops: 0,
+    totalOwners: 0,
+    totalWorkers: 0,
+    totalOrders: 0,
+    activeShops: 0,
+    systemGrowth: 0
+  });
+
+  const [kpiData, setKpiData] = useState({
+    totalShops: 0,
+    totalOwners: 0,
+    totalWorkers: 0,
+    totalOrders: 0,
+    activeShops: 0,
+    systemGrowth: 0
+  });
+
+  const [shopAnalytics, setShopAnalytics] = useState({
+    monthlyShopRegistrations: [],
+    monthlyOrdersProcessed: [],
+    shopStatusDistribution: { activeShops: 0, inactiveShops: 0 },
+    workersDistribution: {
+      shops1to3Workers: 0,
+      shops4to6Workers: 0,
+      shops7to10Workers: 0,
+      shops10PlusWorkers: 0
+    }
+  });
+
+  // Fetch dashboard data on component mount
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Get token from localStorage
+        const userData = JSON.parse(localStorage.getItem('user') || '{}');
+        const token = userData.jwt || localStorage.getItem('token');
+
+        if (!token) {
+          throw new Error('No authentication token found');
+        }
+
+        // Fetch dashboard overview
+        const dashboardResponse = await adminAPI.getDashboard(token);
+        if (!dashboardResponse.success) {
+          throw new Error(dashboardResponse.error);
+        }
+
+        // Fetch shop analytics
+        const analyticsResponse = await adminAPI.getShopAnalytics(token);
+        if (!analyticsResponse.success) {
+          throw new Error(analyticsResponse.error);
+        }
+
+        // Update state with fetched data
+        setKpiData(dashboardResponse.data);
+        setShopAnalytics(analyticsResponse.data);
+
+      } catch (err) {
+        console.error('Error fetching dashboard data:', err);
+        setError(err.message || 'Failed to load dashboard data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
 
   // Mock data for shops registered per month
-  const shopsPerMonth = [
-    { month: 'Jan', shops: 3 },
-    { month: 'Feb', shops: 5 },
-    { month: 'Mar', shops: 7 },
-    { month: 'Apr', shops: 6 },
-    { month: 'May', shops: 8 },
-    { month: 'Jun', shops: 10 },
-    { month: 'Jul', shops: 6 }
-  ];
+  const shopsPerMonth = shopAnalytics.monthlyShopRegistrations.map(item => ({
+    month: item.month,
+    shops: item.shopsRegistered
+  }));
 
   // Mock data for orders processed
-  const ordersPerMonth = [
-    { month: 'Jan', orders: 320 },
-    { month: 'Feb', orders: 450 },
-    { month: 'Mar', orders: 580 },
-    { month: 'Apr', orders: 520 },
-    { month: 'May', orders: 670 },
-    { month: 'Jun', orders: 750 },
-    { month: 'Jul', orders: 820 }
-  ];
+  const ordersPerMonth = shopAnalytics.monthlyOrdersProcessed.map(item => ({
+    month: item.month,
+    orders: item.ordersProcessed
+  }));
 
   // Mock data for shop status
   const shopStatus = [
-    { name: 'Active', value: 38, color: '#10b981' },
-    { name: 'Inactive', value: 7, color: '#ef4444' }
+    { name: 'Active', value: shopAnalytics.shopStatusDistribution.activeShops, color: '#10b981' },
+    { name: 'Inactive', value: shopAnalytics.shopStatusDistribution.inactiveShops, color: '#ef4444' }
   ];
 
   // Mock data for workers distribution
   const workersDistribution = [
-    { name: '1-3 Workers', value: 15, color: '#3b82f6' },
-    { name: '4-6 Workers', value: 18, color: '#8b5cf6' },
-    { name: '7-10 Workers', value: 8, color: '#f59e0b' },
-    { name: '10+ Workers', value: 4, color: '#10b981' }
+    { name: '1-3 Workers', value: shopAnalytics.workersDistribution.shops1to3Workers, color: '#3b82f6' },
+    { name: '4-6 Workers', value: shopAnalytics.workersDistribution.shops4to6Workers, color: '#8b5cf6' },
+    { name: '7-10 Workers', value: shopAnalytics.workersDistribution.shops7to10Workers, color: '#f59e0b' },
+    { name: '10+ Workers', value: shopAnalytics.workersDistribution.shops10PlusWorkers, color: '#10b981' }
   ];
 
   // Mock recent activities
@@ -124,6 +182,49 @@ const AdminDashboard = () => {
       color: 'green'
     }
   ];
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
+        <Sidebar role="admin" />
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <Topbar />
+          <main className="flex-1 overflow-y-auto p-6 flex items-center justify-center">
+            <div className="text-center">
+              <Loader2 className="w-12 h-12 text-blue-600 dark:text-blue-400 animate-spin mx-auto mb-4" />
+              <p className="text-gray-600 dark:text-gray-400">Loading dashboard data...</p>
+            </div>
+          </main>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
+        <Sidebar role="admin" />
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <Topbar />
+          <main className="flex-1 overflow-y-auto p-6 flex items-center justify-center">
+            <div className="text-center">
+              <AlertCircle className="w-12 h-12 text-red-600 dark:text-red-400 mx-auto mb-4" />
+              <p className="text-gray-900 dark:text-gray-100 font-semibold mb-2">Failed to load dashboard</p>
+              <p className="text-gray-600 dark:text-gray-400">{error}</p>
+              <button
+                onClick={() => window.location.reload()}
+                className="mt-4 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+              >
+                Retry
+              </button>
+            </div>
+          </main>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
