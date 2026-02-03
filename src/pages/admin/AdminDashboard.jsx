@@ -50,15 +50,6 @@ const AdminDashboard = () => {
     systemGrowth: 0
   });
 
-  const [kpiData, setKpiData] = useState({
-    totalShops: 0,
-    totalOwners: 0,
-    totalWorkers: 0,
-    totalOrders: 0,
-    activeShops: 0,
-    systemGrowth: 0
-  });
-
   const [shopAnalytics, setShopAnalytics] = useState({
     monthlyShopRegistrations: [],
     monthlyOrdersProcessed: [],
