@@ -29,6 +29,9 @@ const Orders = () => {
   const [editingOrder, setEditingOrder] = useState(null);
   const [showDeliverConfirm, setShowDeliverConfirm] = useState(false);
   const [orderToDeliver, setOrderToDeliver] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [orderToDelete, setOrderToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   
   // New Order Form State
   const [selectedCustomer, setSelectedCustomer] = useState(null);
@@ -451,7 +454,7 @@ const Orders = () => {
     }
 
     // Prepare order payload for API
-    const paidAmount = advancePayment ? Number(advancePayment) : 0;
+    const paidAmount = advancePayment && advancePayment.trim() !== '' ? Number(advancePayment) : 0;
     
     // Calculate payment status based on paid amount
     let paymentStatus = 'PENDING';
@@ -465,7 +468,7 @@ const Orders = () => {
       customerId: selectedCustomer.id,
       deadline: deliveryDate,
       totalPrice: totalAmount,
-      paidAmount: paidAmount, // Backend expects paidAmount
+      paidAmount: isNaN(paidAmount) ? 0 : paidAmount, // Ensure valid number, never null/NaN
       paymentStatus: paymentStatus, // Backend expects paymentStatus
       notes: notes || '', // Backend expects notes (not additionalNotes)
       items: orderItems.map(item => ({
@@ -755,7 +758,7 @@ const Orders = () => {
     }
 
     // Prepare order payload for API - use existing customer ID
-    const paidAmount = advancePayment ? Number(advancePayment) : 0;
+    const paidAmount = advancePayment && advancePayment.trim() !== '' ? Number(advancePayment) : 0;
     
     // Calculate payment status based on paid amount
     let paymentStatus = 'PENDING';
@@ -769,7 +772,7 @@ const Orders = () => {
       customerId: editingOrder.customerId, // Keep the original customer
       deadline: deliveryDate,
       totalPrice: totalAmount,
-      paidAmount: paidAmount, // Backend expects paidAmount
+      paidAmount: isNaN(paidAmount) ? 0 : paidAmount, // Ensure valid number, never null/NaN
       paymentStatus: paymentStatus, // Backend expects paymentStatus
       notes: notes || '', // Backend expects notes (not additionalNotes)
       status: orderStatus, // Include order status in update
@@ -814,13 +817,78 @@ const Orders = () => {
     }
   };
 
-  // Handle Delete Order
+  // Handle Delete Order - Show Modal
   const handleDeleteOrder = (orderId) => {
-    if (window.confirm('Are you sure you want to delete this order? This action cannot be undone.')) {
-      setOrders(prev => prev.filter(o => o.id !== orderId));
-      setSuccessMessage('Order deleted successfully! 🗑️');
+    const order = orders.find(o => o.id === orderId);
+    setOrderToDelete(order);
+    setShowDeleteModal(true);
+  };
+
+  // Cancel Delete
+  const cancelDelete = () => {
+    setShowDeleteModal(false);
+    setOrderToDelete(null);
+  };
+
+  // Confirm Delete Order
+  const confirmDelete = async () => {
+    if (!orderToDelete) return;
+
+    setIsDeleting(true);
+
+    // Get token
+    let token = localStorage.getItem('token');
+    if (!token) {
+      const userDataString = localStorage.getItem('user');
+      if (userDataString) {
+        try {
+          const userData = JSON.parse(userDataString);
+          token = userData.jwt || userData.token;
+        } catch (e) {
+          console.error('Error parsing user data:', e);
+        }
+      }
+    }
+
+    if (!token) {
+      setSuccessMessage('Authentication error. Please log in again.');
       setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 3000);
+      setTimeout(() => setShowSuccess(false), 5000);
+      setIsDeleting(false);
+      setShowDeleteModal(false);
+      return;
+    }
+
+    try {
+      console.log('Deleting order:', orderToDelete.orderId);
+      const result = await orderAPI.deleteOrder(orderToDelete.orderId, token);
+
+      if (result.success) {
+        // Remove from local state only after successful API call
+        setOrders(prev => prev.filter(o => o.id !== orderToDelete.id));
+        setSuccessMessage('Order deleted successfully! 🗑️');
+        setShowSuccess(true);
+        setTimeout(() => setShowSuccess(false), 3000);
+        
+        // Close modal
+        setShowDeleteModal(false);
+        setOrderToDelete(null);
+        
+        // Refresh orders from API
+        fetchOrders();
+      } else {
+        console.error('Failed to delete order:', result.error);
+        setSuccessMessage(`Failed to delete order: ${result.error}`);
+        setShowSuccess(true);
+        setTimeout(() => setShowSuccess(false), 5000);
+      }
+    } catch (error) {
+      console.error('Error deleting order:', error);
+      setSuccessMessage('An error occurred while deleting the order. Please try again.');
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 5000);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -1950,6 +2018,87 @@ const Orders = () => {
                 >
                   <CheckCircle className="w-5 h-5" />
                   Confirm
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Delete Confirmation Modal */}
+      <AnimatePresence>
+        {showDeleteModal && orderToDelete && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+            onClick={cancelDelete}
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full"
+            >
+              {/* Modal Header */}
+              <div className="bg-red-50 dark:bg-red-900/20 px-6 py-4 rounded-t-2xl border-b border-red-200 dark:border-red-800">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
+                    <AlertCircle className="w-6 h-6 text-red-600 dark:text-red-400" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-red-900 dark:text-red-100">Delete Order</h2>
+                    <p className="text-sm text-red-700 dark:text-red-300">This action cannot be undone</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Modal Body */}
+              <div className="p-6">
+                <p className="text-gray-700 dark:text-gray-300 mb-4">
+                  Are you sure you want to delete order <span className="font-semibold text-gray-900 dark:text-gray-100">{orderToDelete.id}</span> for customer <span className="font-semibold text-gray-900 dark:text-gray-100">{orderToDelete.customerName}</span>?
+                </p>
+                
+                <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 mb-4">
+                  <p className="text-sm text-yellow-800 dark:text-yellow-200 font-medium mb-2">
+                    ⚠️ This will permanently delete:
+                  </p>
+                  <ul className="text-sm text-yellow-700 dark:text-yellow-300 space-y-1 ml-4">
+                    <li>• Order details and items</li>
+                    <li>• Payment information</li>
+                    <li>• All associated tasks</li>
+                    <li>• Order history records</li>
+                  </ul>
+                </div>
+              </div>
+
+              {/* Modal Footer */}
+              <div className="flex gap-3 px-6 pb-6">
+                <button
+                  onClick={cancelDelete}
+                  disabled={isDeleting}
+                  className="flex-1 py-3 rounded-lg font-semibold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  No, Cancel
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  disabled={isDeleting}
+                  className="flex-1 py-3 rounded-lg font-semibold text-white bg-red-600 hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {isDeleting ? (
+                    <>
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                      Deleting...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="w-5 h-5" />
+                      Yes, Delete
+                    </>
+                  )}
                 </button>
               </div>
             </motion.div>

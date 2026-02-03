@@ -1573,6 +1573,58 @@ export const orderAPI = {
     },
 
     /**
+     * Delete an order
+     * @param {number} orderId - Order ID
+     * @param {string} token - JWT token for authentication
+     * @returns {Promise} Response with deletion result
+     */
+    deleteOrder: async (orderId, token) => {
+        try {
+            console.log('API Request - URL:', `${API_URL}/api/orders/${orderId}`);
+
+            const response = await fetch(`${API_URL}/api/orders/${orderId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            console.log('API Response - Status:', response.status, response.statusText);
+
+            // Handle both JSON and non-JSON responses
+            const contentType = response.headers.get('content-type');
+            let data = null;
+
+            if (contentType && contentType.includes('application/json')) {
+                data = await response.json();
+                console.log('API Response - Data:', data);
+            } else {
+                const text = await response.text();
+                console.log('API Response - Text:', text);
+                data = {
+                    message: text || 'Order deleted successfully'
+                };
+            }
+
+            if (!response.ok) {
+                throw new Error(data.message || data.error || 'Failed to delete order');
+            }
+
+            return {
+                success: true,
+                data: data.data || data,
+                message: data.message || 'Order deleted successfully'
+            };
+        } catch (error) {
+            console.error('Delete Order API Error:', error);
+            return {
+                success: false,
+                error: error.message || 'Server error. Please try again later.'
+            };
+        }
+    },
+
+    /**
      * Get order by ID
      * @param {number} orderId - Order ID
      * @param {string} token - JWT token for authentication
