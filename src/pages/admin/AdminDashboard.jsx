@@ -11,8 +11,6 @@ import {
   Package,
   TrendingUp,
   Activity,
-  BarChart3,
-  PieChart,
   Calendar,
   AlertCircle,
   CheckCircle,
@@ -20,18 +18,12 @@ import {
   Loader2
 } from 'lucide-react';
 import {
-  BarChart,
-  Bar,
   LineChart,
   Line,
-  PieChart as RePieChart,
-  Pie,
-  Cell,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer
 } from 'recharts';
 
@@ -52,14 +44,7 @@ const AdminDashboard = () => {
 
   const [shopAnalytics, setShopAnalytics] = useState({
     monthlyShopRegistrations: [],
-    monthlyOrdersProcessed: [],
-    shopStatusDistribution: { activeShops: 0, inactiveShops: 0 },
-    workersDistribution: {
-      shops1to3Workers: 0,
-      shops4to6Workers: 0,
-      shops7to10Workers: 0,
-      shops10PlusWorkers: 0
-    }
+    monthlyOrdersProcessed: []
   });
 
   // Fetch dashboard data on component mount
@@ -104,31 +89,17 @@ const AdminDashboard = () => {
     fetchDashboardData();
   }, []);
 
-  // Mock data for shops registered per month
-  const shopsPerMonth = shopAnalytics.monthlyShopRegistrations.map(item => ({
-    month: item.month,
-    shops: item.shopsRegistered
-  }));
+  // Data for orders processed (from API)
+  const ordersPerMonth = shopAnalytics.monthlyOrdersProcessed?.length > 0
+    ? shopAnalytics.monthlyOrdersProcessed.map(item => ({
+        month: item.month,
+        orders: item.ordersProcessed
+      }))
+    : [];
 
-  // Mock data for orders processed
-  const ordersPerMonth = shopAnalytics.monthlyOrdersProcessed.map(item => ({
-    month: item.month,
-    orders: item.ordersProcessed
-  }));
-
-  // Mock data for shop status
-  const shopStatus = [
-    { name: 'Active', value: shopAnalytics.shopStatusDistribution.activeShops, color: '#10b981' },
-    { name: 'Inactive', value: shopAnalytics.shopStatusDistribution.inactiveShops, color: '#ef4444' }
-  ];
-
-  // Mock data for workers distribution
-  const workersDistribution = [
-    { name: '1-3 Workers', value: shopAnalytics.workersDistribution.shops1to3Workers, color: '#3b82f6' },
-    { name: '4-6 Workers', value: shopAnalytics.workersDistribution.shops4to6Workers, color: '#8b5cf6' },
-    { name: '7-10 Workers', value: shopAnalytics.workersDistribution.shops7to10Workers, color: '#f59e0b' },
-    { name: '10+ Workers', value: shopAnalytics.workersDistribution.shops10PlusWorkers, color: '#10b981' }
-  ];
+  // Debug: Log the data
+  console.log('Shop Analytics Data:', shopAnalytics);
+  console.log('Orders Per Month:', ordersPerMonth);
 
   // Mock recent activities
   const recentActivities = [
@@ -328,106 +299,42 @@ const AdminDashboard = () => {
             </div>
 
             {/* Charts Section */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Shops Registered Per Month */}
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <BarChart3 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                  <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">Shops Registered Per Month</h2>
-                </div>
-                <ResponsiveContainer width="100%" height={250}>
-                  <BarChart data={shopsPerMonth}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                    <XAxis dataKey="month" stroke="#9ca3af" />
-                    <YAxis stroke="#9ca3af" />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: '#1f2937',
-                        border: 'none',
-                        borderRadius: '8px',
-                        color: '#fff'
-                      }}
-                    />
-                    <Bar dataKey="shops" fill="#3b82f6" radius={[8, 8, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-
+            <div className="grid grid-cols-1 gap-6">
               {/* Orders Processed */}
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
                 <div className="flex items-center gap-2 mb-4">
                   <TrendingUp className="w-5 h-5 text-green-600 dark:text-green-400" />
                   <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">Orders Processed (Monthly)</h2>
                 </div>
-                <ResponsiveContainer width="100%" height={250}>
-                  <LineChart data={ordersPerMonth}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                    <XAxis dataKey="month" stroke="#9ca3af" />
-                    <YAxis stroke="#9ca3af" />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: '#1f2937',
-                        border: 'none',
-                        borderRadius: '8px',
-                        color: '#fff'
-                      }}
-                    />
-                    <Line type="monotone" dataKey="orders" stroke="#10b981" strokeWidth={2} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-
-              {/* Shop Status Distribution */}
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <PieChart className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                  <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">Active vs Inactive Shops</h2>
-                </div>
-                <ResponsiveContainer width="100%" height={250}>
-                  <RePieChart>
-                    <Pie
-                      data={shopStatus}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={90}
-                      paddingAngle={5}
-                      dataKey="value"
-                    >
-                      {shopStatus.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                    <Legend />
-                  </RePieChart>
-                </ResponsiveContainer>
-              </div>
-
-              {/* Workers Distribution */}
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <Scissors className="w-5 h-5 text-orange-600 dark:text-orange-400" />
-                  <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">Workers Per Shop Distribution</h2>
-                </div>
-                <ResponsiveContainer width="100%" height={250}>
-                  <RePieChart>
-                    <Pie
-                      data={workersDistribution}
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={90}
-                      dataKey="value"
-                      label
-                    >
-                      {workersDistribution.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                    <Legend />
-                  </RePieChart>
-                </ResponsiveContainer>
+                {ordersPerMonth.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={250}>
+                    <LineChart data={ordersPerMonth}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                      <XAxis dataKey="month" stroke="#9ca3af" />
+                      <YAxis 
+                        stroke="#9ca3af" 
+                        allowDecimals={false}
+                        domain={[0, 'dataMax + 2']}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: '#1f2937',
+                          border: 'none',
+                          borderRadius: '8px',
+                          color: '#fff'
+                        }}
+                      />
+                      <Line type="monotone" dataKey="orders" stroke="#10b981" strokeWidth={2} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="h-[250px] flex items-center justify-center text-gray-500 dark:text-gray-400">
+                    <div className="text-center">
+                      <TrendingUp className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                      <p>No order processing data available</p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
