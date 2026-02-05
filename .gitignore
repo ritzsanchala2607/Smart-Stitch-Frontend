@@ -1,1 +1,8 @@
 node_modules
+
+# Ignore environment variable files
+.env
+.env.*
+
+# Ignore all Markdown files
+*.md
