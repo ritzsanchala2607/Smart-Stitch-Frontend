@@ -98,17 +98,23 @@ const Measurements = () => {
     if (response.success) {
       const fetchedProfiles = response.data || [];
       
+      // Log the raw API response for debugging
+      console.log('Raw API response for measurement profiles:', fetchedProfiles);
+      
       // Transform API data to match component structure
-      const transformedProfiles = fetchedProfiles.map(profile => ({
-        id: profile.profileId,
-        name: `${profile.dressType} Measurements`,
-        dressType: profile.dressType,
-        isDefault: profile.dressType === 'SHIRT',
-        createdAt: profile.createdAt?.split('T')[0] || 'N/A',
-        updatedAt: profile.updatedAt?.split('T')[0] || 'N/A',
-        notes: profile.notes || '',
-        measurements: transformMeasurements(profile.dressType, profile.measurements)
-      }));
+      const transformedProfiles = fetchedProfiles.map(profile => {
+        console.log(`Processing profile: ${profile.dressType}`, profile);
+        return {
+          id: profile.profileId,
+          name: `${profile.dressType} Measurements`,
+          dressType: profile.dressType,
+          isDefault: profile.dressType === 'SHIRT',
+          createdAt: profile.createdAt?.split('T')[0] || 'N/A',
+          updatedAt: profile.updatedAt?.split('T')[0] || 'N/A',
+          notes: profile.notes || '',
+          measurements: transformMeasurements(profile.dressType, profile.measurements)
+        };
+      });
 
       setProfiles(transformedProfiles);
       
@@ -136,7 +142,13 @@ const Measurements = () => {
       custom: []
     };
 
-    if (!measurements) return result;
+    if (!measurements) {
+      console.log(`No measurements found for ${dressType}`);
+      return result;
+    }
+
+    // Log the raw measurements for debugging
+    console.log(`Transforming ${dressType} measurements:`, measurements);
 
     // Map measurements based on dress type
     const dressTypeKey = dressType.toLowerCase();
@@ -171,19 +183,22 @@ const Measurements = () => {
         armhole: measurements.armhole || ''
       };
     } else if (dressTypeKey === 'kurta') {
-      result.kurta = {
+      const kurtaResult = {
         length: measurements.length || '',
         chest: measurements.chest || '',
         waist: measurements.waist || '',
         seatHips: measurements.hip || measurements.seatHips || '',
-        flare: measurements.flare || '',
+        flare: measurements.flare || measurements.circumference || '',
         shoulder: measurements.shoulder || '',
         armhole: measurements.armhole || '',
         sleeve: measurements.sleeve || measurements.sleeveLength || '',
-        bottomOpening: measurements.bottomOpening || '',
-        frontNeck: measurements.frontNeck || '',
-        backNeck: measurements.backNeck || ''
+        bottomOpening: measurements.bottomOpening || measurements.bottomopening || measurements.cuff || measurements.bottom || '',
+        frontNeck: measurements.frontNeck || measurements.frontneck || measurements.neckFront || measurements.neckfront || '',
+        backNeck: measurements.backNeck || measurements.backneck || measurements.neckBack || measurements.neckback || ''
       };
+      console.log('Kurta measurements from API:', measurements);
+      console.log('Kurta transformed result:', kurtaResult);
+      result.kurta = kurtaResult;
     } else if (dressTypeKey === 'dhoti') {
       result.dhoti = {
         length: measurements.length || '',
@@ -422,20 +437,27 @@ const Measurements = () => {
                               className="border-t border-gray-200 dark:border-gray-700"
                             >
                               <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {category.fields.map((field) => (
-                                  <div key={field.key}>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                      {field.label} <span className="text-gray-500 dark:text-gray-400">({field.unit})</span>
-                                    </label>
-                                    <input
-                                      type="text"
-                                      value={selectedProfile.measurements[categoryKey][field.key] || ''}
-                                      placeholder={field.placeholder}
-                                      disabled
-                                      className="w-full px-4 py-2 border dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 bg-gray-50"
-                                    />
-                                  </div>
-                                ))}
+                                {category.fields.map((field) => {
+                                  const fieldValue = selectedProfile.measurements[categoryKey][field.key] || '';
+                                  // Log for debugging
+                                  if (categoryKey === 'kurta' && (field.key === 'bottomOpening' || field.key === 'frontNeck' || field.key === 'backNeck')) {
+                                    console.log(`Kurta ${field.key} value:`, fieldValue, 'from:', selectedProfile.measurements[categoryKey]);
+                                  }
+                                  return (
+                                    <div key={field.key}>
+                                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        {field.label} <span className="text-gray-500 dark:text-gray-400">({field.unit})</span>
+                                      </label>
+                                      <input
+                                        type="text"
+                                        value={fieldValue}
+                                        placeholder={field.placeholder}
+                                        disabled
+                                        className="w-full px-4 py-2 border dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 bg-gray-50"
+                                      />
+                                    </div>
+                                  );
+                                })}
                               </div>
                             </motion.div>
                           )}
