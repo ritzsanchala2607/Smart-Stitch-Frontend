@@ -17,6 +17,7 @@ import { orders, inventory } from '../../data/dummyData';
 
 const WorkerStatistics = () => {
   usePageTitle('Statistics');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   // Mock worker ID
   const currentWorkerId = 'WORK001';
   const workerTasks = orders.filter(o => o.assignedWorker === currentWorkerId);
@@ -74,9 +75,9 @@ const WorkerStatistics = () => {
 
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
-      <Sidebar role="worker" />
+      <Sidebar role="worker" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Topbar />
+        <Topbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
         <main className="flex-1 overflow-y-auto p-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}

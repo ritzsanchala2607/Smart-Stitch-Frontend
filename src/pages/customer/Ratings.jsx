@@ -8,6 +8,7 @@ import { customerAPI, ratingAPI } from '../../services/api';
 
 const Ratings = () => {
   usePageTitle('Ratings & Reviews');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const [activeTab, setActiveTab] = useState('shop'); // 'shop' or 'workers'
   const [showSuccess, setShowSuccess] = useState(false);
@@ -353,10 +354,10 @@ const Ratings = () => {
 
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
-      <Sidebar role="customer" />
+      <Sidebar role="customer" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Topbar />
+        <Topbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
         
         <main className="flex-1 overflow-y-auto p-6">
           <motion.div

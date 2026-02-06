@@ -11,6 +11,7 @@ import { useState } from 'react';
 
 const Inventory = () => {
   usePageTitle('Inventory');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [inventoryItems, setInventoryItems] = useState([
     {
       id: 'INV001',
@@ -253,9 +254,9 @@ const Inventory = () => {
 
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
-      <Sidebar role="owner" />
+      <Sidebar role="owner" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Topbar />
+        <Topbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
         <main className="flex-1 overflow-y-auto p-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}

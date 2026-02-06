@@ -13,6 +13,7 @@ import { ratingAPI, workerAPI } from '../../services/api';
 
 const Ratings = () => {
   usePageTitle('Ratings & Feedback');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('overview'); // overview, feedback, workers, complaints
   const [filterRating, setFilterRating] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -387,10 +388,10 @@ const Ratings = () => {
 
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
-      <Sidebar role="owner" />
+      <Sidebar role="owner" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Topbar />
+        <Topbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
         
         <main className="flex-1 overflow-y-auto p-6">
           <motion.div

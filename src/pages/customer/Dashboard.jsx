@@ -18,6 +18,7 @@ import { customerAPI } from '../../services/api';
 const Dashboard = () => {
   usePageTitle('Dashboard');
   const navigate = useNavigate();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const [statsLoading, setStatsLoading] = useState(true);
   const [ordersLoading, setOrdersLoading] = useState(true);

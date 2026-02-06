@@ -10,6 +10,7 @@ import { orderAPI } from '../../services/api';
 const PendingWork = () => {
   usePageTitle('Pending Work');
   const navigate = useNavigate();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   
   const [pendingOrders, setPendingOrders] = useState([]);
   const [isLoadingOrders, setIsLoadingOrders] = useState(false);
@@ -122,10 +123,10 @@ const PendingWork = () => {
 
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
-      <Sidebar role="owner" />
+      <Sidebar role="owner" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Topbar />
+        <Topbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
         
         <main className="flex-1 overflow-y-auto p-6">
           <motion.div

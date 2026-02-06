@@ -19,6 +19,7 @@ import { workerAPI } from '../../services/api';
 
 const WorkerProgress = () => {
   usePageTitle('Work Progress');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   
   // State management
   const [isLoading, setIsLoading] = useState(true);
@@ -172,9 +173,9 @@ const WorkerProgress = () => {
   if (isLoading) {
     return (
       <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
-        <Sidebar role="worker" />
+        <Sidebar role="worker" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         <div className="flex-1 flex flex-col overflow-hidden">
-          <Topbar />
+          <Topbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
           <main className="flex-1 overflow-y-auto p-6 flex items-center justify-center">
             <div className="text-center">
               <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-500 mx-auto mb-4"></div>
@@ -190,9 +191,9 @@ const WorkerProgress = () => {
   if (error) {
     return (
       <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
-        <Sidebar role="worker" />
+        <Sidebar role="worker" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         <div className="flex-1 flex flex-col overflow-hidden">
-          <Topbar />
+          <Topbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
           <main className="flex-1 overflow-y-auto p-6 flex items-center justify-center">
             <div className="text-center">
               <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
@@ -212,9 +213,9 @@ const WorkerProgress = () => {
 
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
-      <Sidebar role="worker" />
+      <Sidebar role="worker" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Topbar />
+        <Topbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
         <main className="flex-1 overflow-y-auto p-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}

@@ -23,6 +23,7 @@ import { workers, orders } from '../../data/dummyData';
 const WorkerDetails = () => {
   usePageTitle('Worker Details');
   const { id } = useParams();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
   const [worker, setWorker] = useState(null);
   const [assignedOrders, setAssignedOrders] = useState([]);
@@ -54,9 +55,9 @@ const WorkerDetails = () => {
   if (!worker) {
     return (
       <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
-        <Sidebar />
+        <Sidebar role="owner" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         <div className="flex-1 flex flex-col">
-          <Topbar />
+          <Topbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
           <main className="flex-1 overflow-y-auto p-6">
             <div className="flex items-center justify-center h-full">
               <p className="text-gray-500">Loading worker details...</p>
@@ -69,9 +70,9 @@ const WorkerDetails = () => {
 
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
-      <Sidebar />
+      <Sidebar role="owner" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex-1 flex flex-col">
-        <Topbar />
+        <Topbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
         <main className="flex-1 overflow-y-auto p-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}

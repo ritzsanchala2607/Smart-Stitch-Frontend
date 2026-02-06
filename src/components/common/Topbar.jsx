@@ -73,13 +73,15 @@ const Topbar = ({ onMenuClick }) => {
     <motion.div
       initial={{ y: -50, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between shadow-sm"
+      className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between shadow-sm relative z-30"
     >
       {/* Left Side */}
       <div className="flex items-center gap-4 flex-1">
         <button 
           onClick={onMenuClick}
           className="lg:hidden p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+          aria-label="Toggle menu"
+          type="button"
         >
           <Menu className="w-6 h-6 text-gray-600 dark:text-gray-300" />
         </button>

@@ -31,18 +31,6 @@ import { useAuth } from '../../context/AuthContext';
 const Sidebar = ({ role, isOpen, onClose }) => {
   const location = useLocation();
   const { logout } = useAuth();
-  const [isMobile, setIsMobile] = useState(false);
-
-  // Detect mobile screen size
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 1024);
-    };
-    
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
 
   const ownerMenuItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/owner/dashboard' },
@@ -98,16 +86,16 @@ const Sidebar = ({ role, isOpen, onClose }) => {
 
   // Close sidebar when route changes on mobile
   useEffect(() => {
-    if (isMobile && onClose) {
+    if (onClose) {
       onClose();
     }
-  }, [location.pathname, isMobile, onClose]);
+  }, [location.pathname]);
 
   return (
     <>
       {/* Overlay for mobile */}
       <AnimatePresence>
-        {isMobile && isOpen && (
+        {isOpen && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -118,76 +106,80 @@ const Sidebar = ({ role, isOpen, onClose }) => {
         )}
       </AnimatePresence>
 
-      {/* Sidebar */}
-      <motion.div
-        initial={isMobile ? { x: -280 } : { x: 0 }}
-        animate={isMobile ? { x: isOpen ? 0 : -280 } : { x: 0 }}
-        transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+      {/* Sidebar - Desktop: always visible, Mobile: slide in/out */}
+      <div
         className={`
-          ${isMobile ? 'fixed' : 'relative'}
-          w-64 bg-gradient-to-b from-[#004E89] to-[#003366] dark:from-gray-900 dark:to-gray-950 text-white h-screen flex flex-col shadow-2xl z-50
+          fixed lg:relative
+          top-0 left-0
+          w-64 h-screen
+          bg-gradient-to-b from-[#004E89] to-[#003366] dark:from-gray-900 dark:to-gray-950 
+          text-white
+          flex flex-col
+          shadow-2xl
+          z-50
+          transform transition-transform duration-300 ease-in-out
+          ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         `}
       >
         {/* Close button for mobile */}
-        {isMobile && (
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 p-2 hover:bg-white/10 rounded-lg transition-colors lg:hidden"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        )}
-      {/* Logo */}
-      <div className="p-6 border-b border-white/10 dark:border-gray-800">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 dark:from-orange-600 dark:to-orange-700 rounded-lg flex items-center justify-center">
-            <Scissors className="w-6 h-6 text-white" />
-          </div>
-          <div>
-            <h1 className="text-xl font-bold text-white">Smart Stitch</h1>
-            <p className="text-xs text-orange-300 dark:text-orange-400 capitalize">{role} Panel</p>
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 p-2 hover:bg-white/10 rounded-lg transition-colors lg:hidden"
+        >
+          <X className="w-5 h-5" />
+        </button>
+
+        {/* Logo */}
+        <div className="p-6 border-b border-white/10 dark:border-gray-800">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 dark:from-orange-600 dark:to-orange-700 rounded-lg flex items-center justify-center">
+              <Scissors className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-white">Smart Stitch</h1>
+              <p className="text-xs text-orange-300 dark:text-orange-400 capitalize">{role} Panel</p>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Menu Items */}
-      <nav className="flex-1 overflow-y-auto py-4 px-3">
-        {menuItems.map((item, index) => {
-          const Icon = item.icon;
-          const active = isActive(item.path);
-          
-          return (
-            <Link key={index} to={item.path}>
-              <motion.div
-                whileHover={{ scale: 1.02, x: 5 }}
-                whileTap={{ scale: 0.98 }}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg mb-2 transition-all ${
-                  active
-                    ? 'bg-orange-500 dark:bg-orange-600 text-white shadow-lg'
-                    : 'text-white/80 dark:text-gray-300 hover:bg-white/10 dark:hover:bg-gray-800'
-                }`}
-              >
-                <Icon className="w-5 h-5" />
-                <span className="font-medium">{item.label}</span>
-              </motion.div>
-            </Link>
-          );
-        })}
-      </nav>
+        {/* Menu Items */}
+        <nav className="flex-1 overflow-y-auto py-4 px-3">
+          {menuItems.map((item, index) => {
+            const Icon = item.icon;
+            const active = isActive(item.path);
+            
+            return (
+              <Link key={index} to={item.path} onClick={onClose}>
+                <motion.div
+                  whileHover={{ scale: 1.02, x: 5 }}
+                  whileTap={{ scale: 0.98 }}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-lg mb-2 transition-all ${
+                    active
+                      ? 'bg-orange-500 dark:bg-orange-600 text-white shadow-lg'
+                      : 'text-white/80 dark:text-gray-300 hover:bg-white/10 dark:hover:bg-gray-800'
+                  }`}
+                >
+                  <Icon className="w-5 h-5" />
+                  <span className="font-medium">{item.label}</span>
+                </motion.div>
+              </Link>
+            );
+          })}
+        </nav>
 
-      {/* Logout Button */}
-      <div className="p-4 border-t border-white/10 dark:border-gray-800">
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={logout}
-          className="flex items-center gap-3 px-4 py-3 rounded-lg w-full text-white/80 dark:text-gray-300 hover:bg-red-500/20 dark:hover:bg-red-900/30 hover:text-red-300 dark:hover:text-red-400 transition-all"
-        >
-          <LogOut className="w-5 h-5" />
-          <span className="font-medium">Logout</span>
-        </motion.button>
+        {/* Logout Button */}
+        <div className="p-4 border-t border-white/10 dark:border-gray-800">
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={logout}
+            className="flex items-center gap-3 px-4 py-3 rounded-lg w-full text-white/80 dark:text-gray-300 hover:bg-red-500/20 dark:hover:bg-red-900/30 hover:text-red-300 dark:hover:text-red-400 transition-all"
+          >
+            <LogOut className="w-5 h-5" />
+            <span className="font-medium">Logout</span>
+          </motion.button>
+        </div>
       </div>
-      </motion.div>
     </>
   );
 };

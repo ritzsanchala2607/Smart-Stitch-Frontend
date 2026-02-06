@@ -10,6 +10,7 @@ import usePageTitle from '../../hooks/usePageTitle';
 
 const Chat = () => {
   usePageTitle('Chat');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedWorker, setSelectedWorker] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [messageInput, setMessageInput] = useState('');
@@ -239,10 +240,10 @@ const Chat = () => {
 
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
-      <Sidebar role="owner" />
+      <Sidebar role="owner" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Topbar />
+        <Topbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
         
         <main className="flex-1 overflow-hidden flex">
           {/* Left Sidebar - Worker List */}

@@ -22,6 +22,7 @@ const Measurements = () => {
   const [profiles, setProfiles] = useState([]);
   const [selectedProfile, setSelectedProfile] = useState(null);
   const [expandedCategory, setExpandedCategory] = useState('shirt');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Get token from localStorage
   const getToken = () => {
@@ -99,11 +100,16 @@ const Measurements = () => {
       const fetchedProfiles = response.data || [];
       
       // Log the raw API response for debugging
-      console.log('Raw API response for measurement profiles:', fetchedProfiles);
+      console.log('=== RAW API RESPONSE ===');
+      console.log('Number of profiles:', fetchedProfiles.length);
+      console.log('Full response data:', JSON.stringify(fetchedProfiles, null, 2));
+      console.log('=== END RAW API RESPONSE ===');
       
       // Transform API data to match component structure
       const transformedProfiles = fetchedProfiles.map(profile => {
-        console.log(`Processing profile: ${profile.dressType}`, profile);
+        console.log(`\n=== Processing profile: ${profile.dressType} ===`);
+        console.log('Profile ID:', profile.profileId);
+        console.log('Measurements object:', profile.measurements);
         return {
           id: profile.profileId,
           name: `${profile.dressType} Measurements`,
@@ -183,21 +189,58 @@ const Measurements = () => {
         armhole: measurements.armhole || ''
       };
     } else if (dressTypeKey === 'kurta') {
+      // Log all available keys in measurements object for debugging
+      console.log('=== KURTA MEASUREMENT DEBUGGING ===');
+      console.log('All measurement keys:', Object.keys(measurements));
+      console.log('Full measurements object:', JSON.stringify(measurements, null, 2));
+      
       const kurtaResult = {
         length: measurements.length || '',
         chest: measurements.chest || '',
         waist: measurements.waist || '',
-        seatHips: measurements.hip || measurements.seatHips || '',
+        seatHips: measurements.hip || measurements.seatHips || measurements.seat || '',
         flare: measurements.flare || measurements.circumference || '',
         shoulder: measurements.shoulder || '',
         armhole: measurements.armhole || '',
         sleeve: measurements.sleeve || measurements.sleeveLength || '',
-        bottomOpening: measurements.bottomOpening || measurements.bottomopening || measurements.cuff || measurements.bottom || '',
-        frontNeck: measurements.frontNeck || measurements.frontneck || measurements.neckFront || measurements.neckfront || '',
-        backNeck: measurements.backNeck || measurements.backneck || measurements.neckBack || measurements.neckback || ''
+        // Try all possible variations of bottomOpening
+        bottomOpening: measurements.bottomOpening || measurements.bottomopening || 
+                      measurements.bottom_opening || measurements.cuff || 
+                      measurements.bottom || measurements.bottomCuff || '',
+        // Try all possible variations of frontNeck
+        frontNeck: measurements.frontNeck || measurements.frontneck || 
+                  measurements.front_neck || measurements.neckFront || 
+                  measurements.neckfront || measurements.neck_front || '',
+        // Try all possible variations of backNeck
+        backNeck: measurements.backNeck || measurements.backneck || 
+                 measurements.back_neck || measurements.neckBack || 
+                 measurements.neckback || measurements.neck_back || ''
       };
-      console.log('Kurta measurements from API:', measurements);
-      console.log('Kurta transformed result:', kurtaResult);
+      
+      console.log('Kurta field mapping results:');
+      console.log('  bottomOpening:', kurtaResult.bottomOpening, '(from:', 
+        measurements.bottomOpening ? 'bottomOpening' :
+        measurements.bottomopening ? 'bottomopening' :
+        measurements.bottom_opening ? 'bottom_opening' :
+        measurements.cuff ? 'cuff' :
+        measurements.bottom ? 'bottom' :
+        measurements.bottomCuff ? 'bottomCuff' : 'NOT FOUND', ')');
+      console.log('  frontNeck:', kurtaResult.frontNeck, '(from:', 
+        measurements.frontNeck ? 'frontNeck' :
+        measurements.frontneck ? 'frontneck' :
+        measurements.front_neck ? 'front_neck' :
+        measurements.neckFront ? 'neckFront' :
+        measurements.neckfront ? 'neckfront' :
+        measurements.neck_front ? 'neck_front' : 'NOT FOUND', ')');
+      console.log('  backNeck:', kurtaResult.backNeck, '(from:', 
+        measurements.backNeck ? 'backNeck' :
+        measurements.backneck ? 'backneck' :
+        measurements.back_neck ? 'back_neck' :
+        measurements.neckBack ? 'neckBack' :
+        measurements.neckback ? 'neckback' :
+        measurements.neck_back ? 'neck_back' : 'NOT FOUND', ')');
+      console.log('=== END KURTA DEBUGGING ===');
+      
       result.kurta = kurtaResult;
     } else if (dressTypeKey === 'dhoti') {
       result.dhoti = {
@@ -284,10 +327,10 @@ const Measurements = () => {
 
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
-      <Sidebar role="customer" />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <Topbar />
-        <main className="flex-1 overflow-y-auto p-6">
+      <Sidebar role="customer" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <div className="flex-1 flex flex-col overflow-hidden relative">
+        <Topbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
+        <main className="flex-1 overflow-y-auto p-6 relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -439,9 +482,18 @@ const Measurements = () => {
                               <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {category.fields.map((field) => {
                                   const fieldValue = selectedProfile.measurements[categoryKey][field.key] || '';
-                                  // Log for debugging
+                                  // Enhanced logging for debugging
                                   if (categoryKey === 'kurta' && (field.key === 'bottomOpening' || field.key === 'frontNeck' || field.key === 'backNeck')) {
-                                    console.log(`Kurta ${field.key} value:`, fieldValue, 'from:', selectedProfile.measurements[categoryKey]);
+                                    console.log(`\n=== DISPLAY DEBUGGING for ${field.key} ===`);
+                                    console.log('Category:', categoryKey);
+                                    console.log('Field key:', field.key);
+                                    console.log('Field label:', field.label);
+                                    console.log('All measurements for category:', selectedProfile.measurements[categoryKey]);
+                                    console.log('Field value:', fieldValue);
+                                    console.log('Field value type:', typeof fieldValue);
+                                    console.log('Field value length:', fieldValue ? fieldValue.length : 0);
+                                    console.log('Is empty string?', fieldValue === '');
+                                    console.log('=== END DISPLAY DEBUGGING ===\n');
                                   }
                                   return (
                                     <div key={field.key}>

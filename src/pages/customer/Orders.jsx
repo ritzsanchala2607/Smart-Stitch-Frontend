@@ -29,6 +29,7 @@ import { customerAPI } from '../../services/api';
 
 const Orders = () => {
   usePageTitle('My Orders');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // State management
   const [orders, setOrders] = useState([]);
@@ -196,9 +197,9 @@ const Orders = () => {
 
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
-      <Sidebar role="customer" />
+      <Sidebar role="customer" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Topbar />
+        <Topbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
         <main className="flex-1 overflow-y-auto p-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}

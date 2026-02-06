@@ -18,6 +18,7 @@ import {
 
 const WorkerChat = () => {
   usePageTitle('Chat');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedChat, setSelectedChat] = useState('owner');
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState({
@@ -214,9 +215,9 @@ const WorkerChat = () => {
 
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
-      <Sidebar role="worker" />
+      <Sidebar role="worker" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Topbar />
+        <Topbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
         <main className="flex-1 overflow-hidden">
           <div className="h-full flex">
             {/* Chat List Sidebar */}
