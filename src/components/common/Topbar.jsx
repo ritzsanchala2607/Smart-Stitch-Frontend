@@ -197,7 +197,18 @@ const Topbar = ({ onMenuClick }) => {
               <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{user?.name}</p>
               <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">{user?.role}</p>
             </div>
-            <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center">
+            {user?.profilePicture ? (
+              <img 
+                src={user.profilePicture} 
+                alt={user.name}
+                className="w-10 h-10 rounded-full object-cover"
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                  e.target.nextSibling.style.display = 'flex';
+                }}
+              />
+            ) : null}
+            <div className={`w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center ${user?.profilePicture ? 'hidden' : ''}`}>
               <User className="w-6 h-6 text-white" />
             </div>
           </motion.button>

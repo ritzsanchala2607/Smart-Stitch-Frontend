@@ -7,7 +7,7 @@ import {
   Package, Users, DollarSign, AlertCircle, CheckCircle, Clock, UserCog,
   Scissors, TrendingUp, Calendar, MessageSquare, Star, Search, X,
   ShoppingBag, FileText, BarChart3, Activity, Bell, ChevronRight,
-  Eye, Zap, Box, AlertTriangle
+  Eye, Zap, Box, AlertTriangle, User
 } from 'lucide-react';
 import { dashboardStats, orders, workers, customers, inventory, notifications, reviews } from '../../data/dummyData';
 import { useNavigate } from 'react-router-dom';
@@ -244,9 +244,9 @@ const OwnerDashboard = () => {
 
   // Mock chat messages
   const recentMessages = [
-    { id: 1, worker: 'Mike Tailor', message: 'Order #ORD001 is ready for fitting', time: '5 min ago', avatar: 'https://i.pravatar.cc/150?img=12' },
-    { id: 2, worker: 'Sarah Stitcher', message: 'Need more silk fabric for ORD002', time: '15 min ago', avatar: 'https://i.pravatar.cc/150?img=45' },
-    { id: 3, worker: 'David Designer', message: 'Customer approved the design', time: '1 hour ago', avatar: 'https://i.pravatar.cc/150?img=33' }
+    { id: 1, worker: 'Mike Tailor', message: 'Order #ORD001 is ready for fitting', time: '5 min ago', avatar: null },
+    { id: 2, worker: 'Sarah Stitcher', message: 'Need more silk fabric for ORD002', time: '15 min ago', avatar: null },
+    { id: 3, worker: 'David Designer', message: 'Customer approved the design', time: '1 hour ago', avatar: null }
   ];
 
   // Order timeline
@@ -729,11 +729,17 @@ const OwnerDashboard = () => {
                   <div className="space-y-3">
                     {recentMessages.map((msg) => (
                       <div key={msg.id} className="flex items-start gap-3 p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg cursor-pointer">
-                        <img 
-                          src={msg.avatar} 
-                          alt={msg.worker}
-                          className="w-10 h-10 rounded-full"
-                        />
+                        {msg.avatar ? (
+                          <img 
+                            src={msg.avatar} 
+                            alt={msg.worker}
+                            className="w-10 h-10 rounded-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center">
+                            <User className="w-5 h-5 text-gray-400 dark:text-gray-500" />
+                          </div>
+                        )}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between mb-1">
                             <span className="font-medium text-sm text-gray-900 dark:text-gray-100">{msg.worker}</span>

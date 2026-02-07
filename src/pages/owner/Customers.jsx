@@ -2,7 +2,7 @@ import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
 import { motion, AnimatePresence } from 'framer-motion';
 import usePageTitle from '../../hooks/usePageTitle';
-import { UserPlus, X, Upload, CheckCircle, Search, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { UserPlus, X, Upload, CheckCircle, Search, Eye, EyeOff, AlertCircle, User } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { validateCustomerForm } from '../../utils/validation';
 import CustomerCard from '../../components/common/CustomerCard';
@@ -151,7 +151,7 @@ const Customers = () => {
             },
             custom: customer.measurements?.customMeasurements || ''
           },
-          avatar: customer.user?.profilePicture || `https://i.pravatar.cc/150?img=${customerId || Math.floor(Math.random() * 70)}`
+          avatar: customer.user?.profilePicture || null
         };
       });
         
@@ -1348,11 +1348,17 @@ const Customers = () => {
               <div className="p-6">
                 {/* Customer Info */}
                 <div className="flex items-center gap-4 mb-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                  <img
-                    src={selectedCustomerForView.avatar}
-                    alt={selectedCustomerForView.name}
-                    className="w-20 h-20 rounded-full object-cover"
-                  />
+                  {selectedCustomerForView.avatar ? (
+                    <img
+                      src={selectedCustomerForView.avatar}
+                      alt={selectedCustomerForView.name}
+                      className="w-20 h-20 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-20 h-20 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center">
+                      <User className="w-10 h-10 text-gray-400 dark:text-gray-500" />
+                    </div>
+                  )}
                   <div>
                     <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">{selectedCustomerForView.name}</h3>
                     <p className="text-gray-600 dark:text-gray-400">{selectedCustomerForView.email}</p>

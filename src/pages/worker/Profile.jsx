@@ -132,7 +132,7 @@ const WorkerProfile = () => {
           email: data.email || '',
           phone: data.contactNumber || '',
           specialization: data.workType || '',
-          avatar: `https://i.pravatar.cc/150?img=${data.workerId || Math.floor(Math.random() * 70)}`,
+          avatar: data.profilePicture || null,
           workType: data.workType || '',
           experience: data.experience || 0,
           joinDate: 'N/A', // Backend doesn't return this yet
@@ -282,11 +282,17 @@ const WorkerProfile = () => {
                 {/* Avatar */}
                 <div className="flex items-end justify-between -mt-16 mb-4">
                   <div className="relative">
-                    <img
-                      src={profile.avatar}
-                      alt={profile.name}
-                      className="w-32 h-32 rounded-full border-4 border-white shadow-lg"
-                    />
+                    {profile.avatar ? (
+                      <img
+                        src={profile.avatar}
+                        alt={profile.name}
+                        className="w-32 h-32 rounded-full border-4 border-white shadow-lg object-cover"
+                      />
+                    ) : (
+                      <div className="w-32 h-32 rounded-full border-4 border-white shadow-lg bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                        <User className="w-16 h-16 text-gray-400 dark:text-gray-500" />
+                      </div>
+                    )}
                     <label className="absolute bottom-0 right-0 p-2 bg-blue-600 text-white rounded-full cursor-pointer hover:bg-blue-700 transition-colors shadow-lg">
                       <Camera className="w-4 h-4" />
                       <input

@@ -191,7 +191,7 @@ const WorkerChat = () => {
       id: 'owner',
       name: 'John Owner',
       role: 'Shop Owner',
-      avatar: 'https://i.pravatar.cc/150?img=1',
+      avatar: null,
       lastMessage: 'Perfect. Let me know if you need any materials.',
       time: '10:45 AM',
       unread: 0,
@@ -271,11 +271,17 @@ const WorkerChat = () => {
                             </div>
                           ) : (
                             <>
-                              <img
-                                src={contact.avatar}
-                                alt={contact.name}
-                                className="w-12 h-12 rounded-full"
-                              />
+                              {contact.avatar ? (
+                                <img
+                                  src={contact.avatar}
+                                  alt={contact.name}
+                                  className="w-12 h-12 rounded-full object-cover"
+                                />
+                              ) : (
+                                <div className="w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center">
+                                  <User className="w-6 h-6 text-gray-400 dark:text-gray-500" />
+                                </div>
+                              )}
                               {contact.online && (
                                 <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white dark:border-gray-800 rounded-full"></div>
                               )}

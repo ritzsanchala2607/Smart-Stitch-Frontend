@@ -31,7 +31,7 @@ const Profile = () => {
     email: '',
     phone: '',
     joinDate: '',
-    avatar: 'https://i.pravatar.cc/150?img=8'
+    avatar: null
   });
 
   const [isLoading, setIsLoading] = useState(true);
@@ -92,7 +92,7 @@ const Profile = () => {
           email: data.user?.email || '',
           phone: data.user?.contactNumber || '',
           joinDate: data.createdAt ? new Date(data.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-          avatar: data.user?.profilePicture || 'https://i.pravatar.cc/150?img=8',
+          avatar: data.user?.profilePicture || null,
           customerId: data.customerId,
           userId: data.user?.userId
         };
@@ -235,11 +235,17 @@ const Profile = () => {
                 <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
                   {/* Avatar */}
                   <div className="relative w-32 h-32 mx-auto mb-4">
-                    <img
-                      src={isEditing ? editedData.avatar : profileData.avatar}
-                      alt="Profile"
-                      className="w-full h-full rounded-full object-cover border-4 border-blue-100 dark:border-blue-900"
-                    />
+                    {(isEditing ? editedData.avatar : profileData.avatar) ? (
+                      <img
+                        src={isEditing ? editedData.avatar : profileData.avatar}
+                        alt="Profile"
+                        className="w-full h-full rounded-full object-cover border-4 border-blue-100 dark:border-blue-900"
+                      />
+                    ) : (
+                      <div className="w-full h-full rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center border-4 border-blue-100 dark:border-blue-900">
+                        <User className="w-16 h-16 text-gray-400 dark:text-gray-500" />
+                      </div>
+                    )}
                     {isEditing && (
                       <label className="absolute bottom-0 right-0 p-2 bg-blue-600 rounded-full cursor-pointer hover:bg-blue-700 transition-colors">
                         <Camera className="w-4 h-4 text-white" />
