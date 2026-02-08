@@ -12,6 +12,7 @@ import {
   Check,
   CheckCheck,
   Users,
+  User,
   X,
   Search
 } from 'lucide-react';
