@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
 import { motion } from 'framer-motion';
 import usePageTitle from '../../hooks/usePageTitle';
-import { adminAPI } from '../../services/api';
+import { usePlatformAnalytics } from '../../hooks/useDataFetch';
 import {
   BarChart3,
   TrendingUp,
@@ -18,8 +18,6 @@ import {
 import {
   BarChart,
   Bar,
-  LineChart,
-  Line,
   PieChart as RePieChart,
   Pie,
   Cell,
@@ -36,62 +34,25 @@ import {
 const PlatformAnalytics = () => {
   usePageTitle('Platform Analytics');
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   
-  // System Metrics Data
-  const [systemMetrics, setSystemMetrics] = useState({
+  // Use global state hook
+  const {
+    platformAnalytics,
+    platformAnalyticsLoading: loading,
+    platformAnalyticsError: error
+  } = usePlatformAnalytics();
+
+  // Extract data from platformAnalytics
+  const systemMetrics = platformAnalytics?.systemMetrics || {
     ordersToday: 0,
     ordersThisWeek: 0,
     ordersThisMonth: 0,
     averageOrdersPerShop: 0,
     averageWorkersPerShop: 0
-  });
+  };
 
-  // Orders vs Shops Growth Data
-  const [ordersVsShopsGrowth, setOrdersVsShopsGrowth] = useState([]);
-
-  // Monthly Active Users Data
-  const [monthlyActiveUsers, setMonthlyActiveUsers] = useState([]);
-
-  // Fetch platform analytics on component mount
-  useEffect(() => {
-    const fetchAnalytics = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        // Get token from localStorage
-        const userData = JSON.parse(localStorage.getItem('user') || '{}');
-        const token = userData.jwt || localStorage.getItem('token');
-
-        if (!token) {
-          throw new Error('No authentication token found');
-        }
-
-        // Fetch platform analytics
-        const response = await adminAPI.getPlatformAnalytics(token);
-        if (!response.success) {
-          throw new Error(response.error);
-        }
-
-        const data = response.data;
-
-        // Update state with fetched data
-        setSystemMetrics(data.systemMetrics);
-        setOrdersVsShopsGrowth(data.ordersVsShopsGrowth);
-        setMonthlyActiveUsers(data.monthlyActiveUsers);
-
-      } catch (err) {
-        console.error('Error fetching platform analytics:', err);
-        setError(err.message || 'Failed to load analytics data');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAnalytics();
-  }, []);
+  const ordersVsShopsGrowth = platformAnalytics?.ordersVsShopsGrowth || [];
+  const monthlyActiveUsers = platformAnalytics?.monthlyActiveUsers || [];
 
   // Orders Category Split Data
   const ordersCategorySplit = [

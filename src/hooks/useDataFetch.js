@@ -280,3 +280,115 @@ export const useMeasurementProfiles = (customerId, options = {}) => {
     invalidateMeasurementProfiles
   };
 };
+
+/**
+ * Custom hook to fetch and use admin dashboard data
+ */
+export const useAdminDashboard = (options = {}) => {
+  const { skip = false, force = false } = options;
+  const {
+    adminDashboard,
+    adminDashboardLoading,
+    adminDashboardError,
+    fetchAdminDashboard,
+    invalidateAdminDashboard
+  } = useData();
+
+  useEffect(() => {
+    if (!skip) {
+      fetchAdminDashboard(force);
+    }
+  }, [skip, force, fetchAdminDashboard]);
+
+  return {
+    adminDashboard,
+    adminDashboardLoading,
+    adminDashboardError,
+    fetchAdminDashboard,
+    invalidateAdminDashboard
+  };
+};
+
+/**
+ * Custom hook to fetch and use shop analytics data
+ */
+export const useShopAnalytics = (options = {}) => {
+  const { skip = false, force = false } = options;
+  const {
+    shopAnalytics,
+    shopAnalyticsLoading,
+    shopAnalyticsError,
+    fetchShopAnalytics,
+    invalidateShopAnalytics
+  } = useData();
+
+  useEffect(() => {
+    if (!skip) {
+      fetchShopAnalytics(force);
+    }
+  }, [skip, force, fetchShopAnalytics]);
+
+  return {
+    shopAnalytics,
+    shopAnalyticsLoading,
+    shopAnalyticsError,
+    fetchShopAnalytics,
+    invalidateShopAnalytics
+  };
+};
+
+/**
+ * Custom hook to fetch and use all shops data with search support
+ */
+export const useAllShops = (searchQuery = '', options = {}) => {
+  const { skip = false, force = false } = options;
+  const {
+    allShops,
+    allShopsLoading,
+    allShopsError,
+    fetchAllShops,
+    invalidateAllShops
+  } = useData();
+
+  useEffect(() => {
+    if (!skip) {
+      fetchAllShops(searchQuery, force);
+    }
+  }, [skip, force, searchQuery, fetchAllShops]);
+
+  return {
+    allShops,
+    allShopsLoading,
+    allShopsError,
+    fetchAllShops,
+    invalidateAllShops
+  };
+};
+
+/**
+ * Custom hook to fetch and use platform analytics data
+ */
+export const usePlatformAnalytics = (options = {}) => {
+  const { skip = false, force = false } = options;
+  const {
+    platformAnalytics,
+    platformAnalyticsLoading,
+    platformAnalyticsError,
+    fetchPlatformAnalytics,
+    invalidatePlatformAnalytics
+  } = useData();
+
+  useEffect(() => {
+    if (!skip) {
+      fetchPlatformAnalytics(force);
+    }
+  }, [skip, force, fetchPlatformAnalytics]);
+
+  return {
+    platformAnalytics,
+    platformAnalyticsLoading,
+    platformAnalyticsError,
+    fetchPlatformAnalytics,
+    invalidatePlatformAnalytics
+  };
+};
