@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
 import { motion } from 'framer-motion';
@@ -21,34 +21,140 @@ import {
   Award,
   Sparkles
 } from 'lucide-react';
-import { orders, dashboardStats } from '../../data/dummyData';
 import { useNavigate } from 'react-router-dom';
+import { workerAPI } from '../../services/api';
 
 const WorkerDashboard = () => {
   usePageTitle('Dashboard');
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const stats = dashboardStats.worker;
+  
+  // API State
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [dashboardData, setDashboardData] = useState(null);
+  const [tasks, setTasks] = useState([]);
 
-  // Mock worker ID (in real app, this would come from auth context)
-  const currentWorkerId = 'WORK001';
+  // Fetch dashboard data from API
+  useEffect(() => {
+    fetchWorkerTasks();
+  }, []);
 
-  // Get worker's assigned orders
-  const workerOrders = orders.filter(o => o.assignedWorker === currentWorkerId);
+  const fetchWorkerTasks = async () => {
+    setIsLoading(true);
+    setError(null);
+
+    // Get token
+    let token = localStorage.getItem('token');
+    if (!token) {
+      const userDataString = localStorage.getItem('user');
+      if (userDataString) {
+        try {
+          const userData = JSON.parse(userDataString);
+          token = userData.jwt || userData.token;
+        } catch (e) {
+          console.error('Error parsing user data:', e);
+        }
+      }
+    }
+
+    if (!token) {
+      setError('Authentication error. Please log in again.');
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const result = await workerAPI.getMyTasks(token);
+
+      if (result.success) {
+        console.log('Worker tasks fetched successfully:', result.data);
+        const tasksData = result.data || [];
+        setTasks(tasksData);
+        
+        // Calculate statistics from tasks
+        const calculatedStats = calculateStatsFromTasks(tasksData);
+        setDashboardData(calculatedStats);
+      } else {
+        console.error('Failed to fetch worker tasks:', result.error);
+        setError(result.error);
+      }
+    } catch (error) {
+      console.error('Error fetching worker tasks:', error);
+      setError('Failed to load dashboard data. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Calculate statistics from tasks data
+  const calculateStatsFromTasks = (tasksData) => {
+    const totalTasks = tasksData.length;
+    const completedTasks = tasksData.filter(t => t.status === 'COMPLETED').length;
+    const inProgressTasks = tasksData.filter(t => t.status === 'IN_PROGRESS').length;
+    const pendingTasks = tasksData.filter(t => t.status === 'PENDING').length;
+    
+    // Calculate urgent tasks (tasks with deadline within 2 days)
+    const today = new Date();
+    const twoDaysFromNow = new Date(today);
+    twoDaysFromNow.setDate(today.getDate() + 2);
+    
+    const urgentTasks = tasksData.filter(t => {
+      if (t.status === 'COMPLETED') return false;
+      if (!t.deadline) return false;
+      const deadline = new Date(t.deadline);
+      return deadline <= twoDaysFromNow;
+    }).length;
+
+    // Calculate performance (completion rate)
+    const performance = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
+    return {
+      totalTasks,
+      completedTasks,
+      inProgressTasks,
+      pendingTasks,
+      urgentTasks,
+      performance,
+      avgRating: 4.5, // Mock data - will be from API when ratings endpoint is ready
+      totalEarnings: 45000, // Mock data - will be from API when earnings endpoint is ready
+      monthlyEarnings: 12000, // Mock data - will be from API when earnings endpoint is ready
+      assignedTasks: totalTasks,
+      avgCompletionTime: '2.5 hrs' // Mock data - will be calculated when we have completion timestamps
+    };
+  };
+
+  // Calculate statistics from API data or use defaults
+  const stats = dashboardData || {
+    totalTasks: 0,
+    completedTasks: 0,
+    inProgressTasks: 0,
+    pendingTasks: 0,
+    urgentTasks: 0,
+    performance: 0,
+    avgRating: 0,
+    totalEarnings: 0,
+    monthlyEarnings: 0,
+    assignedTasks: 0
+  };
 
   // Calculate today's tasks
   const today = new Date().toISOString().split('T')[0];
-  const todayTasks = workerOrders.filter(o => o.orderDate === today || o.deliveryDate === today);
+  const todayTasks = tasks.filter(t => {
+    const taskDate = t.createdAt ? new Date(t.createdAt).toISOString().split('T')[0] : null;
+    const deadline = t.deadline ? new Date(t.deadline).toISOString().split('T')[0] : null;
+    return taskDate === today || deadline === today;
+  });
 
   // Task statistics
   const totalTasksToday = todayTasks.length;
-  const completedTasks = workerOrders.filter(o => o.status === 'ready').length;
-  const inProgressTasks = workerOrders.filter(o => ['cutting', 'stitching', 'fitting'].includes(o.status)).length;
-  const pendingTasks = workerOrders.filter(o => o.status === 'pending').length;
-  const urgentTasks = workerOrders.filter(o => o.priority === 'high' && o.status !== 'ready').length;
+  const completedTasks = stats.completedTasks || 0;
+  const inProgressTasks = stats.inProgressTasks || 0;
+  const pendingTasks = stats.pendingTasks || 0;
+  const urgentTasks = stats.urgentTasks || 0;
 
   // Progress calculation
-  const totalTasks = workerOrders.length;
+  const totalTasks = stats.totalTasks || 0;
   const completedPercentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
   const inProgressPercentage = totalTasks > 0 ? Math.round((inProgressTasks / totalTasks) * 100) : 0;
   const pendingPercentage = totalTasks > 0 ? Math.round((pendingTasks / totalTasks) * 100) : 0;
@@ -61,43 +167,49 @@ const WorkerDashboard = () => {
   });
 
   const workloadTrend = last7Days.map(date => {
-    const assigned = workerOrders.filter(o => o.orderDate === date).length;
-    const completed = workerOrders.filter(o => 
-      o.timeline && o.timeline.some(t => t.status === 'ready' && t.date === date)
+    const assigned = tasks.filter(t => {
+      const taskDate = t.createdAt ? new Date(t.createdAt).toISOString().split('T')[0] : null;
+      return taskDate === date;
+    }).length;
+    const completed = tasks.filter(t => 
+      t.status === 'COMPLETED' && t.completedAt && new Date(t.completedAt).toISOString().split('T')[0] === date
     ).length;
     return { date, assigned, completed };
   });
 
   // Upcoming deadlines
-  const upcomingDeadlines = workerOrders
-    .filter(o => o.status !== 'ready')
-    .sort((a, b) => new Date(a.deliveryDate) - new Date(b.deliveryDate))
+  const upcomingDeadlines = tasks
+    .filter(t => t.status !== 'COMPLETED')
+    .sort((a, b) => new Date(a.deadline) - new Date(b.deadline))
     .slice(0, 5);
 
   // Recent assigned tasks
-  const recentTasks = workerOrders
-    .sort((a, b) => new Date(b.orderDate) - new Date(a.orderDate))
+  const recentTasks = tasks
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
     .slice(0, 5);
 
   // Mock notifications (in real app, would come from API)
   const unreadMessages = 3;
   const unreadNotifications = 5;
   const recentNotifications = [
-    { id: 1, type: 'task', message: 'New task assigned: ORD-2024-001', time: '5 min ago' },
-    { id: 2, type: 'deadline', message: 'Deadline reminder: ORD-2024-015 due today', time: '1 hour ago' },
-    { id: 3, type: 'message', message: 'Owner: Please check measurements for ORD-2024-020', time: '2 hours ago' }
+    { id: 1, type: 'task', message: 'New task assigned', time: '5 min ago' },
+    { id: 2, type: 'deadline', message: 'Deadline reminder: Task due today', time: '1 hour ago' },
+    { id: 3, type: 'message', message: 'Owner: Please check measurements', time: '2 hours ago' }
   ];
 
   // Today's performance metrics
-  const todayCompleted = todayTasks.filter(t => t.status === 'ready').length;
+  const todayCompleted = todayTasks.filter(t => t.status === 'COMPLETED').length;
   const todayCompletionRate = totalTasksToday > 0 ? Math.round((todayCompleted / totalTasksToday) * 100) : 0;
 
   // Monthly summary
   const currentMonth = new Date().getMonth();
-  const monthlyTasks = workerOrders.filter(o => new Date(o.orderDate).getMonth() === currentMonth);
-  const monthlyCompleted = monthlyTasks.filter(o => o.status === 'ready').length;
-  const avgCompletionTime = '2.5 hrs'; // Mock data
-  const accuracyRating = 4.5; // Mock data
+  const monthlyTasks = tasks.filter(t => {
+    const taskDate = t.createdAt ? new Date(t.createdAt) : null;
+    return taskDate && taskDate.getMonth() === currentMonth;
+  });
+  const monthlyCompleted = monthlyTasks.filter(t => t.status === 'COMPLETED').length;
+  const avgCompletionTime = stats.avgCompletionTime || '2.5 hrs'; // From API or default
+  const accuracyRating = stats.avgRating || 4.5; // From API or default
 
   // Productivity badge
   const getProductivityBadge = () => {
@@ -116,12 +228,60 @@ const WorkerDashboard = () => {
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
 
-    if (status === 'ready') return 'completed';
+    if (status === 'COMPLETED') return 'completed';
     if (deadline < today) return 'overdue';
     if (deadline.toDateString() === today.toDateString()) return 'today';
     if (deadline.toDateString() === tomorrow.toDateString()) return 'tomorrow';
     return 'future';
   };
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
+        <Sidebar role="worker" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <Topbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
+          <main className="flex-1 overflow-y-auto p-6 dark:bg-gray-900">
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-500 mx-auto mb-4"></div>
+                <p className="text-gray-600 dark:text-gray-400">Loading dashboard...</p>
+              </div>
+            </div>
+          </main>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
+        <Sidebar role="worker" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <Topbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
+          <main className="flex-1 overflow-y-auto p-6 dark:bg-gray-900">
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center">
+                <AlertCircle className="w-16 h-16 text-red-400 mx-auto mb-4" />
+                <p className="text-red-600 dark:text-red-400 mb-4">{error}</p>
+                <button
+                  onClick={() => {
+                    fetchWorkerTasks();
+                  }}
+                  className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                >
+                  Retry
+                </button>
+              </div>
+            </div>
+          </main>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
@@ -270,25 +430,42 @@ const WorkerDashboard = () => {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                        {recentTasks.map((task) => (
-                          <tr key={task.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                            <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-100">{task.id}</td>
-                            <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{task.customerName}</td>
-                            <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{task.items[0]?.type || 'N/A'}</td>
-                            <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{task.deliveryDate}</td>
-                            <td className="px-6 py-4">
-                              <StatusBadge status={task.status} />
-                            </td>
-                            <td className="px-6 py-4">
-                              <button
-                                onClick={() => navigate('/worker/tasks')}
-                                className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
-                              >
-                                <Eye className="w-4 h-4" />
-                              </button>
+                        {recentTasks.length === 0 ? (
+                          <tr>
+                            <td colSpan="6" className="px-6 py-12 text-center">
+                              <Package className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+                              <p className="text-gray-600 dark:text-gray-400">No tasks assigned yet</p>
                             </td>
                           </tr>
-                        ))}
+                        ) : (
+                          recentTasks.map((task) => (
+                            <tr key={task.taskId || task.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                              <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-100">
+                                {task.order?.orderId ? `ORD${String(task.order.orderId).padStart(3, '0')}` : 'N/A'}
+                              </td>
+                              <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
+                                {task.order?.customer?.name || 'Unknown'}
+                              </td>
+                              <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
+                                {task.taskType || 'N/A'}
+                              </td>
+                              <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
+                                {task.deadline ? new Date(task.deadline).toLocaleDateString() : 'N/A'}
+                              </td>
+                              <td className="px-6 py-4">
+                                <StatusBadge status={task.status} />
+                              </td>
+                              <td className="px-6 py-4">
+                                <button
+                                  onClick={() => navigate('/worker/tasks')}
+                                  className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
+                                >
+                                  <Eye className="w-4 h-4" />
+                                </button>
+                              </td>
+                            </tr>
+                          ))
+                        )}
                       </tbody>
                     </table>
                   </div>
@@ -495,10 +672,10 @@ const WorkerDashboard = () => {
                   <div className="space-y-3">
                     {upcomingDeadlines.length > 0 ? (
                       upcomingDeadlines.map((task) => {
-                        const deadlineStatus = getDeadlineStatus(task.deliveryDate, task.status);
+                        const deadlineStatus = getDeadlineStatus(task.deadline, task.status);
                         return (
                           <DeadlineCard
-                            key={task.id}
+                            key={task.taskId || task.id}
                             task={task}
                             deadlineStatus={deadlineStatus}
                           />
@@ -712,20 +889,23 @@ const DeadlineCard = ({ task, deadlineStatus }) => {
     overdue: { bg: 'bg-red-50 dark:bg-red-900/20', border: 'border-red-200 dark:border-red-800', text: 'text-red-600 dark:text-red-400', label: 'Overdue' },
     today: { bg: 'bg-orange-50 dark:bg-orange-900/20', border: 'border-orange-200 dark:border-orange-800', text: 'text-orange-600 dark:text-orange-400', label: 'Due Today' },
     tomorrow: { bg: 'bg-yellow-50 dark:bg-yellow-900/20', border: 'border-yellow-200 dark:border-yellow-800', text: 'text-yellow-600 dark:text-yellow-400', label: 'Tomorrow' },
-    future: { bg: 'bg-green-50 dark:bg-green-900/20', border: 'border-green-200 dark:border-green-800', text: 'text-green-600 dark:text-green-400', label: task.deliveryDate },
+    future: { bg: 'bg-green-50 dark:bg-green-900/20', border: 'border-green-200 dark:border-green-800', text: 'text-green-600 dark:text-green-400', label: task.deadline ? new Date(task.deadline).toLocaleDateString() : 'N/A' },
     completed: { bg: 'bg-gray-50 dark:bg-gray-700', border: 'border-gray-200 dark:border-gray-600', text: 'text-gray-600 dark:text-gray-400', label: 'Completed' }
   };
 
   const config = statusConfig[deadlineStatus];
+  const orderId = task.order?.orderId ? `ORD${String(task.order.orderId).padStart(3, '0')}` : 'N/A';
+  const customerName = task.order?.customer?.name || 'Unknown';
+  const taskType = task.taskType || 'N/A';
 
   return (
     <div className={`p-3 rounded-lg border ${config.bg} ${config.border}`}>
       <div className="flex items-center justify-between mb-1">
-        <span className="font-semibold text-sm text-gray-900 dark:text-gray-100">{task.id}</span>
+        <span className="font-semibold text-sm text-gray-900 dark:text-gray-100">{orderId}</span>
         <span className={`text-xs font-medium ${config.text}`}>{config.label}</span>
       </div>
-      <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">{task.customerName}</p>
-      <p className="text-xs text-gray-500 dark:text-gray-400">{task.items[0]?.type || 'N/A'}</p>
+      <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">{customerName}</p>
+      <p className="text-xs text-gray-500 dark:text-gray-400">{taskType}</p>
     </div>
   );
 };
@@ -733,6 +913,10 @@ const DeadlineCard = ({ task, deadlineStatus }) => {
 // Status Badge Component
 const StatusBadge = ({ status }) => {
   const statusConfig = {
+    PENDING: { bg: 'bg-gray-100 dark:bg-gray-900/30', text: 'text-gray-700 dark:text-gray-400', label: 'Pending' },
+    IN_PROGRESS: { bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-700 dark:text-blue-400', label: 'In Progress' },
+    COMPLETED: { bg: 'bg-green-100 dark:bg-green-900/30', text: 'text-green-700 dark:text-green-400', label: 'Completed' },
+    // Legacy status support
     pending: { bg: 'bg-gray-100 dark:bg-gray-900/30', text: 'text-gray-700 dark:text-gray-400', label: 'Pending' },
     cutting: { bg: 'bg-purple-100 dark:bg-purple-900/30', text: 'text-purple-700 dark:text-purple-400', label: 'Cutting' },
     stitching: { bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-700 dark:text-blue-400', label: 'Stitching' },
@@ -740,7 +924,7 @@ const StatusBadge = ({ status }) => {
     ready: { bg: 'bg-green-100 dark:bg-green-900/30', text: 'text-green-700 dark:text-green-400', label: 'Ready' }
   };
 
-  const config = statusConfig[status] || statusConfig.pending;
+  const config = statusConfig[status] || statusConfig.PENDING;
 
   return (
     <span className={`px-2 py-1 text-xs font-semibold rounded-full ${config.bg} ${config.text}`}>
