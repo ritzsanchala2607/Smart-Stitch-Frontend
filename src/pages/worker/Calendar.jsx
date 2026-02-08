@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
 import { motion } from 'framer-motion';
@@ -9,33 +9,140 @@ import {
   ChevronRight,
   CheckCircle,
   Clock,
-  AlertCircle
+  Package,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
+import { workerAPI } from '../../services/api';
 
 const WorkerCalendar = () => {
   usePageTitle('Calendar');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [taskData, setTaskData] = useState({});
+  const [expandedTasks, setExpandedTasks] = useState({});
 
-  // Mock task data for calendar
-  const taskData = {
-    '2024-12-10': { completed: 3, deadline: 1, total: 4 },
-    '2024-12-11': { completed: 5, deadline: 2, total: 7 },
-    '2024-12-12': { completed: 4, deadline: 1, total: 5 },
-    '2024-12-13': { completed: 2, deadline: 3, total: 5 },
-    '2024-12-14': { completed: 1, deadline: 0, total: 1 },
-    '2024-12-15': { completed: 0, deadline: 0, total: 0 },
-    '2024-12-16': { completed: 6, deadline: 2, total: 8 },
-    '2024-12-17': { completed: 4, deadline: 1, total: 5 },
-    '2024-12-18': { completed: 3, deadline: 2, total: 5 },
-    '2024-12-19': { completed: 5, deadline: 1, total: 6 },
-    '2024-12-20': { completed: 2, deadline: 3, total: 5 },
-    '2024-12-21': { completed: 1, deadline: 0, total: 1 },
-    '2024-12-22': { completed: 0, deadline: 0, total: 0 },
-    '2024-12-23': { completed: 4, deadline: 2, total: 6 },
-    '2024-12-24': { completed: 3, deadline: 1, total: 4 },
-    '2024-12-25': { completed: 0, deadline: 0, total: 0 }
+  // Fetch tasks from API
+  useEffect(() => {
+    fetchTasks();
+  }, []);
+
+  const fetchTasks = async () => {
+    setIsLoading(true);
+    
+    // Get token
+    let token = localStorage.getItem('token');
+    if (!token) {
+      const userDataString = localStorage.getItem('user');
+      if (userDataString) {
+        try {
+          const userData = JSON.parse(userDataString);
+          token = userData.jwt || userData.token;
+        } catch (e) {
+          console.error('Error parsing user data:', e);
+        }
+      }
+    }
+
+    if (!token) {
+      console.log('No token found for calendar');
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const result = await workerAPI.getMyTasks(token);
+      
+      console.log('Calendar - Tasks API Result:', result);
+      
+      if (result.success) {
+        const fetchedTasks = result.data || [];
+        console.log('Calendar - Fetched Tasks:', fetchedTasks);
+        
+        // Group tasks by deadline (same as Tasks page)
+        const grouped = {};
+        fetchedTasks.forEach(task => {
+          console.log('Processing task:', task);
+          
+          // Use same field as Tasks page: task.order?.deadline
+          const deadline = task.order?.deadline || task.dueDate || task.deliveryDate;
+          
+          if (deadline) {
+            const dateStr = new Date(deadline).toISOString().split('T')[0];
+            console.log('Task deadline:', deadline, 'Date string:', dateStr);
+            
+            if (!grouped[dateStr]) {
+              grouped[dateStr] = { completed: 0, pending: 0, total: 0, tasks: [] };
+            }
+            grouped[dateStr].total++;
+            if (task.status === 'COMPLETED') {
+              grouped[dateStr].completed++;
+            } else {
+              grouped[dateStr].pending++;
+            }
+            
+            // Add task with customer name and task type from API
+            grouped[dateStr].tasks.push({
+              ...task,
+              customerName: task.order?.customer?.user?.name || 'Unknown Customer',
+              taskType: task.taskType || 'Task',
+              deadline: deadline // Store the deadline for display
+            });
+          } else {
+            console.log('Task has no deadline:', task);
+          }
+        });
+        
+        console.log('Calendar - Grouped tasks:', grouped);
+        setTaskData(grouped);
+      } else {
+        console.error('Failed to fetch tasks:', result.error);
+      }
+    } catch (error) {
+      console.error('Error fetching tasks:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Mark task as complete
+  const handleCompleteTask = async (taskId) => {
+    // Get token
+    let token = localStorage.getItem('token');
+    if (!token) {
+      const userDataString = localStorage.getItem('user');
+      if (userDataString) {
+        try {
+          const userData = JSON.parse(userDataString);
+          token = userData.jwt || userData.token;
+        } catch (e) {
+          console.error('Error parsing user data:', e);
+        }
+      }
+    }
+
+    if (!token) return;
+
+    try {
+      const result = await workerAPI.completeTask(taskId, token);
+      
+      if (result.success) {
+        // Refresh tasks
+        fetchTasks();
+      }
+    } catch (error) {
+      console.error('Error completing task:', error);
+    }
+  };
+
+  // Toggle task details
+  const toggleTaskDetails = (taskId) => {
+    setExpandedTasks(prev => ({
+      ...prev,
+      [taskId]: !prev[taskId]
+    }));
   };
 
   // Get calendar days
@@ -82,11 +189,11 @@ const WorkerCalendar = () => {
 
   // Get task intensity color
   const getIntensityColor = (total) => {
-    if (total === 0) return 'bg-gray-100';
-    if (total <= 2) return 'bg-green-200';
-    if (total <= 4) return 'bg-green-300';
-    if (total <= 6) return 'bg-green-400';
-    return 'bg-green-500';
+    if (total === 0) return 'bg-gray-100 dark:bg-gray-700';
+    if (total <= 2) return 'bg-green-200 dark:bg-green-800';
+    if (total <= 4) return 'bg-green-300 dark:bg-green-700';
+    if (total <= 6) return 'bg-green-400 dark:bg-green-600';
+    return 'bg-green-500 dark:bg-green-500';
   };
 
   // Format date for lookup
@@ -104,6 +211,7 @@ const WorkerCalendar = () => {
 
   // Get selected date tasks
   const selectedDateTasks = selectedDate ? taskData[formatDate(selectedDate)] : null;
+  const selectedDateTaskList = selectedDateTasks?.tasks || [];
 
   // Calculate weekly workload
   const getWeeklyWorkload = () => {
@@ -161,25 +269,34 @@ const WorkerCalendar = () => {
 
             {/* Calendar Navigation */}
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                  {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
-                </h2>
-                <div className="flex gap-2">
-                  <button
-                    onClick={goToPreviousMonth}
-                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors text-gray-900 dark:text-gray-100"
-                  >
-                    <ChevronLeft className="w-5 h-5" />
-                  </button>
-                  <button
-                    onClick={goToNextMonth}
-                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors text-gray-900 dark:text-gray-100"
-                  >
-                    <ChevronRight className="w-5 h-5" />
-                  </button>
+              {isLoading ? (
+                <div className="flex items-center justify-center h-64">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto mb-4"></div>
+                    <p className="text-gray-600 dark:text-gray-400">Loading tasks...</p>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <>
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                      {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
+                    </h2>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={goToPreviousMonth}
+                        className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors text-gray-900 dark:text-gray-100"
+                      >
+                        <ChevronLeft className="w-5 h-5" />
+                      </button>
+                      <button
+                        onClick={goToNextMonth}
+                        className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors text-gray-900 dark:text-gray-100"
+                      >
+                        <ChevronRight className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </div>
 
               {/* Calendar Grid */}
               <div className="grid grid-cols-7 gap-2">
@@ -198,7 +315,7 @@ const WorkerCalendar = () => {
 
                   const dateStr = formatDate(day);
                   const data = taskData[dateStr];
-                  const hasDeadline = data && data.deadline > 0;
+                  const hasPending = data && data.pending > 0;
                   const isSelected = selectedDate && formatDate(selectedDate) === dateStr;
                   const isTodayDate = isToday(day);
 
@@ -227,8 +344,8 @@ const WorkerCalendar = () => {
                             <span className="text-xs font-bold text-gray-700 dark:text-gray-300">
                               {data.total}
                             </span>
-                            {hasDeadline && (
-                              <AlertCircle className="w-3 h-3 text-red-600 dark:text-red-400" />
+                            {hasPending && (
+                              <Clock className="w-3 h-3 text-orange-600 dark:text-orange-400" />
                             )}
                           </div>
                         )}
@@ -261,6 +378,17 @@ const WorkerCalendar = () => {
                   <span className="text-sm text-gray-600 dark:text-gray-400">7+ tasks</span>
                 </div>
               </div>
+              
+              {/* No tasks message */}
+              {Object.keys(taskData).length === 0 && !isLoading && (
+                <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/30 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <p className="text-center text-blue-700 dark:text-blue-400">
+                    No tasks found. Tasks will appear here when they have deadlines assigned.
+                  </p>
+                </div>
+              )}
+              </>
+              )}
             </div>
 
             {/* Selected Date Details */}
@@ -278,7 +406,7 @@ const WorkerCalendar = () => {
                     day: 'numeric' 
                   })}
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                   <div className="p-4 bg-green-50 dark:bg-green-900/30 rounded-lg border border-green-200 dark:border-green-800">
                     <div className="flex items-center gap-3 mb-2">
                       <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
@@ -289,9 +417,9 @@ const WorkerCalendar = () => {
                   <div className="p-4 bg-orange-50 dark:bg-orange-900/30 rounded-lg border border-orange-200 dark:border-orange-800">
                     <div className="flex items-center gap-3 mb-2">
                       <Clock className="w-5 h-5 text-orange-600 dark:text-orange-400" />
-                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Deadlines</span>
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Pending</span>
                     </div>
-                    <p className="text-3xl font-bold text-orange-600 dark:text-orange-400">{selectedDateTasks.deadline}</p>
+                    <p className="text-3xl font-bold text-orange-600 dark:text-orange-400">{selectedDateTasks.pending}</p>
                   </div>
                   <div className="p-4 bg-blue-50 dark:bg-blue-900/30 rounded-lg border border-blue-200 dark:border-blue-800">
                     <div className="flex items-center gap-3 mb-2">
@@ -301,6 +429,137 @@ const WorkerCalendar = () => {
                     <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">{selectedDateTasks.total}</p>
                   </div>
                 </div>
+
+                {/* Task List */}
+                {selectedDateTaskList.length > 0 && (
+                  <div className="space-y-3">
+                    <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">Tasks for this day</h4>
+                    {selectedDateTaskList.map((task) => {
+                      const isExpanded = expandedTasks[task.taskId];
+                      return (
+                        <div
+                          key={task.taskId}
+                          className="bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 overflow-hidden"
+                        >
+                          {/* Task Header */}
+                          <div className="p-4">
+                            <div className="flex items-start justify-between gap-4">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-3 mb-2">
+                                  <Package className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                                  <h5 className="font-semibold text-gray-900 dark:text-gray-100">
+                                    Order #{task.orderId || task.order?.orderId || 'N/A'}
+                                  </h5>
+                                  <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                                    task.status === 'COMPLETED'
+                                      ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                                      : task.status === 'IN_PROGRESS'
+                                      ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                                      : 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'
+                                  }`}>
+                                    {task.status}
+                                  </span>
+                                </div>
+                                
+                                {/* Task Summary */}
+                                <div className="mb-3 space-y-1">
+                                  <p className="text-sm text-gray-700 dark:text-gray-300">
+                                    <span className="font-medium">Customer:</span> {task.customerName || 'Not specified'}
+                                  </p>
+                                  <p className="text-sm text-gray-700 dark:text-gray-300">
+                                    <span className="font-medium">Task Type:</span> {task.taskType || 'Not specified'}
+                                  </p>
+                                </div>
+                                
+                                {/* See Details Button */}
+                                <button
+                                  onClick={() => toggleTaskDetails(task.taskId)}
+                                  className="flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
+                                >
+                                  {isExpanded ? (
+                                    <>
+                                      <ChevronUp className="w-4 h-4" />
+                                      Hide details
+                                    </>
+                                  ) : (
+                                    <>
+                                      <ChevronDown className="w-4 h-4" />
+                                      See details
+                                    </>
+                                  )}
+                                </button>
+                              </div>
+                              
+                              {task.status !== 'COMPLETED' && (
+                                <button
+                                  onClick={() => handleCompleteTask(task.taskId)}
+                                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 whitespace-nowrap"
+                                >
+                                  <CheckCircle className="w-4 h-4" />
+                                  Mark Complete
+                                </button>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Expandable Details */}
+                          {isExpanded && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: 'auto', opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              transition={{ duration: 0.2 }}
+                              className="px-4 pb-4 border-t border-gray-200 dark:border-gray-600 pt-3"
+                            >
+                              <div className="space-y-2">
+                                <div className="flex items-start gap-2">
+                                  <span className="font-medium text-gray-700 dark:text-gray-300 min-w-[100px]">Task Type:</span>
+                                  <span className="text-gray-600 dark:text-gray-400">
+                                    {task.taskType || 'Not specified'}
+                                  </span>
+                                </div>
+                                <div className="flex items-start gap-2">
+                                  <span className="font-medium text-gray-700 dark:text-gray-300 min-w-[100px]">Customer:</span>
+                                  <span className="text-gray-600 dark:text-gray-400">
+                                    {task.customerName || 'Not specified'}
+                                  </span>
+                                </div>
+                                {task.order?.customer?.user?.contactNumber && (
+                                  <div className="flex items-start gap-2">
+                                    <span className="font-medium text-gray-700 dark:text-gray-300 min-w-[100px]">Contact:</span>
+                                    <span className="text-gray-600 dark:text-gray-400">
+                                      {task.order.customer.user.contactNumber}
+                                    </span>
+                                  </div>
+                                )}
+                                {task.deadline && (
+                                  <div className="flex items-start gap-2">
+                                    <span className="font-medium text-gray-700 dark:text-gray-300 min-w-[100px]">Deadline:</span>
+                                    <span className="text-gray-600 dark:text-gray-400">
+                                      {new Date(task.deadline).toLocaleDateString('en-US', {
+                                        year: 'numeric',
+                                        month: 'long',
+                                        day: 'numeric'
+                                      })}
+                                    </span>
+                                  </div>
+                                )}
+                                {task.order?.additionalNotes && (
+                                  <div className="flex items-start gap-2">
+                                    <span className="font-medium text-gray-700 dark:text-gray-300 min-w-[100px]">Notes:</span>
+                                    <span className="text-gray-600 dark:text-gray-400">
+                                      {task.order.additionalNotes}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                            </motion.div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </motion.div>
             )}
 

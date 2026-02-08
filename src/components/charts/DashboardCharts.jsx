@@ -1,40 +1,81 @@
 import { motion } from 'framer-motion';
-import { TrendingUp, PieChart, BarChart3, Activity } from 'lucide-react';
+import { TrendingUp, PieChart, BarChart3, Activity, User } from 'lucide-react';
 
 // Order Status Distribution - Donut Chart
 export const OrderStatusDonutChart = ({ orders }) => {
+  // Handle empty orders array
+  if (!orders || orders.length === 0) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"
+      >
+        <div className="flex items-center gap-2 mb-4">
+          <PieChart className="w-5 h-5 text-orange-500 dark:text-orange-400" />
+          <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Order Status Distribution</h2>
+        </div>
+        <div className="flex items-center justify-center h-64">
+          <p className="text-gray-500 dark:text-gray-400">No order data available</p>
+        </div>
+      </motion.div>
+    );
+  }
+
   const statusCounts = {
     pending: orders.filter(o => o.status === 'pending').length,
     cutting: orders.filter(o => o.status === 'cutting').length,
     stitching: orders.filter(o => o.status === 'stitching').length,
     fitting: orders.filter(o => o.status === 'fitting').length,
-    ready: orders.filter(o => o.status === 'ready').length
+    completed: orders.filter(o => o.status === 'completed' || o.status === 'ready').length
   };
 
   const total = Object.values(statusCounts).reduce((a, b) => a + b, 0);
+  
+  // Handle case where total is 0
+  if (total === 0) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"
+      >
+        <div className="flex items-center gap-2 mb-4">
+          <PieChart className="w-5 h-5 text-orange-500 dark:text-orange-400" />
+          <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Order Status Distribution</h2>
+        </div>
+        <div className="flex items-center justify-center h-64">
+          <p className="text-gray-500 dark:text-gray-400">No orders to display</p>
+        </div>
+      </motion.div>
+    );
+  }
+
   const colors = {
     pending: '#f59e0b',
     cutting: '#8b5cf6',
     stitching: '#3b82f6',
     fitting: '#06b6d4',
-    ready: '#10b981'
+    completed: '#10b981'
   };
 
   let currentAngle = 0;
-  const segments = Object.entries(statusCounts).map(([status, count]) => {
-    const percentage = (count / total) * 100;
-    const angle = (percentage / 100) * 360;
-    const segment = {
-      status,
-      count,
-      percentage: percentage.toFixed(1),
-      startAngle: currentAngle,
-      endAngle: currentAngle + angle,
-      color: colors[status]
-    };
-    currentAngle += angle;
-    return segment;
-  });
+  const segments = Object.entries(statusCounts)
+    .filter(([_, count]) => count > 0) // Only include segments with data
+    .map(([status, count]) => {
+      const percentage = (count / total) * 100;
+      const angle = (percentage / 100) * 360;
+      const segment = {
+        status,
+        count,
+        percentage: percentage.toFixed(1),
+        startAngle: currentAngle,
+        endAngle: currentAngle + angle,
+        color: colors[status]
+      };
+      currentAngle += angle;
+      return segment;
+    });
 
   return (
     <motion.div
@@ -116,8 +157,8 @@ export const OrderStatusDonutChart = ({ orders }) => {
 };
 
 // Revenue Trend - Area Chart
-export const RevenueTrendChart = () => {
-  const monthlyData = [
+export const RevenueTrendChart = ({ data }) => {
+  const monthlyData = data?.monthlyRevenueTrend || [
     { month: 'Jan', revenue: 45000, expense: 30000 },
     { month: 'Feb', revenue: 52000, expense: 32000 },
     { month: 'Mar', revenue: 48000, expense: 31000 },
@@ -126,7 +167,30 @@ export const RevenueTrendChart = () => {
     { month: 'Jun', revenue: 67000, expense: 38000 }
   ];
 
-  const maxRevenue = Math.max(...monthlyData.map(d => d.revenue));
+  console.log('Revenue Trend Data:', monthlyData);
+
+  const maxRevenue = Math.max(...monthlyData.map(d => d.revenue || 0), 1);
+
+  // Check if we have any data
+  const hasData = monthlyData.some(d => (d.revenue || 0) > 0 || (d.expense || 0) > 0);
+
+  if (!hasData) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"
+      >
+        <div className="flex items-center gap-2 mb-4">
+          <TrendingUp className="w-5 h-5 text-orange-500 dark:text-orange-400" />
+          <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Revenue Trend</h2>
+        </div>
+        <div className="flex items-center justify-center h-64">
+          <p className="text-gray-500 dark:text-gray-400">No revenue data available</p>
+        </div>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div
@@ -162,31 +226,37 @@ export const RevenueTrendChart = () => {
         {/* Bars */}
         <div className="relative h-full flex items-end justify-between gap-2 px-4">
           {monthlyData.map((data, index) => {
-            const revenueHeight = (data.revenue / maxRevenue) * 100;
-            const expenseHeight = (data.expense / maxRevenue) * 100;
+            const revenue = data.revenue || 0;
+            const expense = data.expense || 0;
+            const revenueHeight = Math.max((revenue / maxRevenue) * 100, revenue > 0 ? 2 : 0); // Minimum 2% if has value
+            const expenseHeight = Math.max((expense / maxRevenue) * 100, expense > 0 ? 2 : 0); // Minimum 2% if has value
             
             return (
               <div key={index} className="flex-1 flex flex-col items-center gap-2">
                 <div className="w-full flex gap-1 items-end" style={{ height: '200px' }}>
                   <div className="flex-1 relative group">
-                    <div
-                      className="bg-green-500 rounded-t hover:bg-green-600 transition-colors"
-                      style={{ height: `${revenueHeight}%` }}
-                    >
-                      <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                        ₹{data.revenue.toLocaleString()}
+                    {revenue > 0 && (
+                      <div
+                        className="bg-green-500 rounded-t hover:bg-green-600 transition-colors"
+                        style={{ height: `${revenueHeight}%` }}
+                      >
+                        <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                          ₹{revenue.toLocaleString()}
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                   <div className="flex-1 relative group">
-                    <div
-                      className="bg-red-500 rounded-t hover:bg-red-600 transition-colors"
-                      style={{ height: `${expenseHeight}%` }}
-                    >
-                      <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                        ₹{data.expense.toLocaleString()}
+                    {expense > 0 && (
+                      <div
+                        className="bg-red-500 rounded-t hover:bg-red-600 transition-colors"
+                        style={{ height: `${expenseHeight}%` }}
+                      >
+                        <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                          ₹{expense.toLocaleString()}
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 </div>
                 <span className="text-xs font-medium text-gray-600 dark:text-gray-400">{data.month}</span>
@@ -227,11 +297,9 @@ export const WorkerPerformanceRadarChart = ({ workers }) => {
             <div key={worker.id} className="space-y-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <img
-                    src={worker.avatar}
-                    alt={worker.name}
-                    className="w-10 h-10 rounded-full"
-                  />
+                  <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
+                    <User className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                  </div>
                   <div>
                     <p className="font-medium text-gray-900 dark:text-gray-100 text-sm">{worker.name}</p>
                     <p className="text-xs text-gray-500 dark:text-gray-400">{worker.specialization}</p>
@@ -514,8 +582,8 @@ export const WorkerAvailabilityPieChart = ({ workers }) => {
 };
 
 // Daily/Weekly Orders Line Chart
-export const OrdersLineChart = () => {
-  const dailyData = [
+export const OrdersLineChart = ({ data }) => {
+  const dailyData = data?.dailyOrderTrend || [
     { day: 'Mon', orders: 12 },
     { day: 'Tue', orders: 15 },
     { day: 'Wed', orders: 18 },
@@ -525,8 +593,8 @@ export const OrdersLineChart = () => {
     { day: 'Sun', orders: 22 }
   ];
 
-  const maxOrders = Math.max(...dailyData.map(d => d.orders));
-  const minOrders = Math.min(...dailyData.map(d => d.orders));
+  const maxOrders = Math.max(...dailyData.map(d => d.orderCount || d.orders || 0), 1);
+  const minOrders = Math.min(...dailyData.map(d => d.orderCount || d.orders || 0), 0);
   const range = maxOrders - minOrders;
 
   return (
@@ -558,8 +626,9 @@ export const OrdersLineChart = () => {
           {/* Line path */}
           <path
             d={dailyData.map((d, i) => {
+              const orders = d.orderCount || d.orders || 0;
               const x = 50 + (i * 600) / (dailyData.length - 1);
-              const y = 210 - ((d.orders - minOrders) / range) * 160;
+              const y = 210 - ((orders - minOrders) / range) * 160;
               return `${i === 0 ? 'M' : 'L'} ${x} ${y}`;
             }).join(' ')}
             fill="none"
@@ -573,8 +642,9 @@ export const OrdersLineChart = () => {
           <path
             d={[
               ...dailyData.map((d, i) => {
+                const orders = d.orderCount || d.orders || 0;
                 const x = 50 + (i * 600) / (dailyData.length - 1);
-                const y = 210 - ((d.orders - minOrders) / range) * 160;
+                const y = 210 - ((orders - minOrders) / range) * 160;
                 return `${i === 0 ? 'M' : 'L'} ${x} ${y}`;
               }),
               `L 650 210`,
@@ -587,13 +657,14 @@ export const OrdersLineChart = () => {
 
           {/* Data points */}
           {dailyData.map((d, i) => {
+            const orders = d.orderCount || d.orders || 0;
             const x = 50 + (i * 600) / (dailyData.length - 1);
-            const y = 210 - ((d.orders - minOrders) / range) * 160;
+            const y = 210 - ((orders - minOrders) / range) * 160;
             return (
               <g key={i}>
                 <circle cx={x} cy={y} r="5" fill="#3b82f6" />
                 <text x={x} y={y - 15} textAnchor="middle" className="text-xs font-semibold" fill="#374151">
-                  {d.orders}
+                  {orders}
                 </text>
                 <text x={x} y="235" textAnchor="middle" className="text-xs" fill="#6b7280">
                   {d.day}
