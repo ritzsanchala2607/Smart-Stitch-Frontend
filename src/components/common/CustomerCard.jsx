@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Eye, Edit, Trash2, User, Mail, Phone, ShoppingBag, DollarSign } from 'lucide-react';
+import { Eye, Edit, Trash2, User, Mail, Phone, ShoppingBag, IndianRupee } from 'lucide-react';
 import PropTypes from 'prop-types';
 
 const CustomerCard = ({ customer, onView, onEdit, onDelete }) => {
@@ -61,7 +61,7 @@ const CustomerCard = ({ customer, onView, onEdit, onDelete }) => {
             
             <div className="bg-green-50 dark:bg-green-900/30 rounded-lg p-3">
               <div className="flex items-center gap-2 text-green-600 dark:text-green-400 mb-1">
-                <DollarSign className="w-4 h-4" />
+                <IndianRupee className="w-4 h-4" />
                 <span className="text-xs font-medium">Total Spent</span>
               </div>
               <p className="text-lg font-bold text-green-900 dark:text-green-300">
