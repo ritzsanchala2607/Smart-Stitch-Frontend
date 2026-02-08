@@ -32,6 +32,11 @@ export const DataProvider = ({ children }) => {
     workers: { data: null, loading: false, error: null, timestamp: null },
     tasks: { data: null, loading: false, error: null, timestamp: null },
     profile: { data: null, loading: false, error: null, timestamp: null },
+    // Customer-specific caches
+    myOrders: { data: null, loading: false, error: null, timestamp: null },
+    customerStats: { data: null, loading: false, error: null, timestamp: null },
+    recentActivities: { data: null, loading: false, error: null, timestamp: null },
+    measurementProfiles: { data: null, loading: false, error: null, timestamp: null },
   });
 
   // Cache expiration time (5 minutes)
@@ -77,6 +82,10 @@ export const DataProvider = ({ children }) => {
       workers: { data: null, loading: false, error: null, timestamp: null },
       tasks: { data: null, loading: false, error: null, timestamp: null },
       profile: { data: null, loading: false, error: null, timestamp: null },
+      myOrders: { data: null, loading: false, error: null, timestamp: null },
+      customerStats: { data: null, loading: false, error: null, timestamp: null },
+      recentActivities: { data: null, loading: false, error: null, timestamp: null },
+      measurementProfiles: { data: null, loading: false, error: null, timestamp: null },
     });
   }, []);
 
@@ -447,6 +456,178 @@ export const DataProvider = ({ children }) => {
     }
   }, [cache.profile, isCacheStale, getToken, user, updateCache]);
 
+  // ==================== CUSTOMER MY ORDERS ====================
+  
+  const fetchMyOrders = useCallback(async (force = false) => {
+    if (!force && cache.myOrders.data && !isCacheStale('myOrders')) {
+      return { success: true, data: cache.myOrders.data, fromCache: true };
+    }
+
+    if (cache.myOrders.loading) {
+      return { success: false, error: 'Request in progress', fromCache: false };
+    }
+
+    const token = getToken();
+    if (!token) {
+      const error = 'Authentication required';
+      updateCache('myOrders', { error, loading: false });
+      return { success: false, error };
+    }
+
+    updateCache('myOrders', { loading: true, error: null });
+
+    try {
+      const result = await customerAPI.getMyOrders(token);
+
+      if (result.success) {
+        updateCache('myOrders', {
+          data: result.data,
+          loading: false,
+          error: null,
+          timestamp: Date.now()
+        });
+
+        return { success: true, data: result.data, fromCache: false };
+      } else {
+        updateCache('myOrders', { loading: false, error: result.error });
+        return { success: false, error: result.error };
+      }
+    } catch (error) {
+      const errorMsg = error.message || 'Failed to fetch orders';
+      updateCache('myOrders', { loading: false, error: errorMsg });
+      return { success: false, error: errorMsg };
+    }
+  }, [cache.myOrders, isCacheStale, getToken, updateCache]);
+
+  // ==================== CUSTOMER STATS ====================
+  
+  const fetchCustomerStats = useCallback(async (force = false) => {
+    if (!force && cache.customerStats.data && !isCacheStale('customerStats')) {
+      return { success: true, data: cache.customerStats.data, fromCache: true };
+    }
+
+    if (cache.customerStats.loading) {
+      return { success: false, error: 'Request in progress', fromCache: false };
+    }
+
+    const token = getToken();
+    if (!token) {
+      const error = 'Authentication required';
+      updateCache('customerStats', { error, loading: false });
+      return { success: false, error };
+    }
+
+    updateCache('customerStats', { loading: true, error: null });
+
+    try {
+      const result = await customerAPI.getCustomerStats(token);
+
+      if (result.success) {
+        updateCache('customerStats', {
+          data: result.data,
+          loading: false,
+          error: null,
+          timestamp: Date.now()
+        });
+
+        return { success: true, data: result.data, fromCache: false };
+      } else {
+        updateCache('customerStats', { loading: false, error: result.error });
+        return { success: false, error: result.error };
+      }
+    } catch (error) {
+      const errorMsg = error.message || 'Failed to fetch stats';
+      updateCache('customerStats', { loading: false, error: errorMsg });
+      return { success: false, error: errorMsg };
+    }
+  }, [cache.customerStats, isCacheStale, getToken, updateCache]);
+
+  // ==================== RECENT ACTIVITIES ====================
+  
+  const fetchRecentActivities = useCallback(async (limit = 5, force = false) => {
+    if (!force && cache.recentActivities.data && !isCacheStale('recentActivities')) {
+      return { success: true, data: cache.recentActivities.data, fromCache: true };
+    }
+
+    if (cache.recentActivities.loading) {
+      return { success: false, error: 'Request in progress', fromCache: false };
+    }
+
+    const token = getToken();
+    if (!token) {
+      const error = 'Authentication required';
+      updateCache('recentActivities', { error, loading: false });
+      return { success: false, error };
+    }
+
+    updateCache('recentActivities', { loading: true, error: null });
+
+    try {
+      const result = await customerAPI.getRecentActivities(token, limit);
+
+      if (result.success) {
+        updateCache('recentActivities', {
+          data: result.data,
+          loading: false,
+          error: null,
+          timestamp: Date.now()
+        });
+
+        return { success: true, data: result.data, fromCache: false };
+      } else {
+        updateCache('recentActivities', { loading: false, error: result.error });
+        return { success: false, error: result.error };
+      }
+    } catch (error) {
+      const errorMsg = error.message || 'Failed to fetch activities';
+      updateCache('recentActivities', { loading: false, error: errorMsg });
+      return { success: false, error: errorMsg };
+    }
+  }, [cache.recentActivities, isCacheStale, getToken, updateCache]);
+
+  // ==================== MEASUREMENT PROFILES ====================
+  
+  const fetchMeasurementProfiles = useCallback(async (customerId, force = false) => {
+    if (!force && cache.measurementProfiles.data && !isCacheStale('measurementProfiles')) {
+      return { success: true, data: cache.measurementProfiles.data, fromCache: true };
+    }
+
+    if (cache.measurementProfiles.loading) {
+      return { success: false, error: 'Request in progress', fromCache: false };
+    }
+
+    const token = getToken();
+    if (!token || !customerId) {
+      const error = 'Authentication required';
+      updateCache('measurementProfiles', { error, loading: false });
+      return { success: false, error };
+    }
+
+    updateCache('measurementProfiles', { loading: true, error: null });
+
+    try {
+      const result = await customerAPI.getMeasurementProfiles(customerId, token);
+
+      if (result.success) {
+        updateCache('measurementProfiles', {
+          data: result.data,
+          loading: false,
+          error: null,
+          timestamp: Date.now()
+        });
+
+        return { success: true, data: result.data, fromCache: false };
+      } else {
+        updateCache('measurementProfiles', { loading: false, error: result.error });
+        return { success: false, error: result.error };
+      }
+    } catch (error) {
+      const errorMsg = error.message || 'Failed to fetch measurement profiles';
+      updateCache('measurementProfiles', { loading: false, error: errorMsg });
+      return { success: false, error: errorMsg };
+    }
+  }, [cache.measurementProfiles, isCacheStale, getToken, updateCache]);
+
   // ==================== CACHE INVALIDATION ====================
   
   const invalidateCache = useCallback((keys) => {
@@ -468,6 +649,10 @@ export const DataProvider = ({ children }) => {
   const invalidateWorkers = useCallback(() => invalidateCache('workers'), [invalidateCache]);
   const invalidateTasks = useCallback(() => invalidateCache('tasks'), [invalidateCache]);
   const invalidateProfile = useCallback(() => invalidateCache('profile'), [invalidateCache]);
+  const invalidateMyOrders = useCallback(() => invalidateCache('myOrders'), [invalidateCache]);
+  const invalidateCustomerStats = useCallback(() => invalidateCache('customerStats'), [invalidateCache]);
+  const invalidateRecentActivities = useCallback(() => invalidateCache('recentActivities'), [invalidateCache]);
+  const invalidateMeasurementProfiles = useCallback(() => invalidateCache('measurementProfiles'), [invalidateCache]);
 
   const value = {
     // Data
@@ -476,6 +661,10 @@ export const DataProvider = ({ children }) => {
     workers: cache.workers.data || [],
     tasks: cache.tasks.data || [],
     profile: cache.profile.data,
+    myOrders: cache.myOrders.data || [],
+    customerStats: cache.customerStats.data,
+    recentActivities: cache.recentActivities.data || [],
+    measurementProfiles: cache.measurementProfiles.data || [],
     
     // Loading states
     customersLoading: cache.customers.loading,
@@ -483,6 +672,10 @@ export const DataProvider = ({ children }) => {
     workersLoading: cache.workers.loading,
     tasksLoading: cache.tasks.loading,
     profileLoading: cache.profile.loading,
+    myOrdersLoading: cache.myOrders.loading,
+    customerStatsLoading: cache.customerStats.loading,
+    recentActivitiesLoading: cache.recentActivities.loading,
+    measurementProfilesLoading: cache.measurementProfiles.loading,
     
     // Error states
     customersError: cache.customers.error,
@@ -490,6 +683,10 @@ export const DataProvider = ({ children }) => {
     workersError: cache.workers.error,
     tasksError: cache.tasks.error,
     profileError: cache.profile.error,
+    myOrdersError: cache.myOrders.error,
+    customerStatsError: cache.customerStats.error,
+    recentActivitiesError: cache.recentActivities.error,
+    measurementProfilesError: cache.measurementProfiles.error,
     
     // Fetch functions
     fetchCustomers,
@@ -497,6 +694,10 @@ export const DataProvider = ({ children }) => {
     fetchWorkers,
     fetchTasks,
     fetchProfile,
+    fetchMyOrders,
+    fetchCustomerStats,
+    fetchRecentActivities,
+    fetchMeasurementProfiles,
     
     // Cache invalidation
     invalidateCustomers,
@@ -504,6 +705,10 @@ export const DataProvider = ({ children }) => {
     invalidateWorkers,
     invalidateTasks,
     invalidateProfile,
+    invalidateMyOrders,
+    invalidateCustomerStats,
+    invalidateRecentActivities,
+    invalidateMeasurementProfiles,
     clearCache,
     
     // Utility
@@ -513,7 +718,10 @@ export const DataProvider = ({ children }) => {
       fetchWorkers(true);
       fetchTasks(true);
       fetchProfile(true);
-    }, [fetchCustomers, fetchOrders, fetchWorkers, fetchTasks, fetchProfile])
+      fetchMyOrders(true);
+      fetchCustomerStats(true);
+      fetchRecentActivities(5, true);
+    }, [fetchCustomers, fetchOrders, fetchWorkers, fetchTasks, fetchProfile, fetchMyOrders, fetchCustomerStats, fetchRecentActivities])
   };
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;

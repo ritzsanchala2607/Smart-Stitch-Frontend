@@ -168,3 +168,115 @@ export const useDataFetch = (resources = [], options = {}) => {
 
   return context;
 };
+
+/**
+ * Custom hook to fetch and use customer's own orders
+ */
+export const useMyOrders = (options = {}) => {
+  const { skip = false, force = false } = options;
+  const {
+    myOrders,
+    myOrdersLoading,
+    myOrdersError,
+    fetchMyOrders,
+    invalidateMyOrders
+  } = useData();
+
+  useEffect(() => {
+    if (!skip) {
+      fetchMyOrders(force);
+    }
+  }, [skip, force, fetchMyOrders]);
+
+  return {
+    myOrders,
+    myOrdersLoading,
+    myOrdersError,
+    fetchMyOrders,
+    invalidateMyOrders
+  };
+};
+
+/**
+ * Custom hook to fetch and use customer stats
+ */
+export const useCustomerStats = (options = {}) => {
+  const { skip = false, force = false } = options;
+  const {
+    customerStats,
+    customerStatsLoading,
+    customerStatsError,
+    fetchCustomerStats,
+    invalidateCustomerStats
+  } = useData();
+
+  useEffect(() => {
+    if (!skip) {
+      fetchCustomerStats(force);
+    }
+  }, [skip, force, fetchCustomerStats]);
+
+  return {
+    customerStats,
+    customerStatsLoading,
+    customerStatsError,
+    fetchCustomerStats,
+    invalidateCustomerStats
+  };
+};
+
+/**
+ * Custom hook to fetch and use recent activities
+ */
+export const useRecentActivities = (limit = 5, options = {}) => {
+  const { skip = false, force = false } = options;
+  const {
+    recentActivities,
+    recentActivitiesLoading,
+    recentActivitiesError,
+    fetchRecentActivities,
+    invalidateRecentActivities
+  } = useData();
+
+  useEffect(() => {
+    if (!skip) {
+      fetchRecentActivities(limit, force);
+    }
+  }, [skip, force, limit, fetchRecentActivities]);
+
+  return {
+    recentActivities,
+    recentActivitiesLoading,
+    recentActivitiesError,
+    fetchRecentActivities,
+    invalidateRecentActivities
+  };
+};
+
+/**
+ * Custom hook to fetch and use measurement profiles
+ */
+export const useMeasurementProfiles = (customerId, options = {}) => {
+  const { skip = false, force = false } = options;
+  const {
+    measurementProfiles,
+    measurementProfilesLoading,
+    measurementProfilesError,
+    fetchMeasurementProfiles,
+    invalidateMeasurementProfiles
+  } = useData();
+
+  useEffect(() => {
+    if (!skip && customerId) {
+      fetchMeasurementProfiles(customerId, force);
+    }
+  }, [skip, force, customerId, fetchMeasurementProfiles]);
+
+  return {
+    measurementProfiles,
+    measurementProfilesLoading,
+    measurementProfilesError,
+    fetchMeasurementProfiles,
+    invalidateMeasurementProfiles
+  };
+};

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -12,42 +12,25 @@ import {
   Loader,
   AlertCircle
 } from 'lucide-react';
-import { customerAPI } from '../../services/api';
+import { useProfile, useMeasurementProfiles } from '../../hooks/useDataFetch';
 
 const Measurements = () => {
   usePageTitle('Measurements');
 
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [profiles, setProfiles] = useState([]);
   const [selectedProfile, setSelectedProfile] = useState(null);
   const [expandedCategory, setExpandedCategory] = useState('shirt');
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // Get token from localStorage
-  const getToken = () => {
-    const token = localStorage.getItem('token');
-    if (token) return token;
+  // Fetch profile and measurements from global state
+  const { profile: profileData } = useProfile();
+  const customerId = useMemo(() => {
+    if (profileData?.customerId) return profileData.customerId;
     
-    const userStr = localStorage.getItem('user');
-    if (userStr) {
-      try {
-        const user = JSON.parse(userStr);
-        return user.jwt || user.token;
-      } catch (e) {
-        console.error('Error parsing user from localStorage:', e);
-      }
-    }
-    return null;
-  };
-
-  // Get customer ID from JWT token
-  const getCustomerId = () => {
-    const token = getToken();
+    // Fallback: try to get from JWT token
+    const token = localStorage.getItem('token');
     if (!token) return null;
     
     try {
-      // Decode JWT token (format: header.payload.signature)
       const base64Url = token.split('.')[1];
       const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
       const jsonPayload = decodeURIComponent(
@@ -58,84 +41,44 @@ const Measurements = () => {
       );
       
       const payload = JSON.parse(jsonPayload);
-      console.log('JWT Payload:', payload);
-      
-      // The JWT should contain userId or sub (subject)
       return payload.userId || payload.sub || payload.id;
     } catch (e) {
       console.error('Error decoding JWT token:', e);
       return null;
     }
-  };
+  }, [profileData]);
 
-  // Fetch measurement profiles on mount
+  const { 
+    measurementProfiles: profilesData, 
+    measurementProfilesLoading: loading, 
+    measurementProfilesError: error 
+  } = useMeasurementProfiles(customerId);
+
+  // Transform profiles using useMemo
+  const profiles = useMemo(() => {
+    if (!profilesData || profilesData.length === 0) return [];
+
+    return profilesData.map(profile => {
+      return {
+        id: profile.profileId,
+        name: `${profile.dressType} Measurements`,
+        dressType: profile.dressType,
+        isDefault: profile.dressType === 'SHIRT',
+        createdAt: profile.createdAt?.split('T')[0] || 'N/A',
+        updatedAt: profile.updatedAt?.split('T')[0] || 'N/A',
+        notes: profile.notes || '',
+        measurements: transformMeasurements(profile.dressType, profile.measurements)
+      };
+    });
+  }, [profilesData]);
+
+  // Select first profile by default
   useEffect(() => {
-    fetchMeasurementProfiles();
-  }, []);
-
-  const fetchMeasurementProfiles = async () => {
-    setLoading(true);
-    setError('');
-    
-    const token = getToken();
-    const customerId = getCustomerId();
-    
-    if (!token) {
-      setError('Please login to view measurements');
-      setLoading(false);
-      return;
+    if (profiles.length > 0 && !selectedProfile) {
+      setSelectedProfile(profiles[0]);
+      setExpandedCategory(profiles[0].dressType.toLowerCase());
     }
-
-    if (!customerId) {
-      setError('Unable to identify customer. Please login again.');
-      setLoading(false);
-      return;
-    }
-
-    console.log('Fetching measurements for customer ID:', customerId);
-
-    const response = await customerAPI.getMeasurementProfiles(customerId, token);
-    
-    if (response.success) {
-      const fetchedProfiles = response.data || [];
-      
-      // Log the raw API response for debugging
-      console.log('=== RAW API RESPONSE ===');
-      console.log('Number of profiles:', fetchedProfiles.length);
-      console.log('Full response data:', JSON.stringify(fetchedProfiles, null, 2));
-      console.log('=== END RAW API RESPONSE ===');
-      
-      // Transform API data to match component structure
-      const transformedProfiles = fetchedProfiles.map(profile => {
-        console.log(`\n=== Processing profile: ${profile.dressType} ===`);
-        console.log('Profile ID:', profile.profileId);
-        console.log('Measurements object:', profile.measurements);
-        return {
-          id: profile.profileId,
-          name: `${profile.dressType} Measurements`,
-          dressType: profile.dressType,
-          isDefault: profile.dressType === 'SHIRT',
-          createdAt: profile.createdAt?.split('T')[0] || 'N/A',
-          updatedAt: profile.updatedAt?.split('T')[0] || 'N/A',
-          notes: profile.notes || '',
-          measurements: transformMeasurements(profile.dressType, profile.measurements)
-        };
-      });
-
-      setProfiles(transformedProfiles);
-      
-      // Select first profile by default
-      if (transformedProfiles.length > 0) {
-        setSelectedProfile(transformedProfiles[0]);
-        // Set expanded category based on first profile's dress type
-        setExpandedCategory(transformedProfiles[0].dressType.toLowerCase());
-      }
-    } else {
-      setError(response.error || 'Failed to fetch measurements');
-    }
-    
-    setLoading(false);
-  };
+  }, [profiles, selectedProfile]);
 
   // Transform measurements from API format to component format
   const transformMeasurements = (dressType, measurements) => {

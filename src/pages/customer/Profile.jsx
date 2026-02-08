@@ -4,6 +4,7 @@ import Topbar from '../../components/common/Topbar';
 import { motion, AnimatePresence } from 'framer-motion';
 import usePageTitle from '../../hooks/usePageTitle';
 import { customerAPI } from '../../services/api';
+import { useProfile } from '../../hooks/useDataFetch';
 import {
   User,
   Mail,
@@ -26,6 +27,9 @@ const Profile = () => {
   usePageTitle('Profile');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   
+  // Fetch profile from global state
+  const { profile: globalProfile, profileLoading, invalidateProfile } = useProfile();
+
   const [profileData, setProfileData] = useState({
     name: '',
     email: '',
@@ -34,7 +38,6 @@ const Profile = () => {
     avatar: null
   });
 
-  const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [editedData, setEditedData] = useState(profileData);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -46,72 +49,23 @@ const Profile = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
 
-  // Fetch profile data on mount
+  // Map global profile to local state
   useEffect(() => {
-    fetchProfile();
-  }, []);
-
-  const fetchProfile = async () => {
-    setIsLoading(true);
-    setErrorMessage('');
-
-    // Get token
-    let token = localStorage.getItem('token');
-    if (!token) {
-      const userDataString = localStorage.getItem('user');
-      if (userDataString) {
-        try {
-          const userData = JSON.parse(userDataString);
-          token = userData.jwt || userData.token;
-        } catch (e) {
-          console.error('Error parsing user data:', e);
-        }
-      }
-    }
-
-    console.log('Fetching profile with token:', token ? 'Token found' : 'No token');
-
-    if (!token) {
-      setErrorMessage('Authentication required. Please login again.');
-      setIsLoading(false);
-      return;
-    }
-
-    try {
-      console.log('Calling customerAPI.getCustomerProfile...');
-      const result = await customerAPI.getCustomerProfile(token);
+    if (globalProfile) {
+      const profile = {
+        name: globalProfile.user?.name || '',
+        email: globalProfile.user?.email || '',
+        phone: globalProfile.user?.contactNumber || '',
+        joinDate: globalProfile.createdAt ? new Date(globalProfile.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+        avatar: globalProfile.user?.profilePicture || null,
+        customerId: globalProfile.customerId,
+        userId: globalProfile.user?.userId
+      };
       
-      console.log('Profile API Result:', result);
-      
-      if (result.success) {
-        console.log('Profile data received:', result.data);
-        
-        const data = result.data;
-        const profile = {
-          name: data.user?.name || '',
-          email: data.user?.email || '',
-          phone: data.user?.contactNumber || '',
-          joinDate: data.createdAt ? new Date(data.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-          avatar: data.user?.profilePicture || null,
-          customerId: data.customerId,
-          userId: data.user?.userId
-        };
-        
-        console.log('Mapped profile:', profile);
-        
-        setProfileData(profile);
-        setEditedData(profile);
-      } else {
-        console.error('Failed to fetch profile:', result.error);
-        setErrorMessage(result.error || 'Failed to load profile');
-      }
-    } catch (error) {
-      console.error('Error fetching profile:', error);
-      setErrorMessage('Failed to load profile. Please try again.');
-    } finally {
-      setIsLoading(false);
+      setProfileData(profile);
+      setEditedData(profile);
     }
-  };
+  }, [globalProfile]);
 
   // Customer stats
   const customerStats = {
@@ -125,11 +79,14 @@ const Profile = () => {
   };
 
   // Handle profile update
-  const handleSave = () => {
+  const handleSave = async () => {
+    // TODO: Implement actual profile update API call
     setProfileData(editedData);
     setIsEditing(false);
     setSuccessMessage('Profile updated successfully!');
     setTimeout(() => setSuccessMessage(''), 3000);
+    // Invalidate cache to refetch updated profile
+    invalidateProfile();
   };
 
   // Handle cancel
@@ -219,7 +176,7 @@ const Profile = () => {
             </AnimatePresence>
 
             {/* Loading State */}
-            {isLoading ? (
+            {profileLoading ? (
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-12 text-center">
                 <motion.div
                   animate={{ rotate: 360 }}
