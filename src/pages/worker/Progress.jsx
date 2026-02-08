@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
 import { motion } from 'framer-motion';
@@ -15,85 +15,23 @@ import {
   Trophy,
   Star
 } from 'lucide-react';
-import { workerAPI } from '../../services/api';
+import { useTasks, useProfile } from '../../hooks/useDataFetch';
 
 const WorkerProgress = () => {
   usePageTitle('Work Progress');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   
-  // State management
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [workerProfile, setWorkerProfile] = useState(null);
-  const [tasks, setTasks] = useState([]);
-  const [statistics, setStatistics] = useState({
-    totalTasks: 0,
-    completedTasks: 0,
-    onTimeCompletions: 0,
-    onTimePercentage: 0,
-    avgCompletionTime: '0 days',
-    thisWeekCompleted: 0,
-    accuracyRating: 0,
-    performance: 0,
-    rating: 0
-  });
+  // Fetch data from global state
+  const { tasks: tasksData, tasksLoading, tasksError, fetchTasks } = useTasks();
+  const { profile: workerProfile, profileLoading } = useProfile();
 
-  // Fetch worker data on mount
-  useEffect(() => {
-    fetchWorkerData();
-  }, []);
+  // Combine loading states
+  const isLoading = tasksLoading || profileLoading;
+  const error = tasksError;
 
-  const fetchWorkerData = async () => {
-    setIsLoading(true);
-    setError(null);
-
-    // Get token
-    let token = localStorage.getItem('token');
-    if (!token) {
-      const userDataString = localStorage.getItem('user');
-      if (userDataString) {
-        try {
-          const userData = JSON.parse(userDataString);
-          token = userData.jwt || userData.token;
-        } catch (e) {
-          console.error('Error parsing user data:', e);
-        }
-      }
-    }
-
-    if (!token) {
-      setError('Authentication required. Please login again.');
-      setIsLoading(false);
-      return;
-    }
-
-    try {
-      // Fetch worker profile and tasks in parallel
-      const [profileResult, tasksResult] = await Promise.all([
-        workerAPI.getWorkerProfile(token),
-        workerAPI.getMyTasks(token)
-      ]);
-
-      if (profileResult.success) {
-        setWorkerProfile(profileResult.data);
-      }
-
-      if (tasksResult.success) {
-        const taskData = tasksResult.data || [];
-        setTasks(taskData);
-        
-        // Calculate statistics from tasks
-        calculateStatistics(taskData);
-      }
-    } catch (error) {
-      console.error('Error fetching worker data:', error);
-      setError('Failed to load worker data. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const calculateStatistics = (taskData) => {
+  // Calculate statistics from tasks using useMemo
+  const statistics = useMemo(() => {
+    const taskData = tasksData || [];
     const totalTasks = taskData.length;
     const completedTasks = taskData.filter(t => t.status === 'COMPLETED').length;
     
@@ -121,7 +59,7 @@ const WorkerProgress = () => {
     // Calculate performance percentage
     const performance = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
-    setStatistics({
+    return {
       totalTasks,
       completedTasks,
       onTimeCompletions,
@@ -131,14 +69,14 @@ const WorkerProgress = () => {
       accuracyRating: parseFloat(accuracyRating),
       performance,
       rating: workerProfile?.ratings || 0
-    });
-  };
+    };
+  }, [tasksData, workerProfile]);
 
   // Monthly data (calculated from tasks)
-  const monthlyData = calculateMonthlyData(tasks);
+  const monthlyData = useMemo(() => calculateMonthlyData(tasksData || []), [tasksData]);
 
   // Error/Redo tasks (filter from actual tasks)
-  const errorTasks = tasks.filter(t => t.status === 'REDO' || t.hasIssue).slice(0, 5);
+  const errorTasks = (tasksData || []).filter(t => t.status === 'REDO' || t.hasIssue).slice(0, 5);
 
   // Worker rankings - TODO: This needs a backend API endpoint
   // For now, show placeholder
@@ -199,7 +137,7 @@ const WorkerProgress = () => {
               <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
               <p className="text-red-600 dark:text-red-400 mb-4">{error}</p>
               <button
-                onClick={fetchWorkerData}
+                onClick={() => fetchTasks(true)}
                 className="px-6 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
               >
                 Retry
@@ -341,9 +279,9 @@ const WorkerProgress = () => {
                   </div>
                 </div>
                 <div className="p-6">
-                  {tasks.length > 0 ? (
+                  {(tasksData || []).length > 0 ? (
                     <div className="space-y-4">
-                      {tasks.slice(0, 5).map((task, index) => (
+                      {(tasksData || []).slice(0, 5).map((task, index) => (
                         <div
                           key={index}
                           className={`p-4 border rounded-lg ${

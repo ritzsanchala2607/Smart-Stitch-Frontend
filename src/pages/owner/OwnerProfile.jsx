@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import usePageTitle from '../../hooks/usePageTitle';
+import { useProfile } from '../../hooks/useDataFetch';
 import { API_URL } from '../../config';
 import { 
   User, 
@@ -21,6 +22,10 @@ import Topbar from '../../components/common/Topbar';
 const OwnerProfile = () => {
   usePageTitle('Profile');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  
+  // Use global state for profile data
+  const { profile: profileData, isLoading: loading, error: fetchError, refetch: refetchProfile } = useProfile();
+  
   const [profile, setProfile] = useState({
     name: '',
     email: '',
@@ -32,110 +37,38 @@ const OwnerProfile = () => {
     photo: null
   });
 
-  const [loading, setLoading] = useState(true);
   const [photoPreview, setPhotoPreview] = useState(null);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [errors, setErrors] = useState({});
 
-  // Fetch profile data from API
+  // Update local state when profile data changes
   useEffect(() => {
-    const fetchProfile = async () => {
-      // Get JWT token from localStorage
-      // Check both locations: separate 'token' key or inside 'user' object
-      let token = localStorage.getItem('token');
-      
-      if (!token) {
-        const userDataString = localStorage.getItem('user');
-        if (userDataString) {
-          try {
-            const userData = JSON.parse(userDataString);
-            token = userData.jwt;
-          } catch (e) {
-            console.error('Error parsing user data:', e);
-          }
-        }
+    if (profileData) {
+      setProfile({
+        name: profileData.name || '',
+        email: profileData.email || '',
+        mobile: profileData.contactNumber || '',
+        shopName: profileData.shopName || '',
+        shopEmail: profileData.shopEmail || '',
+        shopPhone: profileData.shopContactNumber || '',
+        address: profileData.shopAddress || '',
+        photo: null
+      });
+
+      // Set photo preview if available
+      if (profileData.profilePicture) {
+        setPhotoPreview(profileData.profilePicture);
       }
-      
-      console.log('Token from localStorage:', token ? 'Token exists' : 'No token found');
-      
-      if (token) {
-        // Log first and last 20 characters of token for debugging
-        console.log('Token preview:', token.substring(0, 20) + '...' + token.substring(token.length - 20));
-      }
-      
-      if (!token) {
-        setErrors({ fetch: 'User not authenticated. Please login again.' });
-        setLoading(false);
-        return;
-      }
+    }
+  }, [profileData]);
 
-      try {
-        console.log('Fetching profile from:', `${API_URL}/api/owners/my-shop`);
-        console.log('Authorization header:', `Bearer ${token.substring(0, 20)}...`);
-        
-        const response = await fetch(`${API_URL}/api/owners/my-shop`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          }
-        });
-        
-        console.log('Response status:', response.status);
-        console.log('Response headers:', Object.fromEntries(response.headers.entries()));
-        
-        if (!response.ok) {
-          let errorText = '';
-          try {
-            errorText = await response.text();
-            console.error('Error response:', errorText);
-          } catch (e) {
-            console.error('Could not read error response');
-          }
-          
-          if (response.status === 403) {
-            throw new Error('Access denied. This is a backend security configuration issue. Please check:\n1. Spring Security allows /api/owners/my-shop for OWNER role\n2. JWT filter is extracting the role correctly\n3. Backend logs for JWT validation errors');
-          } else if (response.status === 401) {
-            throw new Error('Invalid or expired token. Please login again.');
-          } else {
-            throw new Error(errorText || 'Failed to fetch profile');
-          }
-        }
-
-        const result = await response.json();
-        console.log('API Response:', result);
-        
-        // Extract data from the response structure
-        const data = result.data || result;
-        
-        // Map API response to profile state (flat structure)
-        setProfile({
-          name: data.name || '',
-          email: data.email || '',
-          mobile: data.contactNumber || '',
-          shopName: data.shopName || '',
-          shopEmail: data.shopEmail || '',
-          shopPhone: data.shopContactNumber || '',
-          address: data.shopAddress || '',
-          photo: null
-        });
-
-        // Set photo preview if available
-        if (data.profilePicture) {
-          setPhotoPreview(data.profilePicture);
-        }
-
-      } catch (error) {
-        console.error('Error fetching profile:', error);
-        setErrors({ fetch: error.message || 'Failed to load profile data' });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProfile();
-  }, []);
+  // Set fetch error if any
+  useEffect(() => {
+    if (fetchError) {
+      setErrors({ fetch: fetchError });
+    }
+  }, [fetchError]);
 
   const handleInputChange = (field, value) => {
     setProfile(prev => ({
@@ -286,6 +219,9 @@ const OwnerProfile = () => {
         const errorData = await response.text();
         throw new Error(errorData || 'Failed to update profile');
       }
+
+      // Invalidate cache and refetch profile data
+      await refetchProfile();
 
       // Show success message
       setShowSuccessMessage(false);

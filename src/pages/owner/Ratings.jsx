@@ -3,6 +3,7 @@ import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
 import { motion } from 'framer-motion';
 import usePageTitle from '../../hooks/usePageTitle';
+import { useWorkers } from '../../hooks/useDataFetch';
 import {
   Star, TrendingUp, Users, Award, Filter, Search,
   Eye, MessageSquare, CheckCircle, AlertCircle, Tag,
@@ -27,6 +28,9 @@ const Ratings = () => {
   });
   const [workerRatings, setWorkerRatings] = useState([]);
   const [avgWorkerRating, setAvgWorkerRating] = useState(0);
+
+  // Use global state for workers data
+  const { workers: workersData, isLoading: workersLoading } = useWorkers();
 
   // Get token from localStorage
   const getToken = () => {
@@ -79,8 +83,14 @@ const Ratings = () => {
   // Fetch shop ratings on mount
   useEffect(() => {
     fetchShopRatings();
-    fetchWorkerRatings();
   }, []);
+
+  // Fetch worker ratings when workers data is available
+  useEffect(() => {
+    if (workersData && workersData.length > 0) {
+      fetchWorkerRatings();
+    }
+  }, [workersData]);
 
   const fetchShopRatings = async () => {
     setLoading(true);
@@ -138,74 +148,50 @@ const Ratings = () => {
       return;
     }
 
+    // Use workers from global state instead of fetching again
+    if (!workersData || workersData.length === 0) {
+      console.log('No workers found in global state');
+      setAvgWorkerRating(0);
+      return;
+    }
+
     try {
-      // Fetch all workers for the shop
-      const workersResponse = await workerAPI.getWorkers(token);
-      console.log('Workers API response:', workersResponse);
+      console.log('Workers from global state:', workersData);
       
-      if (workersResponse.success) {
-        // Handle different response structures
-        let workers = workersResponse.data;
+      // Fetch rating summary for each worker
+      const workerRatingsPromises = workersData.map(async (worker) => {
+        const summaryResponse = await ratingAPI.getWorkerRatingSummary(worker.workerId, token);
         
-        // If data is an object with a data property, extract it
-        if (workers && typeof workers === 'object' && !Array.isArray(workers)) {
-          if (workers.data && Array.isArray(workers.data)) {
-            workers = workers.data;
-          } else {
-            console.error('Workers data is not an array:', workers);
-            workers = [];
-          }
-        }
-        
-        // Ensure workers is an array
-        if (!Array.isArray(workers)) {
-          console.error('Workers is not an array:', workers);
-          workers = [];
-        }
-        
-        console.log('Workers array:', workers);
-        
-        if (workers.length === 0) {
-          console.log('No workers found');
-          setAvgWorkerRating(0);
-          return;
-        }
-        
-        // Fetch rating summary for each worker
-        const workerRatingsPromises = workers.map(async (worker) => {
-          const summaryResponse = await ratingAPI.getWorkerRatingSummary(worker.workerId, token);
-          
-          if (summaryResponse.success) {
-            return {
-              workerId: worker.workerId,
-              workerName: worker.name,
-              averageRating: summaryResponse.data.averageRating || 0,
-              totalRatings: summaryResponse.data.totalRatings || 0
-            };
-          }
-          
+        if (summaryResponse.success) {
           return {
             workerId: worker.workerId,
             workerName: worker.name,
-            averageRating: 0,
-            totalRatings: 0
+            averageRating: summaryResponse.data.averageRating || 0,
+            totalRatings: summaryResponse.data.totalRatings || 0
           };
-        });
-        
-        const ratingsData = await Promise.all(workerRatingsPromises);
-        console.log('Worker ratings data:', ratingsData);
-        setWorkerRatings(ratingsData);
-        
-        // Calculate average worker rating across all workers
-        const workersWithRatings = ratingsData.filter(w => w.totalRatings > 0);
-        if (workersWithRatings.length > 0) {
-          const totalAvg = workersWithRatings.reduce((sum, w) => sum + w.averageRating, 0);
-          const overallAvg = totalAvg / workersWithRatings.length;
-          setAvgWorkerRating(overallAvg);
-          console.log('Overall worker average rating:', overallAvg);
-        } else {
-          setAvgWorkerRating(0);
         }
+        
+        return {
+          workerId: worker.workerId,
+          workerName: worker.name,
+          averageRating: 0,
+          totalRatings: 0
+        };
+      });
+      
+      const ratingsData = await Promise.all(workerRatingsPromises);
+      console.log('Worker ratings data:', ratingsData);
+      setWorkerRatings(ratingsData);
+      
+      // Calculate average worker rating across all workers
+      const workersWithRatings = ratingsData.filter(w => w.totalRatings > 0);
+      if (workersWithRatings.length > 0) {
+        const totalAvg = workersWithRatings.reduce((sum, w) => sum + w.averageRating, 0);
+        const overallAvg = totalAvg / workersWithRatings.length;
+        setAvgWorkerRating(overallAvg);
+        console.log('Overall worker average rating:', overallAvg);
+      } else {
+        setAvgWorkerRating(0);
       }
     } catch (error) {
       console.error('Error fetching worker ratings:', error);

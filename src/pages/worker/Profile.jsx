@@ -18,12 +18,16 @@ import {
   Loader
 } from 'lucide-react';
 import { workerAPI, ratingAPI } from '../../services/api';
+import { useTasks, useProfile } from '../../hooks/useDataFetch';
 
 const WorkerProfile = () => {
   usePageTitle('Profile');
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const [isLoading, setIsLoading] = useState(true);
+  // Fetch data from global state
+  const { profile: profileData, profileLoading, invalidateProfile } = useProfile();
+  const { tasks: tasksData } = useTasks();
+
   const [isEditing, setIsEditing] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [profile, setProfile] = useState({
@@ -73,10 +77,37 @@ const WorkerProfile = () => {
     return null;
   };
 
-  // Fetch worker profile on component mount
+  // Map profileData from global state to local profile state
   useEffect(() => {
-    fetchWorkerProfile();
-  }, []);
+    if (profileData && tasksData) {
+      // Count active and completed tasks
+      const activeTasks = tasksData.filter(task => {
+        const status = (task.status || '').toUpperCase();
+        return status === 'PENDING' || status === 'IN_PROGRESS';
+      }).length;
+      
+      const completedTasks = tasksData.filter(task => {
+        const status = (task.status || '').toUpperCase();
+        return status === 'COMPLETED';
+      }).length;
+
+      setProfile({
+        name: profileData.name || '',
+        email: profileData.email || '',
+        phone: profileData.contactNumber || '',
+        specialization: profileData.workType || '',
+        avatar: profileData.profilePicture || null,
+        workType: profileData.workType || '',
+        experience: profileData.experience || 0,
+        joinDate: 'N/A', // Backend doesn't return this yet
+        rating: profileData.ratings || 0,
+        completedTasks: completedTasks,
+        activeTasks: activeTasks,
+        rates: profileData.rates || [],
+        workerId: profileData.workerId
+      });
+    }
+  }, [profileData, tasksData]);
 
   // Fetch customer ratings when workerId is available
   useEffect(() => {
@@ -84,73 +115,6 @@ const WorkerProfile = () => {
       fetchCustomerRatings();
     }
   }, [profile.workerId]);
-
-  const fetchWorkerProfile = async () => {
-    setIsLoading(true);
-    const token = getToken();
-    
-    if (!token) {
-      console.error('No token found');
-      setIsLoading(false);
-      return;
-    }
-
-    try {
-      // Fetch worker profile
-      const response = await workerAPI.getWorkerProfile(token);
-      
-      if (response.success) {
-        const data = response.data;
-        console.log('Worker profile fetched:', data);
-        
-        // Fetch worker tasks to calculate active and completed counts
-        const tasksResponse = await workerAPI.getMyTasks(token);
-        let activeTasks = 0;
-        let completedTasks = 0;
-        
-        if (tasksResponse.success) {
-          const tasks = tasksResponse.data || [];
-          console.log('Worker tasks fetched:', tasks);
-          
-          // Count active tasks (PENDING or IN_PROGRESS status)
-          activeTasks = tasks.filter(task => {
-            const status = (task.status || '').toUpperCase();
-            return status === 'PENDING' || status === 'IN_PROGRESS';
-          }).length;
-          
-          // Count completed tasks (COMPLETED status)
-          completedTasks = tasks.filter(task => {
-            const status = (task.status || '').toUpperCase();
-            return status === 'COMPLETED';
-          }).length;
-          
-          console.log('Task counts - Active:', activeTasks, 'Completed:', completedTasks);
-        }
-        
-        setProfile({
-          name: data.name || '',
-          email: data.email || '',
-          phone: data.contactNumber || '',
-          specialization: data.workType || '',
-          avatar: data.profilePicture || null,
-          workType: data.workType || '',
-          experience: data.experience || 0,
-          joinDate: 'N/A', // Backend doesn't return this yet
-          rating: data.ratings || 0,
-          completedTasks: completedTasks,
-          activeTasks: activeTasks,
-          rates: data.rates || [],
-          workerId: data.workerId
-        });
-      } else {
-        console.error('Failed to fetch worker profile:', response.error);
-      }
-    } catch (error) {
-      console.error('Error fetching worker profile:', error);
-    }
-    
-    setIsLoading(false);
-  };
 
   // Handle profile update
   const handleSaveProfile = async () => {
@@ -174,7 +138,8 @@ const WorkerProfile = () => {
         console.log('Profile updated successfully');
         setIsEditing(false);
         alert('Profile updated successfully!');
-        fetchWorkerProfile(); // Refresh profile data
+        // Invalidate cache to refetch updated profile
+        invalidateProfile();
       } else {
         console.error('Failed to update profile:', response.error);
         alert(`Failed to update profile: ${response.error}`);
@@ -248,7 +213,7 @@ const WorkerProfile = () => {
       <div className="flex-1 flex flex-col overflow-hidden">
         <Topbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
         <main className="flex-1 overflow-y-auto p-6">
-          {isLoading ? (
+          {profileLoading ? (
             <div className="flex items-center justify-center h-full">
               <div className="text-center">
                 <Loader className="w-12 h-12 text-purple-600 dark:text-purple-400 animate-spin mx-auto mb-4" />
