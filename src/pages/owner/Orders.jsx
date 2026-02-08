@@ -12,13 +12,29 @@ import { useState, useEffect } from 'react';
 import { isValidDate, isValidAmount } from '../../utils/validation';
 import AddCustomerModal from '../../components/AddCustomerModal';
 import { customerAPI, orderAPI, workerAPI } from '../../services/api';
+import { useOrders, useWorkers } from '../../hooks/useDataFetch';
 
 const Orders = () => {
   usePageTitle('Orders');
+  
+  // Use global state for orders and workers
+  const {
+    orders,
+    ordersLoading: isLoadingOrders,
+    ordersError,
+    fetchOrders,
+    invalidateOrders
+  } = useOrders();
+
+  const {
+    workers,
+    workersLoading: isLoadingWorkers,
+    workersError,
+    fetchWorkers,
+    invalidateWorkers
+  } = useWorkers();
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [orders, setOrders] = useState([]);
-  const [isLoadingOrders, setIsLoadingOrders] = useState(false);
-  const [ordersError, setOrdersError] = useState(null);
   const [showNewOrderModal, setShowNewOrderModal] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
@@ -73,139 +89,21 @@ const Orders = () => {
   const [isSearchingCustomers, setIsSearchingCustomers] = useState(false);
   const [searchedCustomers, setSearchedCustomers] = useState([]);
 
-  // Worker state
-  const [workers, setWorkers] = useState([]);
-  const [isLoadingWorkers, setIsLoadingWorkers] = useState(false);
-  const [workersError, setWorkersError] = useState(null);
+  // Worker state - now using global state
+  // const [workers, setWorkers] = useState([]);
+  // const [isLoadingWorkers, setIsLoadingWorkers] = useState(false);
+  // const [workersError, setWorkersError] = useState(null);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
 
-  // Fetch workers on component mount
-  useEffect(() => {
-    fetchWorkers();
-    fetchOrders();
-  }, []);
+  // Removed: useEffect(() => { fetchWorkers(); fetchOrders(); }, []);
+  // The hooks handle fetching automatically!
 
   // Fetch workers from API
-  const fetchWorkers = async () => {
-    setIsLoadingWorkers(true);
-    setWorkersError(null);
-
-    // Get token
-    let token = localStorage.getItem('token');
-    if (!token) {
-      const userDataString = localStorage.getItem('user');
-      if (userDataString) {
-        try {
-          const userData = JSON.parse(userDataString);
-          token = userData.jwt || userData.token;
-        } catch (e) {
-          console.error('Error parsing user data:', e);
-        }
-      }
-    }
-
-    if (!token) {
-      console.error('No token found for fetching workers');
-      setWorkersError('Authentication error. Please log in again.');
-      setIsLoadingWorkers(false);
-      return;
-    }
-
-    try {
-      const result = await workerAPI.getWorkers(token);
-
-      if (result.success) {
-        console.log('Workers fetched successfully:', result.data);
-        // Map API response to component format
-        const mappedWorkers = (result.data.data || result.data || []).map(worker => ({
-          id: worker.workerId || worker.id,
-          name: worker.name,
-          email: worker.email,
-          phone: worker.contactNumber,
-          specialization: worker.workType || 'General',
-          experience: worker.experience || 0,
-          status: 'active', // Assume all fetched workers are active
-          ratings: worker.ratings || null
-        }));
-        setWorkers(mappedWorkers);
-      } else {
-        console.error('Failed to fetch workers:', result.error);
-        setWorkersError(result.error);
-      }
-    } catch (error) {
-      console.error('Error fetching workers:', error);
-      setWorkersError('Failed to load workers. Please try again.');
-    } finally {
-      setIsLoadingWorkers(false);
-    }
-  };
-
-  // Fetch orders from API
-  const fetchOrders = async () => {
-    setIsLoadingOrders(true);
-    setOrdersError(null);
-
-    // Get token
-    let token = localStorage.getItem('token');
-    if (!token) {
-      const userDataString = localStorage.getItem('user');
-      if (userDataString) {
-        try {
-          const userData = JSON.parse(userDataString);
-          token = userData.jwt || userData.token;
-        } catch (e) {
-          console.error('Error parsing user data:', e);
-        }
-      }
-    }
-
-    if (!token) {
-      console.error('No token found for fetching orders');
-      setOrdersError('Authentication error. Please log in again.');
-      setIsLoadingOrders(false);
-      return;
-    }
-
-    try {
-      const result = await orderAPI.getOrders(token);
-
-      if (result.success) {
-        console.log('Orders fetched successfully:', result.data);
-        // Map API response to component format
-        const mappedOrders = (result.data || []).map(order => ({
-          id: `ORD${String(order.orderId).padStart(3, '0')}`,
-          orderId: order.orderId, // Keep the numeric ID for API calls
-          customerId: order.customer?.customerId || order.customerId,
-          customerName: order.customer?.name || order.customerName || 'Unknown Customer',
-          orderDate: order.createdAt ? new Date(order.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-          deliveryDate: order.deadline,
-          status: order.status ? order.status.toLowerCase() : 'pending',
-          priority: 'medium',
-          items: order.items || [],
-          totalAmount: order.totalPrice || 0,
-          paidAmount: order.paidAmount || order.advancePayment || 0,
-          balanceAmount: (order.totalPrice || 0) - (order.paidAmount || order.advancePayment || 0),
-          measurements: order.measurements || {},
-          notes: order.notes || order.additionalNotes || '',
-          assignedWorker: null,
-          workerName: null,
-          assignmentMode: 'individual'
-        }));
-        setOrders(mappedOrders);
-      } else {
-        console.error('Failed to fetch orders:', result.error);
-        setOrdersError(result.error);
-      }
-    } catch (error) {
-      console.error('Error fetching orders:', error);
-      setOrdersError('Failed to load orders. Please try again.');
-    } finally {
-      setIsLoadingOrders(false);
-    }
-  };
+  // Removed: Manual fetchWorkers and fetchOrders functions
+  // Now handled by useOrders() and useWorkers() hooks from global state
 
   // Debounced customer search effect
   useEffect(() => {
@@ -509,56 +407,13 @@ const Orders = () => {
       if (result.success) {
         console.log('Order created successfully:', result.data);
 
-        // Determine worker assignment for local state
-        let assignedWorker = null;
-        let workerName = null;
-        let itemsWithWorkers = orderItems;
-
-        if (assignmentMode === 'whole' && wholeOrderWorker) {
-          assignedWorker = wholeOrderWorker.id;
-          workerName = wholeOrderWorker.name;
-          itemsWithWorkers = orderItems.map(item => ({
-            ...item,
-            assignedWorker: wholeOrderWorker.id,
-            workerName: wholeOrderWorker.name
-          }));
-        }
-
-        // Add to local state for immediate UI update
-        const newOrder = {
-          id: result.data.orderId || `ORD${String(orders.length + 1).padStart(3, '0')}`,
-          customerId: selectedCustomer.id,
-          customerName: selectedCustomer.name,
-          orderDate: new Date().toISOString().split('T')[0],
-          deliveryDate,
-          status: 'pending',
-          priority: 'medium',
-          items: itemsWithWorkers.map(item => ({
-            id: `ITEM${item.id}`,
-            type: item.name,
-            fabric: item.fabricType || 'Standard',
-            quantity: Number(item.quantity),
-            price: Number(item.price),
-            assignedWorker: item.assignedWorker || null,
-            workerName: item.workerName || null
-          })),
-          totalAmount,
-          paidAmount: advancePayment ? Number(advancePayment) : 0,
-          balanceAmount: totalAmount - (advancePayment ? Number(advancePayment) : 0),
-          measurements,
-          notes,
-          assignedWorker,
-          workerName,
-          assignmentMode
-        };
-
-        setOrders(prev => [newOrder, ...prev]);
         setSuccessMessage('Order created successfully! 🎉');
         setShowSuccess(true);
         setTimeout(() => setShowSuccess(false), 5000);
 
-        // Refresh orders from API
-        fetchOrders();
+        // Invalidate cache and refetch orders
+        invalidateOrders();
+        await fetchOrders(true);
 
         // Reset form
         resetForm();
@@ -801,8 +656,9 @@ const Orders = () => {
         setShowSuccess(true);
         setTimeout(() => setShowSuccess(false), 5000);
 
-        // Refresh orders from API
-        fetchOrders();
+        // Invalidate cache and refetch
+        invalidateOrders();
+        await fetchOrders(true);
 
         // Reset form
         resetForm();
@@ -869,8 +725,6 @@ const Orders = () => {
       const result = await orderAPI.deleteOrder(orderToDelete.orderId, token);
 
       if (result.success) {
-        // Remove from local state only after successful API call
-        setOrders(prev => prev.filter(o => o.id !== orderToDelete.id));
         setSuccessMessage('Order deleted successfully! 🗑️');
         setShowSuccess(true);
         setTimeout(() => setShowSuccess(false), 3000);
@@ -879,8 +733,9 @@ const Orders = () => {
         setShowDeleteModal(false);
         setOrderToDelete(null);
         
-        // Refresh orders from API
-        fetchOrders();
+        // Invalidate cache and refetch
+        invalidateOrders();
+        await fetchOrders(true);
       } else {
         console.error('Failed to delete order:', result.error);
         setSuccessMessage(`Failed to delete order: ${result.error}`);
@@ -933,15 +788,13 @@ const Orders = () => {
       const result = await orderAPI.markAsDelivered(orderToDeliver, token);
       
       if (result.success) {
-        // Update the order status in the local state
-        setOrders(prev => prev.map(o => 
-          o.orderId === orderToDeliver ? { ...o, status: 'Delivered' } : o
-        ));
         setSuccessMessage('Order marked as delivered successfully! 🎉');
         setShowSuccess(true);
         setTimeout(() => setShowSuccess(false), 5000);
-        // Refresh orders list
-        fetchOrders();
+        
+        // Invalidate cache and refetch
+        invalidateOrders();
+        await fetchOrders(true);
       } else {
         // Check if endpoint is not implemented
         if (result.error.includes('No static resource') || result.error.includes('not found')) {
