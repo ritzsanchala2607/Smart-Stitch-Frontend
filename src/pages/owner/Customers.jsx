@@ -8,17 +8,25 @@ import { validateCustomerForm } from '../../utils/validation';
 import CustomerCard from '../../components/common/CustomerCard';
 import { customerAPI, orderAPI } from '../../services/api';
 import MeasurementInputs from '../../components/common/MeasurementInputs';
+import { useCustomers } from '../../hooks/useDataFetch';
 
 const Customers = () => {
   usePageTitle('Customers');
-  const [customers, setCustomers] = useState([]);
+  
+  // Use global state management for customers
+  const { 
+    customers, 
+    customersLoading: isLoading, 
+    customersError: fetchError,
+    fetchCustomers,
+    invalidateCustomers 
+  } = useCustomers();
+  
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState({ title: '', description: '' });
   const [searchQuery, setSearchQuery] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
-  const [fetchError, setFetchError] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [customerToDelete, setCustomerToDelete] = useState(null);
@@ -44,171 +52,11 @@ const Customers = () => {
 
   const [errors, setErrors] = useState({});
   const [photoPreview, setPhotoPreview] = useState(null);
-  const [isSubmitting, setIsSubmitting] = useState(false); // Prevent double-click submissions
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
-
-  // Fetch customers on component mount
-  useEffect(() => {
-    fetchCustomers();
-  }, []);
-
-  // Fetch customers from API
-  const fetchCustomers = async () => {
-    setIsLoading(true);
-    setFetchError(null);
-
-    // Get token
-    let token = localStorage.getItem('token');
-    if (!token) {
-      const userDataString = localStorage.getItem('user');
-      if (userDataString) {
-        try {
-          const userData = JSON.parse(userDataString);
-          token = userData.jwt || userData.token;
-        } catch (e) {
-          console.error('Error parsing user data:', e);
-        }
-      }
-    }
-
-    if (!token) {
-      setFetchError('Authentication required. Please login again.');
-      setIsLoading(false);
-      return;
-    }
-
-    try {
-      // Fetch customers first - this is fast
-      const result = await customerAPI.getCustomers(token);
-      
-      if (!result.success) {
-        throw new Error(result.error || 'Failed to fetch customers');
-      }
-
-      console.log('Customers fetched:', result.data);
-
-      // Map customers immediately with default stats (0 orders, $0 spent)
-      // This makes the UI responsive immediately
-      const mappedCustomers = (result.data || []).map(customer => {
-        const userId = customer.user?.userId || customer.userId;
-        const customerId = customer.customerId || customer.id;
-        
-        return {
-          id: customerId,
-          userId: userId,
-          name: customer.user?.name || customer.name,
-          email: customer.user?.email || customer.email,
-          phone: customer.user?.contactNumber || customer.phone,
-          address: '',
-          joinDate: customer.createdAt ? new Date(customer.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-          totalOrders: 0, // Default to 0, will update later
-          totalSpent: 0,  // Default to 0, will update later
-          measurements: {
-            pant: {
-              length: customer.measurements?.pantLength || '',
-              waist: customer.measurements?.pantWaist || '',
-              seatHips: customer.measurements?.seatHips || customer.measurements?.seatHip || '',
-              thigh: customer.measurements?.thigh || '',
-              knee: customer.measurements?.knee || '',
-              bottomOpening: customer.measurements?.bottomOpening || customer.measurements?.bottom || '',
-              thighCircumference: customer.measurements?.thighCircumference || ''
-            },
-            shirt: {
-              length: customer.measurements?.shirtLength || '',
-              chest: customer.measurements?.chest || '',
-              waist: customer.measurements?.shirtWaist || '',
-              shoulder: customer.measurements?.shoulder || '',
-              sleeveLength: customer.measurements?.sleeveLength || '',
-              armhole: customer.measurements?.armhole || '',
-              collar: customer.measurements?.collar || ''
-            },
-            coat: {
-              length: customer.measurements?.coatLength || '',
-              chest: customer.measurements?.coatChest || '',
-              waist: customer.measurements?.coatWaist || '',
-              shoulder: customer.measurements?.coatShoulder || '',
-              sleeveLength: customer.measurements?.coatSleeveLength || '',
-              armhole: customer.measurements?.coatArmhole || ''
-            },
-            kurta: {
-              length: customer.measurements?.kurtaLength || '',
-              chest: customer.measurements?.kurtaChest || '',
-              waist: customer.measurements?.kurtaWaist || '',
-              seatHips: customer.measurements?.kurtaSeatHips || customer.measurements?.kurtaHip || '',
-              flare: customer.measurements?.kurtaFlare || '',
-              shoulder: customer.measurements?.kurtaShoulder || '',
-              armhole: customer.measurements?.kurtaArmhole || '',
-              sleeve: customer.measurements?.kurtaSleeve || customer.measurements?.kurtaSleeveLength || '',
-              bottomOpening: customer.measurements?.kurtaBottomOpening || '',
-              frontNeck: customer.measurements?.kurtaFrontNeck || '',
-              backNeck: customer.measurements?.kurtaBackNeck || ''
-            },
-            dhoti: {
-              length: customer.measurements?.dhotiLength || '',
-              waist: customer.measurements?.dhotiWaist || '',
-              hip: customer.measurements?.dhotiHip || '',
-              sideLength: customer.measurements?.sideLength || '',
-              foldLength: customer.measurements?.foldLength || ''
-            },
-            custom: customer.measurements?.customMeasurements || ''
-          },
-          avatar: customer.user?.profilePicture || null
-        };
-      });
-        
-      // Set customers immediately so UI shows quickly
-      setCustomers(mappedCustomers);
-      setIsLoading(false); // Stop loading spinner here!
-
-      // Fetch orders in background to update stats (non-blocking)
-      // This happens after the UI is already showing
-      orderAPI.getOrders(token).then(ordersResult => {
-        if (ordersResult.success) {
-          const orders = ordersResult.data || [];
-          console.log('Orders fetched for stats (background):', orders.length, 'orders');
-
-          // Calculate stats for each customer
-          const customerStats = {};
-          orders.forEach(order => {
-            const customerId = order.customer?.customerId || order.customerId;
-            if (!customerId) return;
-
-            if (!customerStats[customerId]) {
-              customerStats[customerId] = {
-                totalOrders: 0,
-                totalSpent: 0
-              };
-            }
-
-            customerStats[customerId].totalOrders++;
-            customerStats[customerId].totalSpent += order.totalPrice || 0;
-          });
-
-          console.log('Customer stats calculated:', customerStats);
-
-          // Update customers with stats
-          setCustomers(prevCustomers => 
-            prevCustomers.map(customer => ({
-              ...customer,
-              totalOrders: customerStats[customer.id]?.totalOrders || 0,
-              totalSpent: customerStats[customer.id]?.totalSpent || 0
-            }))
-          );
-        }
-      }).catch(error => {
-        console.error('Error fetching order stats (non-critical):', error);
-        // Don't show error to user - stats just stay at 0
-      });
-
-    } catch (error) {
-      console.error('Error fetching customers:', error);
-      setFetchError('Failed to load customers. Please try again.');
-      setIsLoading(false);
-    }
-  };
 
   const handleInputChange = (field, value) => {
     setCustomerForm(prev => ({
@@ -489,8 +337,8 @@ const Customers = () => {
         }
       }
 
-      // Refresh the customers list from the backend
-      await fetchCustomers();
+      // Invalidate cache to refresh the customers list
+      invalidateCustomers();
 
       const profileMessage = measurementProfiles.length > 0 
         ? `Customer created with ${successfulProfiles} measurement profile(s).${failedProfiles > 0 ? ` (${failedProfiles} failed)` : ''}`
@@ -959,8 +807,8 @@ const Customers = () => {
         }
       }
 
-      // Refresh the customers list from the backend
-      await fetchCustomers();
+      // Invalidate cache to refresh the customers list
+      invalidateCustomers();
 
       if (failedProfiles > 0) {
         // Show partial success with warning
@@ -1049,8 +897,8 @@ const Customers = () => {
       console.log('Delete API Result:', result);
 
       if (result.success) {
-        // Remove from local state
-        setCustomers(prev => prev.filter(c => c.id !== customerToDelete.id));
+        // Invalidate cache to refresh the customers list
+        invalidateCustomers();
         
         // Show success message
         setSuccessMessage({
@@ -1064,8 +912,8 @@ const Customers = () => {
         setShowDeleteModal(false);
         setCustomerToDelete(null);
 
-        // Refresh the customers list from backend
-        await fetchCustomers();
+        // Invalidate cache to refresh the customers list
+        invalidateCustomers();
       } else {
         console.error('Failed to delete customer:', result.error);
         
@@ -1269,7 +1117,7 @@ const Customers = () => {
                   <X className="w-16 h-16 text-red-500 mx-auto mb-4" />
                   <p className="text-red-600 dark:text-red-400 mb-4">{fetchError}</p>
                   <button
-                    onClick={fetchCustomers}
+                    onClick={() => fetchCustomers(true)}
                     className="px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
                   >
                     Retry

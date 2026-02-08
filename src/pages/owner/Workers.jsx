@@ -11,11 +11,21 @@ import { useState, useEffect } from 'react';
 import { validateWorkerForm } from '../../utils/validation';
 import WorkerCard from '../../components/common/WorkerCard';
 import { workerAPI } from '../../services/api';
+import { useWorkers } from '../../hooks/useDataFetch';
 
 const Workers = () => {
   usePageTitle('Workers');
+  
+  // Use global state management for workers
+  const { 
+    workers, 
+    workersLoading: isLoading, 
+    workersError: fetchError,
+    fetchWorkers,
+    invalidateWorkers 
+  } = useWorkers();
+  
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  // Garment types for dropdown
   const garmentTypes = [
     { value: 'shirt', label: 'Shirt' },
     { value: 'pant', label: 'Pant' },
@@ -25,7 +35,6 @@ const Workers = () => {
     { value: 'alteration', label: 'Alteration' }
   ];
 
-  const [workers, setWorkers] = useState([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -41,8 +50,6 @@ const Workers = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showEditPassword, setShowEditPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [fetchError, setFetchError] = useState(null);
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   
@@ -62,79 +69,7 @@ const Workers = () => {
   const [currentRate, setCurrentRate] = useState('');
   const [errors, setErrors] = useState({});
   const [photoPreview, setPhotoPreview] = useState(null);
-  const [isSubmitting, setIsSubmitting] = useState(false); // Prevent double-click submissions
-
-  // Fetch workers on component mount
-  useEffect(() => {
-    fetchWorkers();
-  }, []);
-
-  // Fetch workers from API
-  const fetchWorkers = async () => {
-    setIsLoading(true);
-    setFetchError(null);
-
-    // Get token
-    let token = localStorage.getItem('token');
-    if (!token) {
-      const userDataString = localStorage.getItem('user');
-      if (userDataString) {
-        try {
-          const userData = JSON.parse(userDataString);
-          token = userData.jwt || userData.token;
-        } catch (e) {
-          console.error('Error parsing user data:', e);
-        }
-      }
-    }
-
-    if (!token) {
-      setFetchError('Authentication required. Please login again.');
-      setIsLoading(false);
-      return;
-    }
-
-    try {
-      const result = await workerAPI.getWorkers(token);
-      
-      if (result.success) {
-        console.log('Workers fetched:', result.data);
-        
-        // Map API response to component format
-        const mappedWorkers = (result.data.data || result.data || []).map(worker => ({
-          id: worker.workerId || worker.id,
-          name: worker.name,
-          email: worker.email,
-          phone: worker.contactNumber,
-          primarySkill: worker.workType,
-          specialization: worker.workType,
-          experience: worker.experience,
-          joinDate: new Date().toISOString().split('T')[0], // Default to today
-          status: 'active',
-          assignedOrders: 0,
-          completedOrders: 0,
-          rating: worker.ratings || 0,
-          performance: 0,
-          // Map rates array to garmentTypes format
-          garmentTypes: (worker.rates || []).map(rate => ({
-            type: rate.workType.toLowerCase(), // Convert "KURTA" to "kurta"
-            rate: rate.rate
-          })),
-          avatar: worker.profilePicture || null
-        }));
-        
-        setWorkers(mappedWorkers);
-      } else {
-        console.error('Failed to fetch workers:', result.error);
-        setFetchError(result.error || 'Failed to load workers');
-      }
-    } catch (error) {
-      console.error('Error fetching workers:', error);
-      setFetchError('Failed to load workers. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Debounced search effect
   useEffect(() => {
@@ -388,8 +323,8 @@ const Workers = () => {
 
       console.log('Worker created successfully:', result.data);
 
-      // Refresh the workers list from the backend
-      await fetchWorkers();
+      // Invalidate cache to refresh the workers list
+      invalidateWorkers();
 
       setSuccessMessage('Worker Added Successfully!');
       setShowSuccess(true);
@@ -469,7 +404,9 @@ const Workers = () => {
       avatar: photoPreview || editingWorker.avatar
     };
 
-    setWorkers(prev => prev.map(w => w.id === editingWorker.id ? updatedWorker : w));
+    // Invalidate cache to refresh the workers list
+    invalidateWorkers();
+    
     setSuccessMessage('Worker Updated Successfully!');
     setShowSuccess(true);
     setTimeout(() => setShowSuccess(false), 3000);
@@ -529,8 +466,9 @@ const Workers = () => {
       const result = await workerAPI.deleteWorker(workerToDelete, token);
       
       if (result.success) {
-        // Remove from local state only after successful API call
-        setWorkers(prev => prev.filter(w => w.id !== workerToDelete));
+        // Invalidate cache to refresh the workers list
+        invalidateWorkers();
+        
         setShowDeleteConfirm(false);
         setWorkerToDelete(null);
         setSuccessMessage('Worker Deleted Successfully!');
@@ -684,7 +622,7 @@ const Workers = () => {
                   <X className="w-16 h-16 text-red-500 mx-auto mb-4" />
                   <p className="text-red-600 dark:text-red-400 mb-4">{fetchError}</p>
                   <button
-                    onClick={fetchWorkers}
+                    onClick={() => fetchWorkers(true)}
                     className="px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
                   >
                     Retry
