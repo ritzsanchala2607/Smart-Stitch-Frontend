@@ -4,7 +4,7 @@ import Topbar from '../../components/common/Topbar';
 import { motion } from 'framer-motion';
 import usePageTitle from '../../hooks/usePageTitle';
 import { 
-  Package, Users, DollarSign, AlertCircle, CheckCircle, Clock, UserCog,
+  Package, Users, IndianRupee, AlertCircle, CheckCircle, Clock, UserCog,
   Scissors, TrendingUp, Calendar, MessageSquare, Star, Search, X,
   ShoppingBag, FileText, BarChart3, Activity, Bell, ChevronRight,
   Eye, Zap, Box, AlertTriangle, User
@@ -274,7 +274,7 @@ const OwnerDashboard = () => {
     { icon: Package, label: 'New Order', color: 'bg-blue-500', path: '/owner/orders' },
     { icon: Users, label: 'Add Customer', color: 'bg-purple-500', path: '/owner/customers' },
     { icon: UserCog, label: 'Add Worker', color: 'bg-green-500', path: '/owner/workers' },
-    { icon: DollarSign, label: 'Generate Invoice', color: 'bg-orange-500', path: '/owner/billing' },
+    { icon: IndianRupee, label: 'Generate Invoice', color: 'bg-orange-500', path: '/owner/billing' },
     { icon: Box, label: 'Add Inventory', color: 'bg-indigo-500', path: '/owner/inventory' },
     { icon: BarChart3, label: 'Reports', color: 'bg-pink-500', path: '/owner/analytics' },
   ];
@@ -451,7 +451,7 @@ const OwnerDashboard = () => {
               <StatCard 
                 title="Monthly Revenue" 
                 value={`₹${stats.totalRevenue.toLocaleString()}`} 
-                icon={DollarSign}
+                icon={IndianRupee}
                 color="bg-green-500"
                 subtitle="This month"
               />

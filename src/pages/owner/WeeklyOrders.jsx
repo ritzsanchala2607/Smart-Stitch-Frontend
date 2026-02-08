@@ -3,7 +3,7 @@ import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
 import { motion } from 'framer-motion';
 import usePageTitle from '../../hooks/usePageTitle';
-import { Package, Calendar, DollarSign, Eye, ArrowLeft, TrendingUp, BarChart3, AlertCircle } from 'lucide-react';
+import { Package, Calendar, IndianRupee, Eye, ArrowLeft, TrendingUp, BarChart3, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { orderAPI } from '../../services/api';
 
@@ -157,7 +157,7 @@ const WeeklyOrders = () => {
               <StatCard
                 title="Total Revenue"
                 value={`₹${totalRevenue.toLocaleString()}`}
-                icon={DollarSign}
+                icon={IndianRupee}
                 color="bg-blue-500"
               />
             </div>

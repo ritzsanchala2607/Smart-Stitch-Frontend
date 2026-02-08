@@ -17,7 +17,7 @@ import {
   Download,
   MessageSquare,
   Calendar,
-  DollarSign,
+  IndianRupee,
   User,
   Ruler,
   FileText,

@@ -16,7 +16,7 @@ import {
   Lock,
   Award,
   Package,
-  DollarSign,
+  IndianRupee,
   Star,
   CheckCircle,
   TrendingUp
@@ -305,7 +305,7 @@ const Profile = () => {
                 {/* Spending Overview */}
                 <div className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg shadow-md p-6 text-white mt-6">
                   <div className="flex items-center gap-2 mb-4">
-                    <DollarSign className="w-6 h-6" />
+                    <IndianRupee className="w-6 h-6" />
                     <h3 className="text-lg font-bold">Spending Overview</h3>
                   </div>
                   <div className="space-y-3">

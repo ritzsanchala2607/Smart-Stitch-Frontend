@@ -13,7 +13,7 @@ import {
   Home,
   Calendar,
   Package,
-  DollarSign
+  IndianRupee
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -430,7 +430,7 @@ const Payment = () => {
                       </>
                     ) : (
                       <>
-                        <DollarSign className="w-5 h-5" />
+                        <IndianRupee className="w-5 h-5" />
                         Pay ₹{orderData.total.toLocaleString()}
                       </>
                     )}

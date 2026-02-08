@@ -5,7 +5,7 @@ import usePageTitle from '../../hooks/usePageTitle';
 import { 
   Plus, Package, Search, Filter, Eye, Edit, Trash2,
   Clock, CheckCircle, AlertCircle, X, Calendar,
-  DollarSign, FileText, User, Users, ChevronLeft, ChevronRight
+  IndianRupee, FileText, User, Users, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { customers } from '../../data/dummyData';
 import { useState, useEffect } from 'react';
@@ -1465,7 +1465,7 @@ const Orders = () => {
                         Advance Payment
                       </label>
                       <div className="relative">
-                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
+                        <IndianRupee className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
                         <input
                           type="number"
                           value={advancePayment}
@@ -1612,7 +1612,7 @@ const Orders = () => {
                     {/* Payment Information */}
                     <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
                       <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2 pb-2 border-b border-gray-200 dark:border-gray-700">
-                        <DollarSign className="w-4 h-4 text-orange-500" />
+                        <IndianRupee className="w-4 h-4 text-orange-500" />
                         PAYMENT DETAILS
                       </h3>
                       <div className="space-y-2.5">
@@ -1878,7 +1878,7 @@ const Orders = () => {
                         Advance Payment
                       </label>
                       <div className="relative">
-                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
+                        <IndianRupee className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
                         <input
                           type="number"
                           value={advancePayment}

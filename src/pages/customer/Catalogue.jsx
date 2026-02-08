@@ -15,7 +15,7 @@ import {
   Check,
   Clock,
   Ruler,
-  DollarSign,
+  IndianRupee,
   ChevronDown,
   ChevronUp,
   Heart
@@ -749,7 +749,7 @@ const Catalogue = () => {
                     {/* Price Breakdown */}
                     <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
                       <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
-                        <DollarSign className="w-5 h-5" />
+                        <IndianRupee className="w-5 h-5" />
                         Price Breakdown
                       </h3>
                       <div className="space-y-2">

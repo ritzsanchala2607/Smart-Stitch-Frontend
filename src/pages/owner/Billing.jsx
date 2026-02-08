@@ -3,7 +3,7 @@ import Topbar from '../../components/common/Topbar';
 import { motion, AnimatePresence } from 'framer-motion';
 import usePageTitle from '../../hooks/usePageTitle';
 import { 
-  FileText, Plus, Download, DollarSign, TrendingUp, 
+  FileText, Plus, Download, IndianRupee, TrendingUp, 
   Calendar, X, Trash2, User, Building2, Search
 } from 'lucide-react';
 import { useState } from 'react';
@@ -183,7 +183,7 @@ const Billing = () => {
               >
                 <div className="flex items-center justify-between mb-4">
                   <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
-                    <DollarSign className="w-6 h-6 text-green-600 dark:text-green-400" />
+                    <IndianRupee className="w-6 h-6 text-green-600 dark:text-green-400" />
                   </div>
                   <span className="text-sm font-semibold text-green-600 dark:text-green-400">+12%</span>
                 </div>
@@ -266,7 +266,7 @@ const Billing = () => {
                 <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg">
-                      <DollarSign className="w-5 h-5 text-red-600 dark:text-red-400" />
+                      <IndianRupee className="w-5 h-5 text-red-600 dark:text-red-400" />
                     </div>
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Expenses (Buying)</h3>
                   </div>

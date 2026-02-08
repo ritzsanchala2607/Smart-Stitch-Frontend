@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import usePageTitle from '../../hooks/usePageTitle';
 import { 
   Plus, X, Upload, CheckCircle, Mail, Phone, Calendar, 
-  Award, TrendingUp, User, Briefcase, DollarSign, Star, Package, Search, Eye, EyeOff
+  Award, TrendingUp, User, Briefcase, IndianRupee, Star, Package, Search, Eye, EyeOff
 } from 'lucide-react';
 import { orders } from '../../data/dummyData';
 import { useState, useEffect } from 'react';
