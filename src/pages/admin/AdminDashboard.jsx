@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
 import { motion } from 'framer-motion';
 import usePageTitle from '../../hooks/usePageTitle';
-import { adminAPI } from '../../services/api';
+import { useAdminDashboard, useShopAnalytics } from '../../hooks/useDataFetch';
 import {
   Store,
   Users,
@@ -13,7 +13,6 @@ import {
   Activity,
   Calendar,
   AlertCircle,
-  CheckCircle,
   XCircle,
   Loader2
 } from 'lucide-react';
@@ -30,77 +29,35 @@ import {
 const AdminDashboard = () => {
   usePageTitle('Admin Dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   
-  // State for dashboard data
-  const [kpiData, setKpiData] = useState({
+  // Use global state hooks
+  const {
+    adminDashboard,
+    adminDashboardLoading: loading,
+    adminDashboardError: error
+  } = useAdminDashboard();
+
+  const {
+    shopAnalytics
+  } = useShopAnalytics();
+
+  // Extract KPI data from adminDashboard
+  const kpiData = adminDashboard || {
     totalShops: 0,
     totalOwners: 0,
     totalWorkers: 0,
     totalOrders: 0,
     activeShops: 0,
     systemGrowth: 0
-  });
-
-  const [shopAnalytics, setShopAnalytics] = useState({
-    monthlyShopRegistrations: [],
-    monthlyOrdersProcessed: []
-  });
-
-  // Fetch dashboard data on component mount
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        // Get token from localStorage
-        const userData = JSON.parse(localStorage.getItem('user') || '{}');
-        const token = userData.jwt || localStorage.getItem('token');
-
-        if (!token) {
-          throw new Error('No authentication token found');
-        }
-
-        // Fetch dashboard overview
-        const dashboardResponse = await adminAPI.getDashboard(token);
-        if (!dashboardResponse.success) {
-          throw new Error(dashboardResponse.error);
-        }
-
-        // Fetch shop analytics
-        const analyticsResponse = await adminAPI.getShopAnalytics(token);
-        if (!analyticsResponse.success) {
-          throw new Error(analyticsResponse.error);
-        }
-
-        // Update state with fetched data
-        setKpiData(dashboardResponse.data);
-        setShopAnalytics(analyticsResponse.data);
-
-      } catch (err) {
-        console.error('Error fetching dashboard data:', err);
-        setError(err.message || 'Failed to load dashboard data');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchDashboardData();
-  }, []);
+  };
 
   // Data for orders processed (from API)
-  const ordersPerMonth = shopAnalytics.monthlyOrdersProcessed?.length > 0
+  const ordersPerMonth = shopAnalytics?.monthlyOrdersProcessed?.length > 0
     ? shopAnalytics.monthlyOrdersProcessed.map(item => ({
         month: item.month,
         orders: item.ordersProcessed
       }))
     : [];
-
-  // Debug: Log the data
-  console.log('Shop Analytics Data:', shopAnalytics);
-  console.log('Orders Per Month:', ordersPerMonth);
 
   // Mock recent activities
   const recentActivities = [

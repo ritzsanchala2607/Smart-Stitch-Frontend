@@ -1,92 +1,75 @@
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
 import { motion } from 'framer-motion';
 import usePageTitle from '../../hooks/usePageTitle';
 import { Package, Calendar, IndianRupee, Eye, ArrowLeft, TrendingUp, BarChart3, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { orderAPI } from '../../services/api';
+import { useOrders } from '../../hooks/useDataFetch';
 
 const WeeklyOrders = () => {
   usePageTitle('Weekly Orders');
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   
-  const [weeklyOrders, setWeeklyOrders] = useState([]);
-  const [totalOrders, setTotalOrders] = useState(0);
-  const [totalRevenue, setTotalRevenue] = useState(0);
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
+  // Use global state management
+  const { orders: globalOrders, ordersLoading, ordersError } = useOrders();
 
-  // Fetch weekly orders on mount
-  useEffect(() => {
-    fetchWeeklyOrders();
-  }, []);
-
-  const fetchWeeklyOrders = async () => {
-    setIsLoading(true);
-    setError(null);
-
-    // Get token
-    let token = localStorage.getItem('token');
-    if (!token) {
-      const userDataString = localStorage.getItem('user');
-      if (userDataString) {
-        try {
-          const userData = JSON.parse(userDataString);
-          token = userData.jwt || userData.token;
-        } catch (e) {
-          console.error('Error parsing user data:', e);
-        }
-      }
+  // Filter orders for last 7 days using useMemo for performance
+  const { weeklyOrders, totalOrders, totalRevenue, completedOrders, pendingOrders, avgOrderValue } = useMemo(() => {
+    if (!globalOrders || globalOrders.length === 0) {
+      return {
+        weeklyOrders: [],
+        totalOrders: 0,
+        totalRevenue: 0,
+        completedOrders: 0,
+        pendingOrders: 0,
+        avgOrderValue: 0
+      };
     }
 
-    if (!token) {
-      console.error('No token found for fetching weekly orders');
-      setError('Authentication error. Please log in again.');
-      setIsLoading(false);
-      return;
-    }
+    const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    
+    const filtered = globalOrders.filter(order => {
+      const orderDate = order.orderDate || (order.createdAt ? new Date(order.createdAt).toISOString().split('T')[0] : null);
+      const orderDateObj = new Date(orderDate);
+      return orderDateObj >= weekAgo;
+    });
 
-    try {
-      const result = await orderAPI.getWeeklyOrders(token);
+    const revenue = filtered.reduce((sum, order) => sum + (order.totalAmount || order.totalPrice || 0), 0);
+    const completed = filtered.filter(o => o.status?.toLowerCase() === 'completed' || o.status?.toLowerCase() === 'ready').length;
+    const pending = filtered.filter(o => o.status?.toLowerCase() !== 'completed' && o.status?.toLowerCase() !== 'ready').length;
+    const avg = filtered.length > 0 ? revenue / filtered.length : 0;
 
-      if (result.success) {
-        console.log('Weekly orders fetched:', result.data);
-        // Handle nested data structure
-        const responseData = result.data.data || result.data;
-        setTotalOrders(responseData.totalOrders || 0);
-        setWeeklyOrders(responseData.orders || []);
-        setStartDate(responseData.startDate || '');
-        setEndDate(responseData.endDate || '');
-        
-        // Calculate total revenue from orders
-        const revenue = (responseData.orders || []).reduce((sum, order) => sum + (order.totalAmount || 0), 0);
-        setTotalRevenue(revenue);
-      } else {
-        console.error('Failed to fetch weekly orders:', result.error);
-        setError(result.error);
-        setWeeklyOrders([]);
-        setTotalOrders(0);
-        setTotalRevenue(0);
-      }
-    } catch (error) {
-      console.error('Error fetching weekly orders:', error);
-      setError('Failed to load weekly orders. Please try again.');
-      setWeeklyOrders([]);
-      setTotalOrders(0);
-      setTotalRevenue(0);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    return {
+      weeklyOrders: filtered,
+      totalOrders: filtered.length,
+      totalRevenue: revenue,
+      completedOrders: completed,
+      pendingOrders: pending,
+      avgOrderValue: avg
+    };
+  }, [globalOrders]);
+
+  // Remove all the old state and fetch logic
+  // const [weeklyOrders, setWeeklyOrders] = useState([]);
+  // const [totalOrders, setTotalOrders] = useState(0);
+  // const [totalRevenue, setTotalRevenue] = useState(0);
+  // const [startDate, setStartDate] = useState('');
+  // const [endDate, setEndDate] = useState('');
+  // const [isLoading, setIsLoading] = useState(false);
+  // const [error, setError] = useState(null);
+
+  // useEffect(() => {
+  //   fetchWeeklyOrders();
+  // }, []);
+
+  // const fetchWeeklyOrders = async () => { ... }
   
-  // Calculate statistics
-  const completedOrders = weeklyOrders.filter(o => o.status?.toLowerCase() === 'completed' || o.status?.toLowerCase() === 'ready').length;
-  const pendingOrders = weeklyOrders.filter(o => o.status?.toLowerCase() !== 'completed' && o.status?.toLowerCase() !== 'ready').length;
-  const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+  // Calculate statistics - now computed in useMemo above
+  // const completedOrders = weeklyOrders.filter(o => o.status?.toLowerCase() === 'completed' || o.status?.toLowerCase() === 'ready').length;
+  // const pendingOrders = weeklyOrders.filter(o => o.status?.toLowerCase() !== 'completed' && o.status?.toLowerCase() !== 'ready').length;
+  // const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
 
   const getStatusColor = (status) => {
     const statusLower = status?.toLowerCase() || '';
@@ -194,8 +177,16 @@ const WeeklyOrders = () => {
               <div className="p-6 border-b border-gray-200 dark:border-gray-700">
                 <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Last 7 Days Orders</h2>
               </div>
-              
-              {weeklyOrders.length === 0 ? (
+              {ordersLoading ? (
+                <div className="p-12 text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+                </div>
+              ) : ordersError ? (
+                <div className="p-12 text-center">
+                  <AlertCircle className="w-16 h-16 text-red-400 mx-auto mb-4" />
+                  <p className="text-red-600 dark:text-red-400">{ordersError}</p>
+                </div>
+              ) : weeklyOrders.length === 0 ? (
                 <div className="p-12 text-center">
                   <Package className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
                   <p className="text-gray-600 dark:text-gray-400">No orders in the last 7 days</p>
@@ -218,19 +209,19 @@ const WeeklyOrders = () => {
                     </thead>
                     <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                       {weeklyOrders.map((order) => (
-                        <tr key={order.orderId} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                        <tr key={order.orderId || order.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                           <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-100">
-                            ORD{String(order.orderId).padStart(3, '0')}
+                            {order.id}
                           </td>
                           <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
-                            {order.createdAt ? new Date(order.createdAt).toLocaleDateString() : 'N/A'}
+                            {order.orderDate}
                           </td>
                           <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{order.customerName}</td>
                           <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
                             {order.items && order.items.length > 0 ? (
                               <div className="flex flex-col gap-1">
                                 {order.items.map((item, idx) => (
-                                  <span key={idx}>{item}</span>
+                                  <span key={idx}>{item.itemName || item.itemType || item.type || item}</span>
                                 ))}
                               </div>
                             ) : (
@@ -238,18 +229,10 @@ const WeeklyOrders = () => {
                             )}
                           </td>
                           <td className="px-6 py-4 text-sm font-semibold text-gray-900 dark:text-gray-100">
-                            ₹{order.totalAmount?.toLocaleString() || '0'}
+                            ₹{(order.totalAmount || order.totalPrice || 0).toLocaleString()}
                           </td>
                           <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
-                            {order.workers && order.workers.length > 0 ? (
-                              <div className="flex flex-col gap-1">
-                                {order.workers.map((worker, idx) => (
-                                  <span key={idx} className="text-xs">{worker.workerName}</span>
-                                ))}
-                              </div>
-                            ) : (
-                              'Unassigned'
-                            )}
+                            {order.workerName || 'Unassigned'}
                           </td>
                           <td className="px-6 py-4">
                             <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.status)}`}>

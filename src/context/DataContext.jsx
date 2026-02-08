@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { customerAPI, orderAPI, workerAPI } from '../services/api';
+import { customerAPI, orderAPI, workerAPI, adminAPI } from '../services/api';
 import { useAuth } from './AuthContext';
 
 const DataContext = createContext();
@@ -32,6 +32,16 @@ export const DataProvider = ({ children }) => {
     workers: { data: null, loading: false, error: null, timestamp: null },
     tasks: { data: null, loading: false, error: null, timestamp: null },
     profile: { data: null, loading: false, error: null, timestamp: null },
+    // Customer-specific caches
+    myOrders: { data: null, loading: false, error: null, timestamp: null },
+    customerStats: { data: null, loading: false, error: null, timestamp: null },
+    recentActivities: { data: null, loading: false, error: null, timestamp: null },
+    measurementProfiles: { data: null, loading: false, error: null, timestamp: null },
+    // Admin-specific caches
+    adminDashboard: { data: null, loading: false, error: null, timestamp: null },
+    shopAnalytics: { data: null, loading: false, error: null, timestamp: null },
+    allShops: { data: null, loading: false, error: null, timestamp: null, searchQuery: '' },
+    platformAnalytics: { data: null, loading: false, error: null, timestamp: null },
   });
 
   // Cache expiration time (5 minutes)
@@ -77,6 +87,14 @@ export const DataProvider = ({ children }) => {
       workers: { data: null, loading: false, error: null, timestamp: null },
       tasks: { data: null, loading: false, error: null, timestamp: null },
       profile: { data: null, loading: false, error: null, timestamp: null },
+      myOrders: { data: null, loading: false, error: null, timestamp: null },
+      customerStats: { data: null, loading: false, error: null, timestamp: null },
+      recentActivities: { data: null, loading: false, error: null, timestamp: null },
+      measurementProfiles: { data: null, loading: false, error: null, timestamp: null },
+      adminDashboard: { data: null, loading: false, error: null, timestamp: null },
+      shopAnalytics: { data: null, loading: false, error: null, timestamp: null },
+      allShops: { data: null, loading: false, error: null, timestamp: null, searchQuery: '' },
+      platformAnalytics: { data: null, loading: false, error: null, timestamp: null },
     });
   }, []);
 
@@ -428,14 +446,85 @@ export const DataProvider = ({ children }) => {
       }
 
       if (result.success) {
+        let profileData = result.data;
+        
+        console.log('=== FETCH PROFILE DEBUG ===');
+        console.log('User role:', user.role);
+        console.log('Raw profile data from API:', JSON.stringify(profileData, null, 2));
+        console.log('Has measurements?', !!profileData.measurements);
+        if (profileData.measurements) {
+          console.log('Raw measurements keys:', Object.keys(profileData.measurements));
+          console.log('Raw measurements:', JSON.stringify(profileData.measurements, null, 2));
+        }
+        
+        // Transform customer profile measurements to match expected format
+        if (user.role === 'customer' && profileData.measurements) {
+          const rawMeasurements = profileData.measurements;
+          profileData = {
+            ...profileData,
+            measurements: {
+              pant: {
+                length: rawMeasurements.pantLength || '',
+                waist: rawMeasurements.pantWaist || '',
+                seatHips: rawMeasurements.seatHips || rawMeasurements.seatHip || '',
+                thigh: rawMeasurements.thigh || '',
+                knee: rawMeasurements.knee || '',
+                bottomOpening: rawMeasurements.bottomOpening || rawMeasurements.bottom || '',
+                thighCircumference: rawMeasurements.thighCircumference || ''
+              },
+              shirt: {
+                length: rawMeasurements.shirtLength || '',
+                chest: rawMeasurements.chest || '',
+                waist: rawMeasurements.shirtWaist || '',
+                shoulder: rawMeasurements.shoulder || '',
+                sleeveLength: rawMeasurements.sleeveLength || '',
+                armhole: rawMeasurements.armhole || '',
+                collar: rawMeasurements.collar || ''
+              },
+              coat: {
+                length: rawMeasurements.coatLength || '',
+                chest: rawMeasurements.coatChest || '',
+                waist: rawMeasurements.coatWaist || '',
+                shoulder: rawMeasurements.coatShoulder || '',
+                sleeveLength: rawMeasurements.coatSleeveLength || '',
+                armhole: rawMeasurements.coatArmhole || ''
+              },
+              kurta: {
+                length: rawMeasurements.kurtaLength || '',
+                chest: rawMeasurements.kurtaChest || '',
+                waist: rawMeasurements.kurtaWaist || '',
+                seatHips: rawMeasurements.kurtaSeatHips || rawMeasurements.kurtaHip || '',
+                flare: rawMeasurements.kurtaFlare || '',
+                shoulder: rawMeasurements.kurtaShoulder || '',
+                armhole: rawMeasurements.kurtaArmhole || '',
+                sleeve: rawMeasurements.kurtaSleeve || rawMeasurements.kurtaSleeveLength || '',
+                bottomOpening: rawMeasurements.kurtaBottomOpening || '',
+                frontNeck: rawMeasurements.kurtaFrontNeck || '',
+                backNeck: rawMeasurements.kurtaBackNeck || ''
+              },
+              dhoti: {
+                length: rawMeasurements.dhotiLength || '',
+                waist: rawMeasurements.dhotiWaist || '',
+                hip: rawMeasurements.dhotiHip || '',
+                sideLength: rawMeasurements.sideLength || '',
+                foldLength: rawMeasurements.foldLength || ''
+              },
+              custom: rawMeasurements.customMeasurements || ''
+            }
+          };
+          
+          console.log('Transformed measurements:', JSON.stringify(profileData.measurements, null, 2));
+        }
+        console.log('=== END FETCH PROFILE DEBUG ===');
+        
         updateCache('profile', {
-          data: result.data,
+          data: profileData,
           loading: false,
           error: null,
           timestamp: Date.now()
         });
 
-        return { success: true, data: result.data, fromCache: false };
+        return { success: true, data: profileData, fromCache: false };
       } else {
         updateCache('profile', { loading: false, error: result.error });
         return { success: false, error: result.error };
@@ -446,6 +535,354 @@ export const DataProvider = ({ children }) => {
       return { success: false, error: errorMsg };
     }
   }, [cache.profile, isCacheStale, getToken, user, updateCache]);
+
+  // ==================== CUSTOMER MY ORDERS ====================
+  
+  const fetchMyOrders = useCallback(async (force = false) => {
+    if (!force && cache.myOrders.data && !isCacheStale('myOrders')) {
+      return { success: true, data: cache.myOrders.data, fromCache: true };
+    }
+
+    if (cache.myOrders.loading) {
+      return { success: false, error: 'Request in progress', fromCache: false };
+    }
+
+    const token = getToken();
+    if (!token) {
+      const error = 'Authentication required';
+      updateCache('myOrders', { error, loading: false });
+      return { success: false, error };
+    }
+
+    updateCache('myOrders', { loading: true, error: null });
+
+    try {
+      const result = await customerAPI.getMyOrders(token);
+
+      if (result.success) {
+        updateCache('myOrders', {
+          data: result.data,
+          loading: false,
+          error: null,
+          timestamp: Date.now()
+        });
+
+        return { success: true, data: result.data, fromCache: false };
+      } else {
+        updateCache('myOrders', { loading: false, error: result.error });
+        return { success: false, error: result.error };
+      }
+    } catch (error) {
+      const errorMsg = error.message || 'Failed to fetch orders';
+      updateCache('myOrders', { loading: false, error: errorMsg });
+      return { success: false, error: errorMsg };
+    }
+  }, [cache.myOrders, isCacheStale, getToken, updateCache]);
+
+  // ==================== CUSTOMER STATS ====================
+  
+  const fetchCustomerStats = useCallback(async (force = false) => {
+    if (!force && cache.customerStats.data && !isCacheStale('customerStats')) {
+      return { success: true, data: cache.customerStats.data, fromCache: true };
+    }
+
+    if (cache.customerStats.loading) {
+      return { success: false, error: 'Request in progress', fromCache: false };
+    }
+
+    const token = getToken();
+    if (!token) {
+      const error = 'Authentication required';
+      updateCache('customerStats', { error, loading: false });
+      return { success: false, error };
+    }
+
+    updateCache('customerStats', { loading: true, error: null });
+
+    try {
+      const result = await customerAPI.getCustomerStats(token);
+
+      if (result.success) {
+        updateCache('customerStats', {
+          data: result.data,
+          loading: false,
+          error: null,
+          timestamp: Date.now()
+        });
+
+        return { success: true, data: result.data, fromCache: false };
+      } else {
+        updateCache('customerStats', { loading: false, error: result.error });
+        return { success: false, error: result.error };
+      }
+    } catch (error) {
+      const errorMsg = error.message || 'Failed to fetch stats';
+      updateCache('customerStats', { loading: false, error: errorMsg });
+      return { success: false, error: errorMsg };
+    }
+  }, [cache.customerStats, isCacheStale, getToken, updateCache]);
+
+  // ==================== RECENT ACTIVITIES ====================
+  
+  const fetchRecentActivities = useCallback(async (limit = 5, force = false) => {
+    if (!force && cache.recentActivities.data && !isCacheStale('recentActivities')) {
+      return { success: true, data: cache.recentActivities.data, fromCache: true };
+    }
+
+    if (cache.recentActivities.loading) {
+      return { success: false, error: 'Request in progress', fromCache: false };
+    }
+
+    const token = getToken();
+    if (!token) {
+      const error = 'Authentication required';
+      updateCache('recentActivities', { error, loading: false });
+      return { success: false, error };
+    }
+
+    updateCache('recentActivities', { loading: true, error: null });
+
+    try {
+      const result = await customerAPI.getRecentActivities(token, limit);
+
+      if (result.success) {
+        updateCache('recentActivities', {
+          data: result.data,
+          loading: false,
+          error: null,
+          timestamp: Date.now()
+        });
+
+        return { success: true, data: result.data, fromCache: false };
+      } else {
+        updateCache('recentActivities', { loading: false, error: result.error });
+        return { success: false, error: result.error };
+      }
+    } catch (error) {
+      const errorMsg = error.message || 'Failed to fetch activities';
+      updateCache('recentActivities', { loading: false, error: errorMsg });
+      return { success: false, error: errorMsg };
+    }
+  }, [cache.recentActivities, isCacheStale, getToken, updateCache]);
+
+  // ==================== MEASUREMENT PROFILES ====================
+  
+  const fetchMeasurementProfiles = useCallback(async (customerId, force = false) => {
+    if (!force && cache.measurementProfiles.data && !isCacheStale('measurementProfiles')) {
+      return { success: true, data: cache.measurementProfiles.data, fromCache: true };
+    }
+
+    if (cache.measurementProfiles.loading) {
+      return { success: false, error: 'Request in progress', fromCache: false };
+    }
+
+    const token = getToken();
+    if (!token || !customerId) {
+      const error = 'Authentication required';
+      updateCache('measurementProfiles', { error, loading: false });
+      return { success: false, error };
+    }
+
+    updateCache('measurementProfiles', { loading: true, error: null });
+
+    try {
+      const result = await customerAPI.getMeasurementProfiles(customerId, token);
+
+      if (result.success) {
+        updateCache('measurementProfiles', {
+          data: result.data,
+          loading: false,
+          error: null,
+          timestamp: Date.now()
+        });
+
+        return { success: true, data: result.data, fromCache: false };
+      } else {
+        updateCache('measurementProfiles', { loading: false, error: result.error });
+        return { success: false, error: result.error };
+      }
+    } catch (error) {
+      const errorMsg = error.message || 'Failed to fetch measurement profiles';
+      updateCache('measurementProfiles', { loading: false, error: errorMsg });
+      return { success: false, error: errorMsg };
+    }
+  }, [cache.measurementProfiles, isCacheStale, getToken, updateCache]);
+
+  // ==================== ADMIN DASHBOARD ====================
+  
+  const fetchAdminDashboard = useCallback(async (force = false) => {
+    if (!force && cache.adminDashboard.data && !isCacheStale('adminDashboard')) {
+      return { success: true, data: cache.adminDashboard.data, fromCache: true };
+    }
+
+    if (cache.adminDashboard.loading) {
+      return { success: false, error: 'Request in progress', fromCache: false };
+    }
+
+    const token = getToken();
+    if (!token) {
+      const error = 'Authentication required';
+      updateCache('adminDashboard', { error, loading: false });
+      return { success: false, error };
+    }
+
+    updateCache('adminDashboard', { loading: true, error: null });
+
+    try {
+      const result = await adminAPI.getDashboard(token);
+
+      if (result.success) {
+        updateCache('adminDashboard', {
+          data: result.data,
+          loading: false,
+          error: null,
+          timestamp: Date.now()
+        });
+
+        return { success: true, data: result.data, fromCache: false };
+      } else {
+        updateCache('adminDashboard', { loading: false, error: result.error });
+        return { success: false, error: result.error };
+      }
+    } catch (error) {
+      const errorMsg = error.message || 'Failed to fetch admin dashboard';
+      updateCache('adminDashboard', { loading: false, error: errorMsg });
+      return { success: false, error: errorMsg };
+    }
+  }, [cache.adminDashboard, isCacheStale, getToken, updateCache]);
+
+  // ==================== SHOP ANALYTICS ====================
+  
+  const fetchShopAnalytics = useCallback(async (force = false) => {
+    if (!force && cache.shopAnalytics.data && !isCacheStale('shopAnalytics')) {
+      return { success: true, data: cache.shopAnalytics.data, fromCache: true };
+    }
+
+    if (cache.shopAnalytics.loading) {
+      return { success: false, error: 'Request in progress', fromCache: false };
+    }
+
+    const token = getToken();
+    if (!token) {
+      const error = 'Authentication required';
+      updateCache('shopAnalytics', { error, loading: false });
+      return { success: false, error };
+    }
+
+    updateCache('shopAnalytics', { loading: true, error: null });
+
+    try {
+      const result = await adminAPI.getShopAnalytics(token);
+
+      if (result.success) {
+        updateCache('shopAnalytics', {
+          data: result.data,
+          loading: false,
+          error: null,
+          timestamp: Date.now()
+        });
+
+        return { success: true, data: result.data, fromCache: false };
+      } else {
+        updateCache('shopAnalytics', { loading: false, error: result.error });
+        return { success: false, error: result.error };
+      }
+    } catch (error) {
+      const errorMsg = error.message || 'Failed to fetch shop analytics';
+      updateCache('shopAnalytics', { loading: false, error: errorMsg });
+      return { success: false, error: errorMsg };
+    }
+  }, [cache.shopAnalytics, isCacheStale, getToken, updateCache]);
+
+  // ==================== ALL SHOPS ====================
+  
+  const fetchAllShops = useCallback(async (searchQuery = '', force = false) => {
+    // Check if we need to refetch due to search query change
+    const searchChanged = cache.allShops.searchQuery !== searchQuery;
+    
+    if (!force && !searchChanged && cache.allShops.data && !isCacheStale('allShops')) {
+      return { success: true, data: cache.allShops.data, fromCache: true };
+    }
+
+    if (cache.allShops.loading) {
+      return { success: false, error: 'Request in progress', fromCache: false };
+    }
+
+    const token = getToken();
+    if (!token) {
+      const error = 'Authentication required';
+      updateCache('allShops', { error, loading: false });
+      return { success: false, error };
+    }
+
+    updateCache('allShops', { loading: true, error: null, searchQuery });
+
+    try {
+      const result = await adminAPI.getAllShops(searchQuery, token);
+
+      if (result.success) {
+        updateCache('allShops', {
+          data: result.data,
+          loading: false,
+          error: null,
+          timestamp: Date.now(),
+          searchQuery
+        });
+
+        return { success: true, data: result.data, fromCache: false };
+      } else {
+        updateCache('allShops', { loading: false, error: result.error, searchQuery });
+        return { success: false, error: result.error };
+      }
+    } catch (error) {
+      const errorMsg = error.message || 'Failed to fetch shops';
+      updateCache('allShops', { loading: false, error: errorMsg, searchQuery });
+      return { success: false, error: errorMsg };
+    }
+  }, [cache.allShops, isCacheStale, getToken, updateCache]);
+
+  // ==================== PLATFORM ANALYTICS ====================
+  
+  const fetchPlatformAnalytics = useCallback(async (force = false) => {
+    if (!force && cache.platformAnalytics.data && !isCacheStale('platformAnalytics')) {
+      return { success: true, data: cache.platformAnalytics.data, fromCache: true };
+    }
+
+    if (cache.platformAnalytics.loading) {
+      return { success: false, error: 'Request in progress', fromCache: false };
+    }
+
+    const token = getToken();
+    if (!token) {
+      const error = 'Authentication required';
+      updateCache('platformAnalytics', { error, loading: false });
+      return { success: false, error };
+    }
+
+    updateCache('platformAnalytics', { loading: true, error: null });
+
+    try {
+      const result = await adminAPI.getPlatformAnalytics(token);
+
+      if (result.success) {
+        updateCache('platformAnalytics', {
+          data: result.data,
+          loading: false,
+          error: null,
+          timestamp: Date.now()
+        });
+
+        return { success: true, data: result.data, fromCache: false };
+      } else {
+        updateCache('platformAnalytics', { loading: false, error: result.error });
+        return { success: false, error: result.error };
+      }
+    } catch (error) {
+      const errorMsg = error.message || 'Failed to fetch platform analytics';
+      updateCache('platformAnalytics', { loading: false, error: errorMsg });
+      return { success: false, error: errorMsg };
+    }
+  }, [cache.platformAnalytics, isCacheStale, getToken, updateCache]);
 
   // ==================== CACHE INVALIDATION ====================
   
@@ -468,6 +905,14 @@ export const DataProvider = ({ children }) => {
   const invalidateWorkers = useCallback(() => invalidateCache('workers'), [invalidateCache]);
   const invalidateTasks = useCallback(() => invalidateCache('tasks'), [invalidateCache]);
   const invalidateProfile = useCallback(() => invalidateCache('profile'), [invalidateCache]);
+  const invalidateMyOrders = useCallback(() => invalidateCache('myOrders'), [invalidateCache]);
+  const invalidateCustomerStats = useCallback(() => invalidateCache('customerStats'), [invalidateCache]);
+  const invalidateRecentActivities = useCallback(() => invalidateCache('recentActivities'), [invalidateCache]);
+  const invalidateMeasurementProfiles = useCallback(() => invalidateCache('measurementProfiles'), [invalidateCache]);
+  const invalidateAdminDashboard = useCallback(() => invalidateCache('adminDashboard'), [invalidateCache]);
+  const invalidateShopAnalytics = useCallback(() => invalidateCache('shopAnalytics'), [invalidateCache]);
+  const invalidateAllShops = useCallback(() => invalidateCache('allShops'), [invalidateCache]);
+  const invalidatePlatformAnalytics = useCallback(() => invalidateCache('platformAnalytics'), [invalidateCache]);
 
   const value = {
     // Data
@@ -476,6 +921,14 @@ export const DataProvider = ({ children }) => {
     workers: cache.workers.data || [],
     tasks: cache.tasks.data || [],
     profile: cache.profile.data,
+    myOrders: cache.myOrders.data || [],
+    customerStats: cache.customerStats.data,
+    recentActivities: cache.recentActivities.data || [],
+    measurementProfiles: cache.measurementProfiles.data || [],
+    adminDashboard: cache.adminDashboard.data,
+    shopAnalytics: cache.shopAnalytics.data,
+    allShops: cache.allShops.data || [],
+    platformAnalytics: cache.platformAnalytics.data,
     
     // Loading states
     customersLoading: cache.customers.loading,
@@ -483,6 +936,14 @@ export const DataProvider = ({ children }) => {
     workersLoading: cache.workers.loading,
     tasksLoading: cache.tasks.loading,
     profileLoading: cache.profile.loading,
+    myOrdersLoading: cache.myOrders.loading,
+    customerStatsLoading: cache.customerStats.loading,
+    recentActivitiesLoading: cache.recentActivities.loading,
+    measurementProfilesLoading: cache.measurementProfiles.loading,
+    adminDashboardLoading: cache.adminDashboard.loading,
+    shopAnalyticsLoading: cache.shopAnalytics.loading,
+    allShopsLoading: cache.allShops.loading,
+    platformAnalyticsLoading: cache.platformAnalytics.loading,
     
     // Error states
     customersError: cache.customers.error,
@@ -490,6 +951,14 @@ export const DataProvider = ({ children }) => {
     workersError: cache.workers.error,
     tasksError: cache.tasks.error,
     profileError: cache.profile.error,
+    myOrdersError: cache.myOrders.error,
+    customerStatsError: cache.customerStats.error,
+    recentActivitiesError: cache.recentActivities.error,
+    measurementProfilesError: cache.measurementProfiles.error,
+    adminDashboardError: cache.adminDashboard.error,
+    shopAnalyticsError: cache.shopAnalytics.error,
+    allShopsError: cache.allShops.error,
+    platformAnalyticsError: cache.platformAnalytics.error,
     
     // Fetch functions
     fetchCustomers,
@@ -497,6 +966,14 @@ export const DataProvider = ({ children }) => {
     fetchWorkers,
     fetchTasks,
     fetchProfile,
+    fetchMyOrders,
+    fetchCustomerStats,
+    fetchRecentActivities,
+    fetchMeasurementProfiles,
+    fetchAdminDashboard,
+    fetchShopAnalytics,
+    fetchAllShops,
+    fetchPlatformAnalytics,
     
     // Cache invalidation
     invalidateCustomers,
@@ -504,6 +981,14 @@ export const DataProvider = ({ children }) => {
     invalidateWorkers,
     invalidateTasks,
     invalidateProfile,
+    invalidateMyOrders,
+    invalidateCustomerStats,
+    invalidateRecentActivities,
+    invalidateMeasurementProfiles,
+    invalidateAdminDashboard,
+    invalidateShopAnalytics,
+    invalidateAllShops,
+    invalidatePlatformAnalytics,
     clearCache,
     
     // Utility
@@ -513,7 +998,14 @@ export const DataProvider = ({ children }) => {
       fetchWorkers(true);
       fetchTasks(true);
       fetchProfile(true);
-    }, [fetchCustomers, fetchOrders, fetchWorkers, fetchTasks, fetchProfile])
+      fetchMyOrders(true);
+      fetchCustomerStats(true);
+      fetchRecentActivities(5, true);
+      fetchAdminDashboard(true);
+      fetchShopAnalytics(true);
+      fetchAllShops('', true);
+      fetchPlatformAnalytics(true);
+    }, [fetchCustomers, fetchOrders, fetchWorkers, fetchTasks, fetchProfile, fetchMyOrders, fetchCustomerStats, fetchRecentActivities, fetchAdminDashboard, fetchShopAnalytics, fetchAllShops, fetchPlatformAnalytics])
   };
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;

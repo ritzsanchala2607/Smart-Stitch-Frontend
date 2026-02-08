@@ -1,125 +1,63 @@
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
 import { motion } from 'framer-motion';
 import usePageTitle from '../../hooks/usePageTitle';
 import { Clock, Eye, ArrowLeft, Users, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { orderAPI } from '../../services/api';
+import { useOrders } from '../../hooks/useDataFetch';
 
 const PendingWork = () => {
   usePageTitle('Pending Work');
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   
-  const [pendingOrders, setPendingOrders] = useState([]);
-  const [isLoadingOrders, setIsLoadingOrders] = useState(false);
-  const [ordersError, setOrdersError] = useState(null);
-  const [ordersByWorker, setOrdersByWorker] = useState({});
+  // Use global state management
+  const { orders: globalOrders, ordersLoading, ordersError, fetchOrders } = useOrders();
 
-  useEffect(() => {
-    fetchPendingOrders();
-  }, []);
+  // Filter pending orders using useMemo for performance
+  const { pendingOrders, ordersByWorker } = useMemo(() => {
+    if (!globalOrders || globalOrders.length === 0) {
+      return { pendingOrders: [], ordersByWorker: {} };
+    }
 
-  const fetchPendingOrders = async () => {
-    setIsLoadingOrders(true);
-    setOrdersError(null);
+    // Filter pending orders (not ready, delivered, or completed)
+    const pending = globalOrders.filter(order => {
+      const status = (order.status || '').toLowerCase();
+      return status !== 'ready' && status !== 'delivered' && status !== 'completed';
+    });
 
-    // Get token
-    let token = localStorage.getItem('token');
-    if (!token) {
-      const userDataString = localStorage.getItem('user');
-      if (userDataString) {
-        try {
-          const userData = JSON.parse(userDataString);
-          token = userData.jwt || userData.token;
-        } catch (e) {
-          console.error('Error parsing user data:', e);
-        }
+    // Group by worker
+    const workerGroups = {};
+    pending.forEach(order => {
+      const workerName = order.workerName || 'Unassigned';
+      if (!workerGroups[workerName]) {
+        workerGroups[workerName] = {
+          count: 0,
+          orders: []
+        };
       }
-    }
+      workerGroups[workerName].count++;
+      workerGroups[workerName].orders.push(order.orderId || order.id);
+    });
 
-    if (!token) {
-      console.error('No token found for fetching orders');
-      setOrdersError('Authentication error. Please log in again.');
-      setIsLoadingOrders(false);
-      return;
-    }
+    return {
+      pendingOrders: pending,
+      ordersByWorker: workerGroups
+    };
+  }, [globalOrders]);
 
-    try {
-      const result = await orderAPI.getOrders(token);
+  // Remove old state and fetch logic
+  // const [pendingOrders, setPendingOrders] = useState([]);
+  // const [isLoadingOrders, setIsLoadingOrders] = useState(false);
+  // const [ordersError, setOrdersError] = useState(null);
+  // const [ordersByWorker, setOrdersByWorker] = useState({});
 
-      if (result.success) {
-        console.log('Orders fetched successfully:', result.data);
-        
-        // Filter pending orders (not ready or delivered)
-        const allOrders = result.data || [];
-        const pending = allOrders.filter(order => {
-          const status = (order.status || '').toLowerCase();
-          return status !== 'ready' && status !== 'delivered' && status !== 'completed';
-        });
+  // useEffect(() => {
+  //   fetchPendingOrders();
+  // }, []);
 
-        // Map API response to component format
-        const mappedOrders = pending.map(order => ({
-          id: `ORD${String(order.orderId).padStart(3, '0')}`,
-          orderId: order.orderId,
-          customerId: order.customer?.customerId || order.customerId,
-          customerName: order.customer?.name || order.customerName || 'Unknown Customer',
-          orderDate: order.createdAt ? new Date(order.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-          deliveryDate: order.deadline,
-          status: order.status ? order.status.toLowerCase() : 'pending',
-          items: order.items || [],
-          totalAmount: order.totalPrice || 0,
-          paidAmount: order.paidAmount || order.advancePayment || 0,
-          notes: order.notes || order.additionalNotes || '',
-          tasks: order.tasks || []
-        }));
-
-        setPendingOrders(mappedOrders);
-
-        // Group by worker from tasks
-        const workerGroups = {};
-        mappedOrders.forEach(order => {
-          if (order.tasks && order.tasks.length > 0) {
-            order.tasks.forEach(task => {
-              const workerName = task.workerName || task.worker?.name || 'Unassigned';
-              if (!workerGroups[workerName]) {
-                workerGroups[workerName] = {
-                  count: 0,
-                  orders: []
-                };
-              }
-              // Only count if not already counted for this worker
-              if (!workerGroups[workerName].orders.includes(order.orderId)) {
-                workerGroups[workerName].count++;
-                workerGroups[workerName].orders.push(order.orderId);
-              }
-            });
-          } else {
-            // Unassigned orders
-            if (!workerGroups['Unassigned']) {
-              workerGroups['Unassigned'] = {
-                count: 0,
-                orders: []
-              };
-            }
-            workerGroups['Unassigned'].count++;
-            workerGroups['Unassigned'].orders.push(order.orderId);
-          }
-        });
-
-        setOrdersByWorker(workerGroups);
-      } else {
-        console.error('Failed to fetch orders:', result.error);
-        setOrdersError(result.error);
-      }
-    } catch (error) {
-      console.error('Error fetching orders:', error);
-      setOrdersError('Failed to load orders. Please try again.');
-    } finally {
-      setIsLoadingOrders(false);
-    }
-  };
+  // const fetchPendingOrders = async () => { ... }
 
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
@@ -150,11 +88,11 @@ const PendingWork = () => {
               </div>
               
               <button
-                onClick={fetchPendingOrders}
-                disabled={isLoadingOrders}
+                onClick={() => fetchOrders(true)}
+                disabled={ordersLoading}
                 className="flex items-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors disabled:opacity-50"
               >
-                <RefreshCw className={`w-4 h-4 ${isLoadingOrders ? 'animate-spin' : ''}`} />
+                <RefreshCw className={`w-4 h-4 ${ordersLoading ? 'animate-spin' : ''}`} />
                 Refresh
               </button>
             </div>
@@ -163,7 +101,7 @@ const PendingWork = () => {
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
               <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">Worker Workload</h2>
               
-              {isLoadingOrders ? (
+              {ordersLoading ? (
                 <div className="flex items-center justify-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
                 </div>
@@ -197,7 +135,7 @@ const PendingWork = () => {
                 <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">All Pending Orders</h2>
               </div>
               
-              {isLoadingOrders ? (
+              {ordersLoading ? (
                 <div className="flex items-center justify-center py-12">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
                 </div>
@@ -205,7 +143,7 @@ const PendingWork = () => {
                 <div className="p-12 text-center">
                   <p className="text-red-600 dark:text-red-400 mb-4">{ordersError}</p>
                   <button
-                    onClick={fetchPendingOrders}
+                    onClick={() => fetchOrders(true)}
                     className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
                   >
                     Retry
@@ -237,7 +175,7 @@ const PendingWork = () => {
                           <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{order.customerName}</td>
                           <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
                             {order.items.length > 0 
-                              ? order.items.map(item => item.itemName || item.itemType || item.type).join(', ')
+                              ? order.items.map(item => item.itemName || item.itemType || item.type || item).join(', ')
                               : 'N/A'
                             }
                           </td>
@@ -256,7 +194,7 @@ const PendingWork = () => {
                             {order.deliveryDate}
                           </td>
                           <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
-                            ₹{order.totalAmount.toLocaleString()}
+                            ₹{(order.totalAmount || order.totalPrice || 0).toLocaleString()}
                           </td>
                         </tr>
                       ))}

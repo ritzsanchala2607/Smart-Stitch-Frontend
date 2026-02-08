@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import Layout from '../../components/common/Layout';
 import { motion } from 'framer-motion';
 import usePageTitle from '../../hooks/usePageTitle';
@@ -13,18 +13,19 @@ import {
   Loader
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { customerAPI } from '../../services/api';
+import { useProfile, useMyOrders, useCustomerStats, useRecentActivities } from '../../hooks/useDataFetch';
 
 const Dashboard = () => {
   usePageTitle('Dashboard');
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const [statsLoading, setStatsLoading] = useState(true);
-  const [ordersLoading, setOrdersLoading] = useState(true);
-  const [activitiesLoading, setActivitiesLoading] = useState(true);
-  const [activeOrders, setActiveOrders] = useState([]);
-  const [recentActivities, setRecentActivities] = useState([]);
+  // Fetch data from global state
+  const { profile: profileData } = useProfile();
+  const { myOrders, myOrdersLoading, myOrdersError } = useMyOrders();
+  const { customerStats, customerStatsLoading, customerStatsError } = useCustomerStats();
+  const { recentActivities, recentActivitiesLoading, recentActivitiesError } = useRecentActivities(5);
+
   const [categoryData, setCategoryData] = useState([]);
   const [orderTrendData, setOrderTrendData] = useState([]);
   const [customerData, setCustomerData] = useState({
@@ -36,186 +37,35 @@ const Dashboard = () => {
     paymentDue: 0
   });
 
-  // Get token from localStorage
-  const getToken = () => {
-    const token = localStorage.getItem('token');
-    if (token) return token;
-    
-    const userStr = localStorage.getItem('user');
-    if (userStr) {
-      try {
-        const user = JSON.parse(userStr);
-        return user.jwt || user.token;
-      } catch (e) {
-        console.error('Error parsing user from localStorage:', e);
-      }
-    }
-    return null;
-  };
-
-  // Get customer name from localStorage
-  const getCustomerName = () => {
-    const userStr = localStorage.getItem('user');
-    if (userStr) {
-      try {
-        const user = JSON.parse(userStr);
-        return user.name || 'Customer';
-      } catch (e) {
-        console.error('Error parsing user from localStorage:', e);
-      }
-    }
-    return 'Customer';
-  };
-
-  // Load all dashboard data in parallel on mount
+  // Update customer name from profile
   useEffect(() => {
-    loadDashboardData();
-  }, []);
-
-  const loadDashboardData = async () => {
-    const token = getToken();
-    
-    if (!token) {
-      console.error('No token found');
-      setStatsLoading(false);
-      setOrdersLoading(false);
-      setActivitiesLoading(false);
-      return;
+    if (profileData?.user?.name) {
+      setCustomerData(prev => ({
+        ...prev,
+        name: profileData.user.name
+      }));
     }
+  }, [profileData]);
 
-    // Set all loading states
-    setStatsLoading(true);
-    setOrdersLoading(true);
-    setActivitiesLoading(true);
-
-    try {
-      // Fetch all data in parallel
-      const [statsResult, ordersResult, activitiesResult] = await Promise.all([
-        customerAPI.getCustomerStats(token).catch(err => ({ success: false, error: err })),
-        customerAPI.getMyOrders(token).catch(err => ({ success: false, error: err })),
-        customerAPI.getRecentActivities(token, 5).catch(err => ({ success: false, error: err }))
-      ]);
-
-      // Process stats
-      if (statsResult.success) {
-        const stats = statsResult.data;
-        setCustomerData(prev => ({
-          ...prev,
-          name: getCustomerName(),
-          totalOrders: stats.totalOrders || 0,
-          activeOrders: stats.activeOrders || 0,
-          completedOrders: stats.completedOrders || 0,
-          pendingDelivery: stats.activeOrders || 0,
-          paymentDue: stats.pendingPayment || 0
-        }));
-      } else {
-        console.error('Failed to fetch stats:', statsResult.error);
-      }
-      setStatsLoading(false);
-
-      // Process orders (reuse for multiple purposes)
-      if (ordersResult.success) {
-        const orders = ordersResult.data || [];
-        console.log('All orders from API:', orders);
-        
-        // Calculate category distribution from orders
-        calculateCategoryDistribution(orders);
-        
-        // Calculate order trend from orders
-        calculateOrderTrend(orders);
-        
-        // Sort by order ID descending to get most recent orders first
-        const sortedOrders = [...orders].sort((a, b) => b.orderId - a.orderId);
-
-        // Transform orders to match component structure
-        const transformedOrders = sortedOrders.map(order => {
-          const taskStatuses = order.taskStatuses || [];
-          const itemNames = taskStatuses.map(ts => {
-            const taskType = ts.split('_')[0];
-            return taskType.charAt(0) + taskType.slice(1).toLowerCase();
-          }).join(', ') || 'Order Items';
-          
-          const orderStatus = (order.orderStatus || 'PENDING').toUpperCase();
-          console.log(`Order ${order.orderId} orderStatus: ${orderStatus}`);
-          
-          const stages = [
-            { name: 'Ordered', completed: true },
-            { 
-              name: 'Cutting', 
-              completed: orderStatus.includes('CUTTING') || orderStatus.includes('STITCHING') || 
-                         orderStatus.includes('IRONING') || orderStatus === 'READY' || 
-                         orderStatus === 'COMPLETED' || orderStatus === 'DELIVERED'
-            },
-            { 
-              name: 'Stitching', 
-              completed: orderStatus.includes('STITCHING') || orderStatus.includes('IRONING') || 
-                         orderStatus === 'READY' || orderStatus === 'COMPLETED' || orderStatus === 'DELIVERED'
-            },
-            { 
-              name: 'Ironing', 
-              completed: orderStatus.includes('IRONING') || orderStatus === 'READY' || 
-                         orderStatus === 'COMPLETED' || orderStatus === 'DELIVERED'
-            },
-            { 
-              name: 'Ready', 
-              completed: orderStatus === 'READY' || orderStatus === 'COMPLETED' || orderStatus === 'DELIVERED'
-            }
-          ];
-          
-          const completedStagesCount = stages.filter(s => s.completed).length;
-          const totalStagesCount = stages.length;
-          const progress = Math.round((completedStagesCount / totalStagesCount) * 100);
-          const displayStatus = orderStatus.toLowerCase().replace('in_', '').replace('_', ' ');
-
-          return {
-            id: `ORD${String(order.orderId).padStart(3, '0')}`,
-            item: itemNames,
-            status: displayStatus,
-            progress: progress,
-            deliveryDate: order.deadline ? new Date(order.deadline).toLocaleDateString('en-US', {
-              year: 'numeric',
-              month: '2-digit',
-              day: '2-digit'
-            }) : 'TBD',
-            stages: stages
-          };
-        });
-
-        setActiveOrders(transformedOrders.slice(0, 3));
-      } else {
-        console.error('Failed to fetch orders:', ordersResult.error);
-      }
-      setOrdersLoading(false);
-
-      // Process activities
-      if (activitiesResult.success) {
-        const activities = activitiesResult.data || [];
-        console.log('Recent activities from API:', activities);
-        
-        const transformedActivities = activities.map(activity => {
-          return activity.description || 'Activity update';
-        });
-        
-        setRecentActivities(transformedActivities);
-      } else {
-        console.error('Failed to fetch activities:', activitiesResult.error);
-        setRecentActivities([
-          'No recent activities',
-          'Check back later for updates'
-        ]);
-      }
-      setActivitiesLoading(false);
-
-    } catch (error) {
-      console.error('Error loading dashboard data:', error);
-      setStatsLoading(false);
-      setOrdersLoading(false);
-      setActivitiesLoading(false);
+  // Update customer stats
+  useEffect(() => {
+    if (customerStats) {
+      setCustomerData(prev => ({
+        ...prev,
+        totalOrders: customerStats.totalOrders || 0,
+        activeOrders: customerStats.activeOrders || 0,
+        completedOrders: customerStats.completedOrders || 0,
+        pendingDelivery: customerStats.activeOrders || 0,
+        paymentDue: customerStats.pendingPayment || 0
+      }));
     }
-  };
+  }, [customerStats]);
 
-  // Calculate category distribution from orders
-  const calculateCategoryDistribution = (orders) => {
+  // Process orders for active orders display
+  const activeOrders = useMemo(() => {
+    if (!myOrders || myOrders.length === 0) return [];
+
+    // Calculate category distribution
     const categoryCount = {};
     const categoryColors = {
       'CUTTING': '#3b82f6',
@@ -228,7 +78,7 @@ const Dashboard = () => {
       'DHOTI': '#06b6d4'
     };
     
-    orders.forEach(order => {
+    myOrders.forEach(order => {
       const taskStatuses = order.taskStatuses || [];
       taskStatuses.forEach(ts => {
         const taskType = ts.split('_')[0];
@@ -242,12 +92,72 @@ const Dashboard = () => {
       color: categoryColors[category] || '#6b7280'
     }));
     
-    console.log('Category distribution calculated:', categories);
     setCategoryData(categories);
-  };
 
-  // Calculate order trend for last 6 months
-  const calculateOrderTrend = (orders) => {
+    // Sort by order ID descending
+    const sortedOrders = [...myOrders].sort((a, b) => b.orderId - a.orderId);
+
+    // Transform orders
+    return sortedOrders.slice(0, 3).map(order => {
+      const taskStatuses = order.taskStatuses || [];
+      const itemNames = taskStatuses.map(ts => {
+        const taskType = ts.split('_')[0];
+        return taskType.charAt(0) + taskType.slice(1).toLowerCase();
+      }).join(', ') || 'Order Items';
+      
+      const orderStatus = (order.orderStatus || 'PENDING').toUpperCase();
+      
+      const stages = [
+        { name: 'Ordered', completed: true },
+        { 
+          name: 'Cutting', 
+          completed: orderStatus.includes('CUTTING') || orderStatus.includes('STITCHING') || 
+                     orderStatus.includes('IRONING') || orderStatus === 'READY' || 
+                     orderStatus === 'COMPLETED' || orderStatus === 'DELIVERED'
+        },
+        { 
+          name: 'Stitching', 
+          completed: orderStatus.includes('STITCHING') || orderStatus.includes('IRONING') || 
+                     orderStatus === 'READY' || orderStatus === 'COMPLETED' || orderStatus === 'DELIVERED'
+        },
+        { 
+          name: 'Ironing', 
+          completed: orderStatus.includes('IRONING') || orderStatus === 'READY' || 
+                     orderStatus === 'COMPLETED' || orderStatus === 'DELIVERED'
+        },
+        { 
+          name: 'Ready', 
+          completed: orderStatus === 'READY' || orderStatus === 'COMPLETED' || orderStatus === 'DELIVERED'
+        }
+      ];
+      
+      const completedStagesCount = stages.filter(s => s.completed).length;
+      const totalStagesCount = stages.length;
+      const progress = Math.round((completedStagesCount / totalStagesCount) * 100);
+      const displayStatus = orderStatus.toLowerCase().replace('in_', '').replace('_', ' ');
+
+      return {
+        id: `ORD${String(order.orderId).padStart(3, '0')}`,
+        item: itemNames,
+        status: displayStatus,
+        progress: progress,
+        deliveryDate: order.deadline ? new Date(order.deadline).toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit'
+        }) : 'TBD',
+        stages: stages
+      };
+    });
+  }, [myOrders]);
+
+  // Calculate order trend
+  useEffect(() => {
+    if (!myOrders || myOrders.length === 0) {
+      setOrderTrendData([]);
+      return;
+    }
+
     const months = [];
     const now = new Date();
     for (let i = 5; i >= 0; i--) {
@@ -260,7 +170,7 @@ const Dashboard = () => {
       });
     }
     
-    orders.forEach(order => {
+    myOrders.forEach(order => {
       if (order.createdAt) {
         const orderDate = new Date(order.createdAt);
         const orderMonth = orderDate.getMonth();
@@ -275,9 +185,21 @@ const Dashboard = () => {
       }
     });
     
-    console.log('Order trend calculated:', months);
     setOrderTrendData(months);
-  };
+  }, [myOrders]);
+
+  // Transform activities
+  const transformedActivities = useMemo(() => {
+    if (!recentActivities || recentActivities.length === 0) {
+      return ['No recent activities', 'Check back later for updates'];
+    }
+    return recentActivities.map(activity => activity.description || 'Activity update');
+  }, [recentActivities]);
+
+  const isLoading = myOrdersLoading || customerStatsLoading || recentActivitiesLoading;
+  const statsLoading = customerStatsLoading;
+  const ordersLoading = myOrdersLoading;
+  const activitiesLoading = recentActivitiesLoading;
 
 
 
@@ -493,13 +415,9 @@ const Dashboard = () => {
                       </div>
                     ))}
                   </div>
-                ) : recentActivities.length === 0 ? (
-                  <div className="text-center py-6">
-                    <p className="text-gray-400 dark:text-gray-500 text-sm">No recent activities</p>
-                  </div>
                 ) : (
                   <div className="space-y-3">
-                    {recentActivities.map((activity, idx) => (
+                    {transformedActivities.map((activity, idx) => (
                       <div key={idx} className="flex items-start gap-3">
                         <div className="w-2 h-2 bg-blue-600 dark:bg-blue-400 rounded-full mt-2" />
                         <p className="text-sm text-gray-700 dark:text-gray-300">{activity}</p>

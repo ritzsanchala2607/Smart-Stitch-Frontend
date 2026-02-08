@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
 import { motion } from 'framer-motion';
 import usePageTitle from '../../hooks/usePageTitle';
+import { useTasks } from '../../hooks/useDataFetch';
 import {
   Package,
   Clock,
@@ -29,66 +30,27 @@ const WorkerDashboard = () => {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   
-  // API State
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [dashboardData, setDashboardData] = useState(null);
-  const [tasks, setTasks] = useState([]);
-
-  // Fetch dashboard data from API
-  useEffect(() => {
-    fetchWorkerTasks();
-  }, []);
-
-  const fetchWorkerTasks = async () => {
-    setIsLoading(true);
-    setError(null);
-
-    // Get token
-    let token = localStorage.getItem('token');
-    if (!token) {
-      const userDataString = localStorage.getItem('user');
-      if (userDataString) {
-        try {
-          const userData = JSON.parse(userDataString);
-          token = userData.jwt || userData.token;
-        } catch (e) {
-          console.error('Error parsing user data:', e);
-        }
-      }
+  // Use global state for tasks
+  const { tasks: tasksData, isLoading: loading, error: fetchError } = useTasks();
+  
+  // Calculate dashboard statistics from tasks using useMemo
+  const dashboardData = useMemo(() => {
+    if (!tasksData || tasksData.length === 0) {
+      return {
+        totalTasks: 0,
+        completedTasks: 0,
+        inProgressTasks: 0,
+        pendingTasks: 0,
+        urgentTasks: 0,
+        performance: 0,
+        avgRating: 4.5,
+        totalEarnings: 45000,
+        monthlyEarnings: 12000,
+        assignedTasks: 0,
+        avgCompletionTime: '2.5 hrs'
+      };
     }
 
-    if (!token) {
-      setError('Authentication error. Please log in again.');
-      setIsLoading(false);
-      return;
-    }
-
-    try {
-      const result = await workerAPI.getMyTasks(token);
-
-      if (result.success) {
-        console.log('Worker tasks fetched successfully:', result.data);
-        const tasksData = result.data || [];
-        setTasks(tasksData);
-        
-        // Calculate statistics from tasks
-        const calculatedStats = calculateStatsFromTasks(tasksData);
-        setDashboardData(calculatedStats);
-      } else {
-        console.error('Failed to fetch worker tasks:', result.error);
-        setError(result.error);
-      }
-    } catch (error) {
-      console.error('Error fetching worker tasks:', error);
-      setError('Failed to load dashboard data. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Calculate statistics from tasks data
-  const calculateStatsFromTasks = (tasksData) => {
     const totalTasks = tasksData.length;
     const completedTasks = tasksData.filter(t => t.status === 'COMPLETED').length;
     const inProgressTasks = tasksData.filter(t => t.status === 'IN_PROGRESS').length;
@@ -122,25 +84,14 @@ const WorkerDashboard = () => {
       assignedTasks: totalTasks,
       avgCompletionTime: '2.5 hrs' // Mock data - will be calculated when we have completion timestamps
     };
-  };
+  }, [tasksData]);
 
   // Calculate statistics from API data or use defaults
-  const stats = dashboardData || {
-    totalTasks: 0,
-    completedTasks: 0,
-    inProgressTasks: 0,
-    pendingTasks: 0,
-    urgentTasks: 0,
-    performance: 0,
-    avgRating: 0,
-    totalEarnings: 0,
-    monthlyEarnings: 0,
-    assignedTasks: 0
-  };
+  const stats = dashboardData;
 
   // Calculate today's tasks
   const today = new Date().toISOString().split('T')[0];
-  const todayTasks = tasks.filter(t => {
+  const todayTasks = (tasksData || []).filter(t => {
     const taskDate = t.createdAt ? new Date(t.createdAt).toISOString().split('T')[0] : null;
     const deadline = t.deadline ? new Date(t.deadline).toISOString().split('T')[0] : null;
     return taskDate === today || deadline === today;
@@ -167,24 +118,24 @@ const WorkerDashboard = () => {
   });
 
   const workloadTrend = last7Days.map(date => {
-    const assigned = tasks.filter(t => {
+    const assigned = (tasksData || []).filter(t => {
       const taskDate = t.createdAt ? new Date(t.createdAt).toISOString().split('T')[0] : null;
       return taskDate === date;
     }).length;
-    const completed = tasks.filter(t => 
+    const completed = (tasksData || []).filter(t => 
       t.status === 'COMPLETED' && t.completedAt && new Date(t.completedAt).toISOString().split('T')[0] === date
     ).length;
     return { date, assigned, completed };
   });
 
   // Upcoming deadlines
-  const upcomingDeadlines = tasks
+  const upcomingDeadlines = (tasksData || [])
     .filter(t => t.status !== 'COMPLETED')
     .sort((a, b) => new Date(a.deadline) - new Date(b.deadline))
     .slice(0, 5);
 
   // Recent assigned tasks
-  const recentTasks = tasks
+  const recentTasks = (tasksData || [])
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
     .slice(0, 5);
 
@@ -203,7 +154,7 @@ const WorkerDashboard = () => {
 
   // Monthly summary
   const currentMonth = new Date().getMonth();
-  const monthlyTasks = tasks.filter(t => {
+  const monthlyTasks = (tasksData || []).filter(t => {
     const taskDate = t.createdAt ? new Date(t.createdAt) : null;
     return taskDate && taskDate.getMonth() === currentMonth;
   });
@@ -236,7 +187,7 @@ const WorkerDashboard = () => {
   };
 
   // Loading state
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
         <Sidebar role="worker" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
@@ -256,7 +207,7 @@ const WorkerDashboard = () => {
   }
 
   // Error state
-  if (error) {
+  if (fetchError) {
     return (
       <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
         <Sidebar role="worker" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
@@ -266,11 +217,9 @@ const WorkerDashboard = () => {
             <div className="flex items-center justify-center h-full">
               <div className="text-center">
                 <AlertCircle className="w-16 h-16 text-red-400 mx-auto mb-4" />
-                <p className="text-red-600 dark:text-red-400 mb-4">{error}</p>
+                <p className="text-red-600 dark:text-red-400 mb-4">{fetchError}</p>
                 <button
-                  onClick={() => {
-                    fetchWorkerTasks();
-                  }}
+                  onClick={() => window.location.reload()}
                   className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
                 >
                   Retry

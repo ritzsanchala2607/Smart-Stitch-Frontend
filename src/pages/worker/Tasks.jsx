@@ -3,6 +3,7 @@ import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
 import { motion, AnimatePresence } from 'framer-motion';
 import usePageTitle from '../../hooks/usePageTitle';
+import { useTasks } from '../../hooks/useDataFetch';
 import {
   Search,
   Filter,
@@ -28,10 +29,10 @@ const WorkerTasks = () => {
   usePageTitle('My Tasks');
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  // Use global state for tasks
+  const { tasks: tasksData, tasksLoading: isLoading, tasksError: fetchError, fetchTasks: refetchTasks } = useTasks();
+
   // State management
-  const [tasks, setTasks] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [priorityFilter, setPriorityFilter] = useState('all');
@@ -44,76 +45,27 @@ const WorkerTasks = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
 
-  // Fetch tasks on mount
-  useEffect(() => {
-    fetchMyTasks();
-  }, []);
-
-  const fetchMyTasks = async () => {
-    setIsLoading(true);
-    setError(null);
-
-    // Get token
-    let token = localStorage.getItem('token');
-    if (!token) {
-      const userDataString = localStorage.getItem('user');
-      if (userDataString) {
-        try {
-          const userData = JSON.parse(userDataString);
-          token = userData.jwt || userData.token;
-        } catch (e) {
-          console.error('Error parsing user data:', e);
-        }
-      }
-    }
-
-    if (!token) {
-      console.error('No token found for fetching tasks');
-      setError('Authentication error. Please log in again.');
-      setIsLoading(false);
-      return;
-    }
-
-    try {
-      const result = await workerAPI.getMyTasks(token);
-
-      if (result.success) {
-        console.log('Tasks fetched successfully:', result.data);
-        // Map API response to component format
-        const mappedTasks = (result.data || []).map(task => ({
-          id: `ORD${String(task.order?.orderId || task.orderId).padStart(3, '0')}`,
-          taskId: task.taskId,
-          orderId: task.order?.orderId || task.orderId,
-          customerName: task.order?.customer?.user?.name || task.customerName || 'Unknown Customer',
-          taskType: task.taskType,
-          status: task.status?.toLowerCase() || 'pending',
-          priority: 'medium', // Default priority
-          orderDate: task.order?.createdAt ? new Date(task.order.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-          deliveryDate: task.order?.deadline || task.deliveryDate || 'N/A',
-          notes: task.order?.additionalNotes || task.order?.notes || task.notes || 'No special instructions',
-          items: [{ type: task.taskType || 'Task', fabric: 'Standard', color: 'N/A', quantity: 1 }],
-          measurements: {},
-          totalAmount: task.order?.totalPrice || 0,
-          paidAmount: task.order?.advancePayment || task.order?.paidAmount || 0,
-          balanceAmount: (task.order?.totalPrice || 0) - (task.order?.advancePayment || task.order?.paidAmount || 0),
-          assignedAt: task.assignedAt,
-          startedAt: task.startedAt,
-          completedAt: task.completedAt
-        }));
-        setTasks(mappedTasks);
-      } else {
-        console.error('Failed to fetch tasks:', result.error);
-        setError(result.error);
-        setTasks([]);
-      }
-    } catch (error) {
-      console.error('Error fetching tasks:', error);
-      setError('Failed to load tasks. Please try again.');
-      setTasks([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // Map API response to component format
+  const tasks = (tasksData || []).map(task => ({
+    id: `ORD${String(task.order?.orderId || task.orderId).padStart(3, '0')}`,
+    taskId: task.taskId,
+    orderId: task.order?.orderId || task.orderId,
+    customerName: task.order?.customer?.user?.name || task.customerName || 'Unknown Customer',
+    taskType: task.taskType,
+    status: task.status?.toLowerCase() || 'pending',
+    priority: 'medium', // Default priority
+    orderDate: task.order?.createdAt ? new Date(task.order.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+    deliveryDate: task.order?.deadline || task.deliveryDate || 'N/A',
+    notes: task.order?.additionalNotes || task.order?.notes || task.notes || 'No special instructions',
+    items: [{ type: task.taskType || 'Task', fabric: 'Standard', color: 'N/A', quantity: 1 }],
+    measurements: {},
+    totalAmount: task.order?.totalPrice || 0,
+    paidAmount: task.order?.advancePayment || task.order?.paidAmount || 0,
+    balanceAmount: (task.order?.totalPrice || 0) - (task.order?.advancePayment || task.order?.paidAmount || 0),
+    assignedAt: task.assignedAt,
+    startedAt: task.startedAt,
+    completedAt: task.completedAt
+  }));
 
   // Filter and search tasks
   const filteredTasks = tasks.filter(task => {
@@ -173,8 +125,8 @@ const WorkerTasks = () => {
         setSuccessMessage('Task started successfully! 🎉');
         setShowSuccessPopup(true);
         setTimeout(() => setShowSuccessPopup(false), 5000);
-        // Refresh tasks list
-        fetchMyTasks();
+        // Refresh tasks list using global state refetch
+        await refetchTasks();
       } else {
         setSuccessMessage(`Failed to start task: ${result.error}`);
         setShowSuccessPopup(true);
@@ -218,8 +170,8 @@ const WorkerTasks = () => {
         setSuccessMessage('Task completed successfully! ✅');
         setShowSuccessPopup(true);
         setTimeout(() => setShowSuccessPopup(false), 5000);
-        // Refresh tasks list
-        fetchMyTasks();
+        // Refresh tasks list using global state refetch
+        await refetchTasks();
       } else {
         setSuccessMessage(`Failed to complete task: ${result.error}`);
         setShowSuccessPopup(true);
@@ -467,13 +419,13 @@ const WorkerTasks = () => {
                           </div>
                         </td>
                       </tr>
-                    ) : error ? (
+                    ) : fetchError ? (
                       <tr>
                         <td colSpan="9" className="px-6 py-12 text-center">
                           <AlertCircle className="w-12 h-12 mx-auto mb-3 text-red-400" />
-                          <p className="text-red-600 dark:text-red-400 mb-3">{error}</p>
+                          <p className="text-red-600 dark:text-red-400 mb-3">{fetchError}</p>
                           <button
-                            onClick={fetchMyTasks}
+                            onClick={() => refetchTasks(true)}
                             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                           >
                             Retry

@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import usePageTitle from '../../hooks/usePageTitle';
 import { API_URL } from '../../config';
 import { adminAPI } from '../../services/api';
+import { useAllShops } from '../../hooks/useDataFetch';
 import {
   Store,
   Users,
@@ -31,8 +32,6 @@ import {
 const OwnersShops = () => {
   usePageTitle('Owners & Shops');
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -45,64 +44,31 @@ const OwnersShops = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [actionMenuOpen, setActionMenuOpen] = useState(null);
 
-  // Shops data from API
-  const [shops, setShops] = useState([]);
+  // Use global state hook with search support
+  const {
+    allShops,
+    allShopsLoading: loading,
+    allShopsError: error,
+    fetchAllShops,
+    invalidateAllShops
+  } = useAllShops(searchQuery);
 
-  // Fetch shops data on component mount and when search changes
-  useEffect(() => {
-    const fetchShops = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        // Get token from localStorage
-        const userData = JSON.parse(localStorage.getItem('user') || '{}');
-        const token = userData.jwt || localStorage.getItem('token');
-
-        if (!token) {
-          throw new Error('No authentication token found');
-        }
-
-        // Fetch shops with optional search query
-        const response = await adminAPI.getAllShops(searchQuery, token);
-        if (!response.success) {
-          throw new Error(response.error);
-        }
-
-        // Transform API data to match component structure
-        const transformedShops = response.data.map(shop => ({
-          id: shop.shopId,
-          shopName: shop.shopName,
-          ownerName: shop.ownerName,
-          email: shop.ownerEmail,
-          phone: shop.ownerContact,
-          city: 'N/A', // Not provided by API
-          address: shop.shopAddress,
-          gstNumber: 'N/A', // Not provided by API
-          shopType: 'N/A', // Not provided by API
-          totalOrders: shop.totalOrders,
-          totalWorkers: shop.totalWorkers,
-          status: shop.isActive ? 'Active' : 'Inactive',
-          registrationDate: shop.createdAt || 'N/A'
-        }));
-
-        setShops(transformedShops);
-
-      } catch (err) {
-        console.error('Error fetching shops:', err);
-        setError(err.message || 'Failed to load shops data');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    // Debounce search
-    const timeoutId = setTimeout(() => {
-      fetchShops();
-    }, 300);
-
-    return () => clearTimeout(timeoutId);
-  }, [searchQuery]);
+  // Transform API data to match component structure
+  const shops = (allShops || []).map(shop => ({
+    id: shop.shopId,
+    shopName: shop.shopName,
+    ownerName: shop.ownerName,
+    email: shop.ownerEmail,
+    phone: shop.ownerContact,
+    city: 'N/A',
+    address: shop.shopAddress,
+    gstNumber: 'N/A',
+    shopType: 'N/A',
+    totalOrders: shop.totalOrders,
+    totalWorkers: shop.totalWorkers,
+    status: shop.isActive ? 'Active' : 'Inactive',
+    registrationDate: shop.createdAt || 'N/A'
+  }));
 
   // Form state for adding new owner/shop
   const [ownerForm, setOwnerForm] = useState({
@@ -253,7 +219,9 @@ const OwnersShops = () => {
         registrationDate: new Date().toISOString().split('T')[0]
       };
 
-      setShops([...shops, newShop]);
+      // Invalidate cache to refetch shops
+      invalidateAllShops();
+      
       setShowAddModal(false);
       setShowSuccessModal(true);
       
@@ -323,8 +291,9 @@ const OwnersShops = () => {
         throw new Error(response.error);
       }
       
-      // Remove from local state
-      setShops(shops.filter(shop => shop.id !== selectedShop.id));
+      // Invalidate cache to refetch shops
+      invalidateAllShops();
+      
       setShowDeleteModal(false);
       setSelectedShop(null);
       
@@ -375,19 +344,8 @@ const OwnersShops = () => {
         throw new Error(response.error);
       }
       
-      // Update local state
-      setShops(shops.map(shop =>
-        shop.id === selectedShop.id
-          ? {
-              ...shop,
-              shopName: editForm.shopName,
-              email: editForm.ownerEmail,
-              phone: editForm.ownerPhone,
-              address: editForm.shopAddress,
-              ownerName: editForm.ownerName
-            }
-          : shop
-      ));
+      // Invalidate cache to refetch shops
+      invalidateAllShops();
       
       setShowEditModal(false);
       setSelectedShop(null);
@@ -408,11 +366,9 @@ const OwnersShops = () => {
 
   // Handle toggle shop status
   const handleToggleStatus = (shopId) => {
-    setShops(shops.map(shop =>
-      shop.id === shopId
-        ? { ...shop, status: shop.status === 'Active' ? 'Inactive' : 'Active' }
-        : shop
-    ));
+    // Note: This would need a backend API call to actually toggle status
+    // For now, just invalidate cache to refetch
+    invalidateAllShops();
   };
 
   // Show loading state

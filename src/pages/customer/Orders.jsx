@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -25,16 +25,16 @@ import {
   ChevronRight,
   Activity
 } from 'lucide-react';
-import { customerAPI } from '../../services/api';
+import { useMyOrders } from '../../hooks/useDataFetch';
 
 const Orders = () => {
   usePageTitle('My Orders');
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  // Fetch orders from global state
+  const { myOrders: ordersData, myOrdersLoading, myOrdersError, fetchMyOrders } = useMyOrders();
+
   // State management
-  const [orders, setOrders] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [dateFilter, setDateFilter] = useState('all');
@@ -44,98 +44,49 @@ const Orders = () => {
   const [alterationRequest, setAlterationRequest] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
-  // Fetch orders on mount
-  useEffect(() => {
-    fetchMyOrders();
-  }, []);
+  // Transform orders using useMemo
+  const orders = useMemo(() => {
+    if (!ordersData || ordersData.length === 0) return [];
 
-  const fetchMyOrders = async () => {
-    setIsLoading(true);
-    setError(null);
+    return ordersData.map(order => {
+      const taskStatuses = order.taskStatuses || [];
+      let orderStatus = order.orderStatus?.toLowerCase() || 'pending';
 
-    // Get token
-    let token = localStorage.getItem('token');
-    if (!token) {
-      const userDataString = localStorage.getItem('user');
-      if (userDataString) {
-        try {
-          const userData = JSON.parse(userDataString);
-          token = userData.jwt || userData.token;
-        } catch (e) {
-          console.error('Error parsing user data:', e);
-        }
-      }
-    }
+      const items = taskStatuses.map((taskStatus, idx) => {
+        const taskType = taskStatus.split('_')[0];
+        return {
+          type: taskType.charAt(0) + taskType.slice(1).toLowerCase(),
+          fabric: 'Standard',
+          color: 'N/A',
+          quantity: 1
+        };
+      });
 
-    if (!token) {
-      console.error('No token found for fetching orders');
-      setError('Authentication error. Please log in again.');
-      setIsLoading(false);
-      return;
-    }
-
-    try {
-      const result = await customerAPI.getMyOrders(token);
-
-      if (result.success) {
-        console.log('Orders fetched successfully:', result.data);
-        // Map API response to component format
-        const mappedOrders = (result.data || []).map(order => {
-          // Parse task statuses to determine overall status and items
-          const taskStatuses = order.taskStatuses || [];
-          
-          // Use the order status from the database directly
-          let orderStatus = order.orderStatus?.toLowerCase() || 'pending';
-
-          // Extract task types from task statuses
-          const items = taskStatuses.map((taskStatus, idx) => {
-            const taskType = taskStatus.split('_')[0]; // e.g., "CUTTING_IN_PROGRESS" -> "CUTTING"
-            return {
-              type: taskType.charAt(0) + taskType.slice(1).toLowerCase(), // Capitalize first letter
-              fabric: 'Standard',
-              color: 'N/A',
-              quantity: 1
-            };
-          });
-
+      return {
+        id: `ORD${String(order.orderId).padStart(3, '0')}`,
+        orderId: order.orderId,
+        customerId: null,
+        customerName: order.customerName || 'Unknown',
+        orderDate: order.createdAt ? new Date(order.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+        deliveryDate: order.deadline || 'N/A',
+        status: orderStatus,
+        items: items.length > 0 ? items : [{ type: 'Order Item', fabric: 'Standard', color: 'N/A', quantity: 1 }],
+        tasks: taskStatuses.map((taskStatus, idx) => {
+          const [taskType, status] = taskStatus.split('_');
           return {
-            id: `ORD${String(order.orderId).padStart(3, '0')}`,
-            orderId: order.orderId,
-            customerId: null,
-            customerName: order.customerName || 'Unknown',
-            orderDate: order.createdAt ? new Date(order.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-            deliveryDate: order.deadline || 'N/A',
-            status: orderStatus,
-            items: items.length > 0 ? items : [{ type: 'Order Item', fabric: 'Standard', color: 'N/A', quantity: 1 }],
-            tasks: taskStatuses.map((taskStatus, idx) => {
-              const [taskType, status] = taskStatus.split('_');
-              return {
-                taskType: taskType,
-                status: status || 'PENDING'
-              };
-            }),
-            totalAmount: 0, // Not provided in this endpoint
-            paidAmount: 0, // Not provided in this endpoint
-            balanceAmount: 0, // Not provided in this endpoint
-            notes: 'No special instructions',
-            paymentStatus: 'UNKNOWN',
-            measurements: {}
+            taskType: taskType,
+            status: status || 'PENDING'
           };
-        });
-        setOrders(mappedOrders);
-      } else {
-        console.error('Failed to fetch orders:', result.error);
-        setError(result.error || 'Failed to load orders. Please try again.');
-        setOrders([]);
-      }
-    } catch (error) {
-      console.error('Error fetching orders:', error);
-      setError('Unable to load orders. The feature may not be available yet. Please try again later.');
-      setOrders([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+        }),
+        totalAmount: 0,
+        paidAmount: 0,
+        balanceAmount: 0,
+        notes: 'No special instructions',
+        paymentStatus: 'UNKNOWN',
+        measurements: {}
+      };
+    });
+  }, [ordersData]);
 
   // Filter orders
   const filteredOrders = orders.filter(order => {
@@ -219,12 +170,12 @@ const Orders = () => {
               </div>
               <div className="flex items-center gap-3">
                 <button
-                  onClick={fetchMyOrders}
-                  disabled={isLoading}
+                  onClick={() => fetchMyOrders(true)}
+                  disabled={myOrdersLoading}
                   className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 transition-colors"
                   title="Refresh Orders"
                 >
-                  <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+                  <RefreshCw className={`w-4 h-4 ${myOrdersLoading ? 'animate-spin' : ''}`} />
                   Refresh
                 </button>
                 <span className="text-sm text-gray-600 dark:text-gray-400">
@@ -324,21 +275,21 @@ const Orders = () => {
 
             {/* Orders List */}
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
-              {isLoading ? (
+              {myOrdersLoading ? (
                 <div className="text-center py-12">
                   <div className="flex flex-col items-center justify-center gap-3">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
                     <p className="text-gray-600 dark:text-gray-400">Loading orders...</p>
                   </div>
                 </div>
-              ) : error ? (
+              ) : myOrdersError ? (
                 <div className="text-center py-12">
                   <AlertCircle className="w-12 h-12 mx-auto mb-3 text-orange-400" />
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Orders Not Available</h3>
-                  <p className="text-gray-600 dark:text-gray-400 mb-4 max-w-md mx-auto">{error}</p>
+                  <p className="text-gray-600 dark:text-gray-400 mb-4 max-w-md mx-auto">{myOrdersError}</p>
                   <div className="flex gap-3 justify-center">
                     <button
-                      onClick={fetchMyOrders}
+                      onClick={() => fetchMyOrders(true)}
                       className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                     >
                       Retry

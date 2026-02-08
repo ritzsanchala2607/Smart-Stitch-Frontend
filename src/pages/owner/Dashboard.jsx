@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
 import { motion } from 'framer-motion';
@@ -12,253 +12,183 @@ import {
 import { dashboardStats, orders, workers, customers, inventory, notifications, reviews } from '../../data/dummyData';
 import { useNavigate } from 'react-router-dom';
 import { orderAPI, shopAPI } from '../../services/api';
+import { useOrders, useCustomers, useWorkers } from '../../hooks/useDataFetch';
 
 const OwnerDashboard = () => {
   usePageTitle('Dashboard');
   const stats = dashboardStats.owner;
   const navigate = useNavigate();
+  
+  // Use global state management
+  const { orders: globalOrders, ordersLoading } = useOrders();
+  const { customers: globalCustomers } = useCustomers();
+  const { workers: globalWorkers } = useWorkers();
+  
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [dailyOrdersCount, setDailyOrdersCount] = useState(0);
-  const [isLoadingDailyOrders, setIsLoadingDailyOrders] = useState(false);
-  const [weeklyOrdersCount, setWeeklyOrdersCount] = useState(0);
-  const [isLoadingWeeklyOrders, setIsLoadingWeeklyOrders] = useState(false);
-  const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
-  const [isLoadingPendingOrders, setIsLoadingPendingOrders] = useState(false);
-  const [weeklyChartData, setWeeklyChartData] = useState([]);
-  const [isLoadingWeeklyChart, setIsLoadingWeeklyChart] = useState(false);
-  const [recentOrdersData, setRecentOrdersData] = useState([]);
-  const [isLoadingRecentOrders, setIsLoadingRecentOrders] = useState(false);
   const [monthlyRevenue, setMonthlyRevenue] = useState(0);
   const [isLoadingMonthlyRevenue, setIsLoadingMonthlyRevenue] = useState(false);
 
-  // Calculate today's and weekly orders
+  
+  // Calculate metrics from global state using useMemo for performance
+  const dashboardMetrics = useMemo(() => {
+    if (!globalOrders || globalOrders.length === 0) {
+      return {
+        dailyOrdersCount: 0,
+        weeklyOrdersCount: 0,
+        pendingOrdersCount: 0,
+        weeklyChartData: [],
+        recentOrders: []
+      };
+    }
+
+    const today = new Date().toISOString().split('T')[0];
+    const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    
+    // Daily orders count
+    const dailyOrders = globalOrders.filter(order => {
+      const orderDate = order.orderDate || (order.createdAt ? new Date(order.createdAt).toISOString().split('T')[0] : null);
+      return orderDate === today;
+    });
+    
+    // Weekly orders count
+    const weeklyOrders = globalOrders.filter(order => {
+      const orderDate = order.orderDate || (order.createdAt ? new Date(order.createdAt).toISOString().split('T')[0] : null);
+      const orderDateObj = new Date(orderDate);
+      return orderDateObj >= weekAgo;
+    });
+    
+    // Pending orders count
+    const pendingOrders = globalOrders.filter(order => {
+      const status = (order.status || '').toLowerCase();
+      return status !== 'ready' && status !== 'delivered' && status !== 'completed';
+    });
+    
+    // Weekly chart data
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const todayDate = new Date();
+    const last7Days = [];
+    
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date(todayDate);
+      date.setDate(date.getDate() - i);
+      const dayName = days[date.getDay()];
+      const dateStr = date.toISOString().split('T')[0];
+      
+      const dayOrders = globalOrders.filter(order => {
+        const orderDate = order.orderDate || (order.createdAt ? new Date(order.createdAt).toISOString().split('T')[0] : null);
+        return orderDate === dateStr;
+      });
+      
+      const dayRevenue = dayOrders.reduce((sum, order) => sum + (order.totalAmount || order.totalPrice || 0), 0);
+      
+      last7Days.push({
+        day: dayName,
+        orders: dayOrders.length,
+        revenue: dayRevenue
+      });
+    }
+    
+    // Recent orders
+    const sortedOrders = [...globalOrders]
+      .sort((a, b) => {
+        const dateA = new Date(a.createdAt || a.orderDate || 0);
+        const dateB = new Date(b.createdAt || b.orderDate || 0);
+        return dateB - dateA;
+      })
+      .slice(0, 5);
+    
+    return {
+      dailyOrdersCount: dailyOrders.length,
+      weeklyOrdersCount: weeklyOrders.length,
+      pendingOrdersCount: pendingOrders.length,
+      weeklyChartData: last7Days,
+      recentOrders: sortedOrders
+    };
+  }, [globalOrders]);
+
+  // Fetch monthly revenue from analytics API
+  useEffect(() => {
+    const fetchMonthlyRevenue = async () => {
+      setIsLoadingMonthlyRevenue(true);
+      
+      // Get token
+      let token = localStorage.getItem('token');
+      if (!token) {
+        const userDataString = localStorage.getItem('user');
+        if (userDataString) {
+          try {
+            const userData = JSON.parse(userDataString);
+            token = userData.jwt || userData.token;
+          } catch (e) {
+            console.error('Error parsing user data:', e);
+          }
+        }
+      }
+
+      if (!token) {
+        setIsLoadingMonthlyRevenue(false);
+        setMonthlyRevenue(stats.totalRevenue); // Fallback to dummy data
+        return;
+      }
+
+      try {
+        const analyticsResult = await shopAPI.getOwnerAnalytics(token);
+        
+        if (analyticsResult.success) {
+          const analyticsData = analyticsResult.data;
+          
+          // Get current month's revenue from monthlyRevenueTrend
+          if (analyticsData.monthlyRevenueTrend && analyticsData.monthlyRevenueTrend.length > 0) {
+            // Get the most recent month's revenue (last item in the array)
+            const currentMonthData = analyticsData.monthlyRevenueTrend[analyticsData.monthlyRevenueTrend.length - 1];
+            setMonthlyRevenue(currentMonthData.revenue || 0);
+          } else if (analyticsData.overview && analyticsData.overview.totalRevenue) {
+            // Fallback to overview total revenue if monthlyRevenueTrend not available
+            setMonthlyRevenue(analyticsData.overview.totalRevenue || 0);
+          } else {
+            setMonthlyRevenue(0);
+          }
+        } else {
+          console.error('Failed to fetch analytics data:', analyticsResult.error);
+          setMonthlyRevenue(stats.totalRevenue); // Fallback to dummy data
+        }
+      } catch (error) {
+        console.error('Error fetching monthly revenue:', error);
+        setMonthlyRevenue(stats.totalRevenue); // Fallback to dummy data
+      } finally {
+        setIsLoadingMonthlyRevenue(false);
+      }
+    };
+
+    fetchMonthlyRevenue();
+  }, [stats.totalRevenue]);
+
+  // Calculate today's and weekly orders (fallback to dummy data if needed)
   const today = new Date().toISOString().split('T')[0];
   const todayOrders = orders.filter(o => o.orderDate === today);
   const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
   const weeklyOrders = orders.filter(o => o.orderDate >= weekAgo);
-
-  // Fetch all dashboard data in parallel on mount
-  useEffect(() => {
-    loadDashboardData();
-  }, []);
-
-  const loadDashboardData = async () => {
-    // Get token once
-    let token = localStorage.getItem('token');
-    if (!token) {
-      const userDataString = localStorage.getItem('user');
-      if (userDataString) {
-        try {
-          const userData = JSON.parse(userDataString);
-          token = userData.jwt || userData.token;
-        } catch (e) {
-          console.error('Error parsing user data:', e);
-        }
-      }
-    }
-
-    if (!token) {
-      console.error('No token found for dashboard');
-      // Set all loading states to false
-      setIsLoadingDailyOrders(false);
-      setIsLoadingWeeklyOrders(false);
-      setIsLoadingPendingOrders(false);
-      setIsLoadingWeeklyChart(false);
-      setIsLoadingRecentOrders(false);
-      setIsLoadingMonthlyRevenue(false);
-      return;
-    }
-
-    // Set all loading states to true
-    setIsLoadingDailyOrders(true);
-    setIsLoadingWeeklyOrders(true);
-    setIsLoadingPendingOrders(true);
-    setIsLoadingWeeklyChart(true);
-    setIsLoadingRecentOrders(true);
-    setIsLoadingMonthlyRevenue(true);
-
-    // Load all data in parallel
-    const today = new Date().toISOString().split('T')[0];
-    
-    try {
-      const [dailyResult, weeklyResult, allOrdersResult, analyticsResult] = await Promise.all([
-        orderAPI.getDailyOrders(today, token).catch(err => ({ success: false, error: err })),
-        orderAPI.getWeeklyOrders(token).catch(err => ({ success: false, error: err })),
-        orderAPI.getOrders(token).catch(err => ({ success: false, error: err })),
-        shopAPI.getOwnerAnalytics(token).catch(err => ({ success: false, error: err }))
-      ]);
-
-      // Process daily orders
-      if (dailyResult.success) {
-        const responseData = dailyResult.data.data || dailyResult.data;
-        setDailyOrdersCount(responseData.totalOrders || 0);
-      } else {
-        console.error('Failed to fetch daily orders:', dailyResult.error);
-        setDailyOrdersCount(todayOrders.length);
-      }
-      setIsLoadingDailyOrders(false);
-
-      // Process weekly orders
-      if (weeklyResult.success) {
-        const responseData = weeklyResult.data.data || weeklyResult.data;
-        setWeeklyOrdersCount(responseData.totalOrders || 0);
-      } else {
-        console.error('Failed to fetch weekly orders:', weeklyResult.error);
-        setWeeklyOrdersCount(weeklyOrders.length);
-      }
-      setIsLoadingWeeklyOrders(false);
-
-      // Process all orders for pending count, chart, and recent orders
-      if (allOrdersResult.success) {
-        const allOrders = allOrdersResult.data || [];
-
-        // Calculate pending orders
-        const pending = allOrders.filter(order => {
-          const status = (order.status || '').toLowerCase();
-          return status !== 'ready' && status !== 'delivered' && status !== 'completed';
-        });
-        setPendingOrdersCount(pending.length);
-        setIsLoadingPendingOrders(false);
-
-        // Calculate weekly chart data
-        const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-        const todayDate = new Date();
-        const last7Days = [];
-        
-        for (let i = 6; i >= 0; i--) {
-          const date = new Date(todayDate);
-          date.setDate(date.getDate() - i);
-          const dayName = days[date.getDay()];
-          const dateStr = date.toISOString().split('T')[0];
-          
-          const dayOrders = allOrders.filter(order => {
-            const orderDate = order.createdAt ? new Date(order.createdAt).toISOString().split('T')[0] : null;
-            return orderDate === dateStr;
-          });
-          
-          const dayRevenue = dayOrders.reduce((sum, order) => sum + (order.totalPrice || 0), 0);
-          
-          last7Days.push({
-            day: dayName,
-            orders: dayOrders.length,
-            revenue: dayRevenue
-          });
-        }
-        setWeeklyChartData(last7Days);
-        setIsLoadingWeeklyChart(false);
-
-        // Get recent orders
-        const sortedOrders = allOrders
-          .sort((a, b) => {
-            const dateA = new Date(a.createdAt || 0);
-            const dateB = new Date(b.createdAt || 0);
-            return dateB - dateA;
-          })
-          .slice(0, 5);
-        
-        const mappedOrders = sortedOrders.map(order => ({
-          id: `ORD${String(order.orderId).padStart(3, '0')}`,
-          orderId: order.orderId,
-          customerName: order.customer?.name || order.customerName || 'Unknown Customer',
-          items: order.items || [],
-          workerName: order.tasks && order.tasks.length > 0 
-            ? order.tasks[0].workerName || order.tasks[0].worker?.name || 'Unassigned'
-            : 'Unassigned',
-          status: order.status ? order.status.toLowerCase() : 'pending',
-          deliveryDate: order.deadline || 'N/A'
-        }));
-        
-        setRecentOrdersData(mappedOrders);
-        setIsLoadingRecentOrders(false);
-      } else {
-        console.error('Failed to fetch orders:', allOrdersResult.error);
-        // Set fallback data
-        setPendingOrdersCount(pendingOrders.length);
-        setIsLoadingPendingOrders(false);
-        
-        setWeeklyChartData([
-          { day: 'Mon', orders: 12, revenue: 15000 },
-          { day: 'Tue', orders: 15, revenue: 18000 },
-          { day: 'Wed', orders: 18, revenue: 22000 },
-          { day: 'Thu', orders: 14, revenue: 17000 },
-          { day: 'Fri', orders: 20, revenue: 25000 },
-          { day: 'Sat', orders: 17, revenue: 21000 },
-          { day: 'Sun', orders: 22, revenue: 28000 }
-        ]);
-        setIsLoadingWeeklyChart(false);
-        
-        setRecentOrdersData(orders.slice(0, 5));
-        setIsLoadingRecentOrders(false);
-      }
-
-      // Process analytics data for monthly revenue
-      if (analyticsResult.success) {
-        const analyticsData = analyticsResult.data;
-        
-        // Get current month's revenue from monthlyRevenueTrend
-        if (analyticsData.monthlyRevenueTrend && analyticsData.monthlyRevenueTrend.length > 0) {
-          // Get the most recent month's revenue (last item in the array)
-          const currentMonthData = analyticsData.monthlyRevenueTrend[analyticsData.monthlyRevenueTrend.length - 1];
-          setMonthlyRevenue(currentMonthData.revenue || 0);
-        } else if (analyticsData.overview && analyticsData.overview.totalRevenue) {
-          // Fallback to overview total revenue if monthlyRevenueTrend not available
-          setMonthlyRevenue(analyticsData.overview.totalRevenue || 0);
-        } else {
-          setMonthlyRevenue(0);
-        }
-      } else {
-        console.error('Failed to fetch analytics data:', analyticsResult.error);
-        setMonthlyRevenue(stats.totalRevenue); // Fallback to dummy data
-      }
-      setIsLoadingMonthlyRevenue(false);
-    } catch (error) {
-      console.error('Error loading dashboard data:', error);
-      // Set all loading states to false
-      setIsLoadingDailyOrders(false);
-      setIsLoadingWeeklyOrders(false);
-      setIsLoadingPendingOrders(false);
-      setIsLoadingWeeklyChart(false);
-      setIsLoadingRecentOrders(false);
-      setIsLoadingMonthlyRevenue(false);
-    }
-  };
-
-  // Remove individual fetch functions - they're now part of loadDashboardData
-  const fetchDailyOrdersCount = async () => {
-    // Deprecated - now handled by loadDashboardData
-  };
-
-  const fetchWeeklyOrdersCount = async () => {
-    // Deprecated - now handled by loadDashboardData
-  };
-
-  const fetchPendingOrdersCount = async () => {
-    // Deprecated - now handled by loadDashboardData
-  };
-
-  const fetchWeeklyChartData = async () => {
-    // Deprecated - now handled by loadDashboardData
-  };
-
-  const fetchRecentOrders = async () => {
-    // Deprecated - now handled by loadDashboardData
-  };
   
-  // Pending work with urgency
-  const pendingOrders = orders.filter(o => o.status !== 'ready');
+  // Pending work with urgency - use global orders or fallback to dummy data
+  const ordersToUse = globalOrders && globalOrders.length > 0 ? globalOrders : orders;
+  const pendingOrders = ordersToUse.filter(o => {
+    const status = (o.status || '').toLowerCase();
+    return status !== 'ready' && status !== 'delivered' && status !== 'completed';
+  });
   const urgentOrders = pendingOrders.filter(o => o.priority === 'high').length;
   const mediumOrders = pendingOrders.filter(o => o.priority === 'medium').length;
   const lowOrders = pendingOrders.filter(o => o.priority === 'low').length;
 
-  // Worker performance
-  const totalPerformance = workers.reduce((sum, w) => sum + w.performance, 0);
-  const avgPerformance = Math.round(totalPerformance / workers.length);
+  // Worker performance - use global workers or fallback to dummy data
+  const workersToUse = globalWorkers && globalWorkers.length > 0 ? globalWorkers : workers;
+  const totalPerformance = workersToUse.reduce((sum, w) => sum + (w.performance || 0), 0);
+  const avgPerformance = workersToUse.length > 0 ? Math.round(totalPerformance / workersToUse.length) : 0;
 
-  // Recent orders - use API data if available, fallback to dummy data
-  const recentOrders = recentOrdersData.length > 0 ? recentOrdersData : orders.slice(0, 5);
-  const activeWorkers = workers.filter(w => w.status === 'active');
+  // Recent orders - use computed data from global state
+  const recentOrders = dashboardMetrics.recentOrders.length > 0 ? dashboardMetrics.recentOrders : orders.slice(0, 5);
+  const activeWorkers = workersToUse.filter(w => w.status === 'active');
 
   // Low stock items
   const lowStockItems = inventory.filter(item => item.quantity <= item.minStock);
@@ -283,8 +213,8 @@ const OwnerDashboard = () => {
     { status: 'delayed', count: orders.filter(o => new Date(o.deliveryDate) < new Date() && o.status !== 'ready').length, color: 'bg-red-500' }
   ];
 
-  // Use API data for chart, fallback to empty data if not loaded yet
-  const weeklyData = weeklyChartData.length > 0 ? weeklyChartData : [
+  // Use computed weekly data from global state
+  const weeklyData = dashboardMetrics.weeklyChartData.length > 0 ? dashboardMetrics.weeklyChartData : [
     { day: 'Mon', orders: 0, revenue: 0 },
     { day: 'Tue', orders: 0, revenue: 0 },
     { day: 'Wed', orders: 0, revenue: 0 },
@@ -453,7 +383,7 @@ const OwnerDashboard = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <StatCard 
                 title="Daily Orders" 
-                value={isLoadingDailyOrders ? '...' : dailyOrdersCount} 
+                value={ordersLoading ? '...' : dashboardMetrics.dailyOrdersCount} 
                 icon={Package}
                 color="bg-blue-500"
                 subtitle="Today"
@@ -461,7 +391,7 @@ const OwnerDashboard = () => {
               />
               <StatCard 
                 title="Weekly Orders" 
-                value={isLoadingWeeklyOrders ? '...' : weeklyOrdersCount} 
+                value={ordersLoading ? '...' : dashboardMetrics.weeklyOrdersCount} 
                 icon={TrendingUp}
                 color="bg-purple-500"
                 subtitle="Last 7 days"
@@ -469,7 +399,7 @@ const OwnerDashboard = () => {
               />
               <StatCard 
                 title="Pending Work" 
-                value={isLoadingPendingOrders ? '...' : pendingOrdersCount}
+                value={ordersLoading ? '...' : dashboardMetrics.pendingOrdersCount}
                 icon={Clock}
                 color="bg-orange-500"
                 subtitle="In progress"
@@ -508,7 +438,7 @@ const OwnerDashboard = () => {
                       </div>
                     </div>
                   </div>
-                  {isLoadingWeeklyChart ? (
+                  {ordersLoading ? (
                     <div className="flex items-center justify-center h-64">
                       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
                     </div>
@@ -545,7 +475,7 @@ const OwnerDashboard = () => {
                   <div className="p-6 border-b border-gray-200 dark:border-gray-700">
                     <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Recent Orders</h2>
                   </div>
-                  {isLoadingRecentOrders ? (
+                  {ordersLoading ? (
                     <div className="flex items-center justify-center py-12">
                       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
                     </div>

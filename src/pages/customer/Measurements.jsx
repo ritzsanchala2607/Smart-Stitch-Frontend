@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -10,250 +10,104 @@ import {
   ChevronDown,
   ChevronUp,
   Loader,
-  AlertCircle
+  AlertCircle,
+  RefreshCw
 } from 'lucide-react';
-import { customerAPI } from '../../services/api';
+import { useProfile } from '../../hooks/useDataFetch';
 
 const Measurements = () => {
   usePageTitle('Measurements');
 
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [profiles, setProfiles] = useState([]);
   const [selectedProfile, setSelectedProfile] = useState(null);
   const [expandedCategory, setExpandedCategory] = useState('shirt');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Get token from localStorage
-  const getToken = () => {
-    const token = localStorage.getItem('token');
-    if (token) return token;
-    
-    const userStr = localStorage.getItem('user');
-    if (userStr) {
-      try {
-        const user = JSON.parse(userStr);
-        return user.jwt || user.token;
-      } catch (e) {
-        console.error('Error parsing user from localStorage:', e);
-      }
-    }
-    return null;
-  };
+  // Fetch profile from global state - this already contains measurements
+  const { profile: profileData, profileLoading: loading, profileError: error, fetchProfile } = useProfile();
 
-  // Get customer ID from JWT token
-  const getCustomerId = () => {
-    const token = getToken();
-    if (!token) return null;
-    
-    try {
-      // Decode JWT token (format: header.payload.signature)
-      const base64Url = token.split('.')[1];
-      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-      const jsonPayload = decodeURIComponent(
-        atob(base64)
-          .split('')
-          .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-          .join('')
-      );
-      
-      const payload = JSON.parse(jsonPayload);
-      console.log('JWT Payload:', payload);
-      
-      // The JWT should contain userId or sub (subject)
-      return payload.userId || payload.sub || payload.id;
-    } catch (e) {
-      console.error('Error decoding JWT token:', e);
-      return null;
-    }
-  };
-
-  // Fetch measurement profiles on mount
+  // Debug logging
   useEffect(() => {
-    fetchMeasurementProfiles();
-  }, []);
-
-  const fetchMeasurementProfiles = async () => {
-    setLoading(true);
-    setError('');
-    
-    const token = getToken();
-    const customerId = getCustomerId();
-    
-    if (!token) {
-      setError('Please login to view measurements');
-      setLoading(false);
-      return;
-    }
-
-    if (!customerId) {
-      setError('Unable to identify customer. Please login again.');
-      setLoading(false);
-      return;
-    }
-
-    console.log('Fetching measurements for customer ID:', customerId);
-
-    const response = await customerAPI.getMeasurementProfiles(customerId, token);
-    
-    if (response.success) {
-      const fetchedProfiles = response.data || [];
-      
-      // Log the raw API response for debugging
-      console.log('=== RAW API RESPONSE ===');
-      console.log('Number of profiles:', fetchedProfiles.length);
-      console.log('Full response data:', JSON.stringify(fetchedProfiles, null, 2));
-      console.log('=== END RAW API RESPONSE ===');
-      
-      // Transform API data to match component structure
-      const transformedProfiles = fetchedProfiles.map(profile => {
-        console.log(`\n=== Processing profile: ${profile.dressType} ===`);
-        console.log('Profile ID:', profile.profileId);
-        console.log('Measurements object:', profile.measurements);
-        return {
-          id: profile.profileId,
-          name: `${profile.dressType} Measurements`,
-          dressType: profile.dressType,
-          isDefault: profile.dressType === 'SHIRT',
-          createdAt: profile.createdAt?.split('T')[0] || 'N/A',
-          updatedAt: profile.updatedAt?.split('T')[0] || 'N/A',
-          notes: profile.notes || '',
-          measurements: transformMeasurements(profile.dressType, profile.measurements)
-        };
-      });
-
-      setProfiles(transformedProfiles);
-      
-      // Select first profile by default
-      if (transformedProfiles.length > 0) {
-        setSelectedProfile(transformedProfiles[0]);
-        // Set expanded category based on first profile's dress type
-        setExpandedCategory(transformedProfiles[0].dressType.toLowerCase());
+    console.log('=== MEASUREMENTS PAGE DEBUG ===');
+    console.log('Profile data:', profileData);
+    console.log('Loading:', loading);
+    console.log('Error:', error);
+    if (profileData) {
+      console.log('Has measurements?', !!profileData.measurements);
+      if (profileData.measurements) {
+        console.log('Measurements keys:', Object.keys(profileData.measurements));
+        console.log('Measurements:', JSON.stringify(profileData.measurements, null, 2));
       }
-    } else {
-      setError(response.error || 'Failed to fetch measurements');
     }
-    
-    setLoading(false);
+    console.log('=== END MEASUREMENTS PAGE DEBUG ===');
+  }, [profileData, loading, error]);
+
+  // Handle manual refresh
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await fetchProfile(true); // Force refetch
+    setIsRefreshing(false);
   };
 
-  // Transform measurements from API format to component format
-  const transformMeasurements = (dressType, measurements) => {
-    const result = {
-      pant: {},
-      shirt: {},
-      coat: {},
-      kurta: {},
-      dhoti: {},
-      custom: []
-    };
-
-    if (!measurements) {
-      console.log(`No measurements found for ${dressType}`);
-      return result;
-    }
-
-    // Log the raw measurements for debugging
-    console.log(`Transforming ${dressType} measurements:`, measurements);
-
-    // Map measurements based on dress type
-    const dressTypeKey = dressType.toLowerCase();
+  // Transform profile measurements into profiles array using useMemo
+  const profiles = useMemo(() => {
+    console.log('=== PROFILES TRANSFORMATION ===');
+    console.log('profileData:', profileData);
     
-    if (dressTypeKey === 'pant') {
-      result.pant = {
-        length: measurements.length || '',
-        waist: measurements.waist || '',
-        seatHips: measurements.hip || measurements.seatHips || '',
-        thigh: measurements.thigh || '',
-        knee: measurements.knee || '',
-        bottomOpening: measurements.bottom || measurements.bottomOpening || '',
-        thighCircumference: measurements.thighCircumference || ''
-      };
-    } else if (dressTypeKey === 'shirt') {
-      result.shirt = {
-        length: measurements.length || '',
-        chest: measurements.chest || '',
-        waist: measurements.waist || '',
-        shoulder: measurements.shoulder || '',
-        sleeveLength: measurements.sleeve || measurements.sleeveLength || '',
-        armhole: measurements.armhole || '',
-        collar: measurements.collar || measurements.neck || ''
-      };
-    } else if (dressTypeKey === 'coat') {
-      result.coat = {
-        length: measurements.length || '',
-        chest: measurements.chest || '',
-        waist: measurements.waist || '',
-        shoulder: measurements.shoulder || '',
-        sleeveLength: measurements.sleeve || measurements.sleeveLength || '',
-        armhole: measurements.armhole || ''
-      };
-    } else if (dressTypeKey === 'kurta') {
-      // Log all available keys in measurements object for debugging
-      console.log('=== KURTA MEASUREMENT DEBUGGING ===');
-      console.log('All measurement keys:', Object.keys(measurements));
-      console.log('Full measurements object:', JSON.stringify(measurements, null, 2));
-      
-      const kurtaResult = {
-        length: measurements.length || '',
-        chest: measurements.chest || '',
-        waist: measurements.waist || '',
-        seatHips: measurements.hip || measurements.seatHips || measurements.seat || '',
-        flare: measurements.flare || measurements.circumference || '',
-        shoulder: measurements.shoulder || '',
-        armhole: measurements.armhole || '',
-        sleeve: measurements.sleeve || measurements.sleeveLength || '',
-        // Try all possible variations of bottomOpening
-        bottomOpening: measurements.bottomOpening || measurements.bottomopening || 
-                      measurements.bottom_opening || measurements.cuff || 
-                      measurements.bottom || measurements.bottomCuff || '',
-        // Try all possible variations of frontNeck
-        frontNeck: measurements.frontNeck || measurements.frontneck || 
-                  measurements.front_neck || measurements.neckFront || 
-                  measurements.neckfront || measurements.neck_front || '',
-        // Try all possible variations of backNeck
-        backNeck: measurements.backNeck || measurements.backneck || 
-                 measurements.back_neck || measurements.neckBack || 
-                 measurements.neckback || measurements.neck_back || ''
-      };
-      
-      console.log('Kurta field mapping results:');
-      console.log('  bottomOpening:', kurtaResult.bottomOpening, '(from:', 
-        measurements.bottomOpening ? 'bottomOpening' :
-        measurements.bottomopening ? 'bottomopening' :
-        measurements.bottom_opening ? 'bottom_opening' :
-        measurements.cuff ? 'cuff' :
-        measurements.bottom ? 'bottom' :
-        measurements.bottomCuff ? 'bottomCuff' : 'NOT FOUND', ')');
-      console.log('  frontNeck:', kurtaResult.frontNeck, '(from:', 
-        measurements.frontNeck ? 'frontNeck' :
-        measurements.frontneck ? 'frontneck' :
-        measurements.front_neck ? 'front_neck' :
-        measurements.neckFront ? 'neckFront' :
-        measurements.neckfront ? 'neckfront' :
-        measurements.neck_front ? 'neck_front' : 'NOT FOUND', ')');
-      console.log('  backNeck:', kurtaResult.backNeck, '(from:', 
-        measurements.backNeck ? 'backNeck' :
-        measurements.backneck ? 'backneck' :
-        measurements.back_neck ? 'back_neck' :
-        measurements.neckBack ? 'neckBack' :
-        measurements.neckback ? 'neckback' :
-        measurements.neck_back ? 'neck_back' : 'NOT FOUND', ')');
-      console.log('=== END KURTA DEBUGGING ===');
-      
-      result.kurta = kurtaResult;
-    } else if (dressTypeKey === 'dhoti') {
-      result.dhoti = {
-        length: measurements.length || '',
-        waist: measurements.waist || '',
-        hip: measurements.hip || '',
-        sideLength: measurements.sideLength || '',
-        foldLength: measurements.foldLength || ''
-      };
+    if (!profileData || !profileData.measurements) {
+      console.log('No profileData or measurements, returning empty array');
+      return [];
     }
 
-    return result;
-  };
+    // Create profiles from the measurements object
+    const measurementProfiles = [];
+    const measurements = profileData.measurements;
+    
+    console.log('Measurements object:', measurements);
+
+    // Check each dress type and create a profile if measurements exist
+    const dressTypes = [
+      { key: 'shirt', label: 'Shirt', icon: '👔' },
+      { key: 'pant', label: 'Pant', icon: '👖' },
+      { key: 'coat', label: 'Coat', icon: '🧥' },
+      { key: 'kurta', label: 'Kurta', icon: '🥻' },
+      { key: 'dhoti', label: 'Dhoti', icon: '🎽' }
+    ];
+
+    dressTypes.forEach((dressType, index) => {
+      const dressMeasurements = measurements[dressType.key];
+      console.log(`Checking ${dressType.key}:`, dressMeasurements);
+      
+      // Check if this dress type has any measurements
+      const hasMeasurements = dressMeasurements && Object.values(dressMeasurements).some(val => val && val !== '');
+      console.log(`  Has measurements: ${hasMeasurements}`);
+      
+      if (hasMeasurements) {
+        measurementProfiles.push({
+          id: `profile-${dressType.key}`,
+          name: `${dressType.label} Measurements`,
+          dressType: dressType.key,
+          isDefault: index === 0, // First profile is default
+          createdAt: profileData.createdAt?.split('T')[0] || 'N/A',
+          updatedAt: profileData.updatedAt?.split('T')[0] || new Date().toISOString().split('T')[0],
+          notes: '',
+          measurements: measurements
+        });
+      }
+    });
+
+    console.log('Final profiles array:', measurementProfiles);
+    console.log('=== END PROFILES TRANSFORMATION ===');
+    return measurementProfiles;
+  }, [profileData]);
+
+  // Select first profile by default
+  useEffect(() => {
+    if (profiles.length > 0 && !selectedProfile) {
+      setSelectedProfile(profiles[0]);
+      setExpandedCategory(profiles[0].dressType);
+    }
+  }, [profiles, selectedProfile]);
 
   // Measurement categories configuration
   const categories = {
@@ -347,6 +201,14 @@ const Measurements = () => {
                   <p className="text-gray-600 dark:text-gray-400">View your measurement profiles</p>
                 </div>
               </div>
+              <button
+                onClick={handleRefresh}
+                disabled={isRefreshing || loading}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg transition-colors"
+              >
+                <RefreshCw className={`w-5 h-5 ${isRefreshing ? 'animate-spin' : ''}`} />
+                {isRefreshing ? 'Refreshing...' : 'Refresh'}
+              </button>
             </div>
 
             {/* Loading State */}
@@ -379,9 +241,17 @@ const Measurements = () => {
                 <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">
                   No Measurements Found
                 </h3>
-                <p className="text-gray-600 dark:text-gray-400">
-                  Please contact the shop owner to add your measurements.
+                <p className="text-gray-600 dark:text-gray-400 mb-4">
+                  Your measurements haven't been added yet. Please contact the shop owner to add your measurements.
                 </p>
+                <button
+                  onClick={handleRefresh}
+                  disabled={isRefreshing}
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg transition-colors"
+                >
+                  <RefreshCw className={`w-5 h-5 ${isRefreshing ? 'animate-spin' : ''}`} />
+                  {isRefreshing ? 'Checking...' : 'Check Again'}
+                </button>
               </div>
             )}
 
@@ -482,19 +352,6 @@ const Measurements = () => {
                               <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {category.fields.map((field) => {
                                   const fieldValue = selectedProfile.measurements[categoryKey][field.key] || '';
-                                  // Enhanced logging for debugging
-                                  if (categoryKey === 'kurta' && (field.key === 'bottomOpening' || field.key === 'frontNeck' || field.key === 'backNeck')) {
-                                    console.log(`\n=== DISPLAY DEBUGGING for ${field.key} ===`);
-                                    console.log('Category:', categoryKey);
-                                    console.log('Field key:', field.key);
-                                    console.log('Field label:', field.label);
-                                    console.log('All measurements for category:', selectedProfile.measurements[categoryKey]);
-                                    console.log('Field value:', fieldValue);
-                                    console.log('Field value type:', typeof fieldValue);
-                                    console.log('Field value length:', fieldValue ? fieldValue.length : 0);
-                                    console.log('Is empty string?', fieldValue === '');
-                                    console.log('=== END DISPLAY DEBUGGING ===\n');
-                                  }
                                   return (
                                     <div key={field.key}>
                                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
