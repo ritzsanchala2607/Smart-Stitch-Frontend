@@ -446,14 +446,85 @@ export const DataProvider = ({ children }) => {
       }
 
       if (result.success) {
+        let profileData = result.data;
+        
+        console.log('=== FETCH PROFILE DEBUG ===');
+        console.log('User role:', user.role);
+        console.log('Raw profile data from API:', JSON.stringify(profileData, null, 2));
+        console.log('Has measurements?', !!profileData.measurements);
+        if (profileData.measurements) {
+          console.log('Raw measurements keys:', Object.keys(profileData.measurements));
+          console.log('Raw measurements:', JSON.stringify(profileData.measurements, null, 2));
+        }
+        
+        // Transform customer profile measurements to match expected format
+        if (user.role === 'customer' && profileData.measurements) {
+          const rawMeasurements = profileData.measurements;
+          profileData = {
+            ...profileData,
+            measurements: {
+              pant: {
+                length: rawMeasurements.pantLength || '',
+                waist: rawMeasurements.pantWaist || '',
+                seatHips: rawMeasurements.seatHips || rawMeasurements.seatHip || '',
+                thigh: rawMeasurements.thigh || '',
+                knee: rawMeasurements.knee || '',
+                bottomOpening: rawMeasurements.bottomOpening || rawMeasurements.bottom || '',
+                thighCircumference: rawMeasurements.thighCircumference || ''
+              },
+              shirt: {
+                length: rawMeasurements.shirtLength || '',
+                chest: rawMeasurements.chest || '',
+                waist: rawMeasurements.shirtWaist || '',
+                shoulder: rawMeasurements.shoulder || '',
+                sleeveLength: rawMeasurements.sleeveLength || '',
+                armhole: rawMeasurements.armhole || '',
+                collar: rawMeasurements.collar || ''
+              },
+              coat: {
+                length: rawMeasurements.coatLength || '',
+                chest: rawMeasurements.coatChest || '',
+                waist: rawMeasurements.coatWaist || '',
+                shoulder: rawMeasurements.coatShoulder || '',
+                sleeveLength: rawMeasurements.coatSleeveLength || '',
+                armhole: rawMeasurements.coatArmhole || ''
+              },
+              kurta: {
+                length: rawMeasurements.kurtaLength || '',
+                chest: rawMeasurements.kurtaChest || '',
+                waist: rawMeasurements.kurtaWaist || '',
+                seatHips: rawMeasurements.kurtaSeatHips || rawMeasurements.kurtaHip || '',
+                flare: rawMeasurements.kurtaFlare || '',
+                shoulder: rawMeasurements.kurtaShoulder || '',
+                armhole: rawMeasurements.kurtaArmhole || '',
+                sleeve: rawMeasurements.kurtaSleeve || rawMeasurements.kurtaSleeveLength || '',
+                bottomOpening: rawMeasurements.kurtaBottomOpening || '',
+                frontNeck: rawMeasurements.kurtaFrontNeck || '',
+                backNeck: rawMeasurements.kurtaBackNeck || ''
+              },
+              dhoti: {
+                length: rawMeasurements.dhotiLength || '',
+                waist: rawMeasurements.dhotiWaist || '',
+                hip: rawMeasurements.dhotiHip || '',
+                sideLength: rawMeasurements.sideLength || '',
+                foldLength: rawMeasurements.foldLength || ''
+              },
+              custom: rawMeasurements.customMeasurements || ''
+            }
+          };
+          
+          console.log('Transformed measurements:', JSON.stringify(profileData.measurements, null, 2));
+        }
+        console.log('=== END FETCH PROFILE DEBUG ===');
+        
         updateCache('profile', {
-          data: result.data,
+          data: profileData,
           loading: false,
           error: null,
           timestamp: Date.now()
         });
 
-        return { success: true, data: result.data, fromCache: false };
+        return { success: true, data: profileData, fromCache: false };
       } else {
         updateCache('profile', { loading: false, error: result.error });
         return { success: false, error: result.error };
