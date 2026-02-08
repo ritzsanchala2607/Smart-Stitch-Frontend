@@ -174,7 +174,7 @@ export const RevenueTrendChart = () => {
                       style={{ height: `${revenueHeight}%` }}
                     >
                       <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                        ${data.revenue.toLocaleString()}
+                        ₹{data.revenue.toLocaleString()}
                       </div>
                     </div>
                   </div>
@@ -184,7 +184,7 @@ export const RevenueTrendChart = () => {
                       style={{ height: `${expenseHeight}%` }}
                     >
                       <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                        ${data.expense.toLocaleString()}
+                        ₹{data.expense.toLocaleString()}
                       </div>
                     </div>
                   </div>

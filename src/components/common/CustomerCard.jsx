@@ -65,7 +65,7 @@ const CustomerCard = ({ customer, onView, onEdit, onDelete }) => {
                 <span className="text-xs font-medium">Total Spent</span>
               </div>
               <p className="text-lg font-bold text-green-900 dark:text-green-300">
-                ${customer.totalSpent.toLocaleString()}
+                ₹{customer.totalSpent.toLocaleString()}
               </p>
             </div>
           </div>

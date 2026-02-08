@@ -238,7 +238,7 @@ const WeeklyOrders = () => {
                             )}
                           </td>
                           <td className="px-6 py-4 text-sm font-semibold text-gray-900 dark:text-gray-100">
-                            ${order.totalAmount?.toLocaleString() || '0'}
+                            ₹{order.totalAmount?.toLocaleString() || '0'}
                           </td>
                           <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
                             {order.workers && order.workers.length > 0 ? (

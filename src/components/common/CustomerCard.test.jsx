@@ -78,7 +78,7 @@ describe('CustomerCard Property-Based Tests', () => {
             // Check that stats are displayed
             expect(screen.getByText(customer.totalOrders.toString())).toBeInTheDocument();
             // Use a more flexible matcher for the total spent that handles locale formatting
-            const totalSpentText = `$${customer.totalSpent.toLocaleString()}`;
+            const totalSpentText = `₹${customer.totalSpent.toLocaleString()}`;
             expect(screen.getByText(totalSpentText)).toBeInTheDocument();
 
             // Check for action buttons

@@ -215,7 +215,7 @@ const DailyOrders = () => {
                             </div>
                           </td>
                           <td className="px-6 py-4 text-sm font-semibold text-gray-900 dark:text-gray-100">
-                            ${order.totalAmount?.toLocaleString() || '0'}
+                            ₹{order.totalAmount?.toLocaleString() || '0'}
                           </td>
                           <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
                             {order.workers && order.workers.length > 0 ? (
@@ -299,7 +299,7 @@ const DailyOrders = () => {
                     {selectedOrder.status}
                   </span>
                   <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                    ${selectedOrder.totalAmount?.toLocaleString() || '0'}
+                    ₹{selectedOrder.totalAmount?.toLocaleString() || '0'}
                   </p>
                 </div>
 

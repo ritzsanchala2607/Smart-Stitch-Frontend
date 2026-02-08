@@ -5,7 +5,7 @@ import usePageTitle from '../../hooks/usePageTitle';
 import { 
   Plus, Package, Search, Filter, Eye, Edit, Trash2,
   Clock, CheckCircle, AlertCircle, X, Calendar,
-  DollarSign, FileText, User, Users
+  DollarSign, FileText, User, Users, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { customers } from '../../data/dummyData';
 import { useState, useEffect } from 'react';
@@ -77,6 +77,10 @@ const Orders = () => {
   const [workers, setWorkers] = useState([]);
   const [isLoadingWorkers, setIsLoadingWorkers] = useState(false);
   const [workersError, setWorkersError] = useState(null);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
 
   // Fetch workers on component mount
   useEffect(() => {
@@ -974,6 +978,67 @@ const Orders = () => {
     return matchesSearch && matchesStatus;
   });
 
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedOrders = filteredOrders.slice(startIndex, endIndex);
+
+  // Reset to page 1 when search query or filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, filterStatus]);
+
+  // Pagination handlers
+  const goToPage = (page) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const goToNextPage = () => {
+    if (currentPage < totalPages) {
+      goToPage(currentPage + 1);
+    }
+  };
+
+  const goToPreviousPage = () => {
+    if (currentPage > 1) {
+      goToPage(currentPage - 1);
+    }
+  };
+
+  const getPageNumbers = () => {
+    const pages = [];
+    if (totalPages <= 5) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      if (currentPage <= 3) {
+        for (let i = 1; i <= 4; i++) {
+          pages.push(i);
+        }
+        pages.push('...');
+        pages.push(totalPages);
+      } else if (currentPage >= totalPages - 2) {
+        pages.push(1);
+        pages.push('...');
+        for (let i = totalPages - 3; i <= totalPages; i++) {
+          pages.push(i);
+        }
+      } else {
+        pages.push(1);
+        pages.push('...');
+        pages.push(currentPage - 1);
+        pages.push(currentPage);
+        pages.push(currentPage + 1);
+        pages.push('...');
+        pages.push(totalPages);
+      }
+    }
+    return pages;
+  };
+
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
       <Sidebar role="owner" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
@@ -1126,7 +1191,7 @@ const Orders = () => {
                         </td>
                       </tr>
                     ) : (
-                      filteredOrders.map((order) => (
+                      paginatedOrders.map((order) => (
                         <tr key={order.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                           <td className="px-6 py-4">
                             <span className="font-semibold text-gray-900 dark:text-gray-100">{order.id}</span>
@@ -1185,6 +1250,63 @@ const Orders = () => {
                 </table>
               </div>
             </div>
+
+            {/* Pagination Controls */}
+            {filteredOrders.length > 0 && totalPages > 1 && (
+              <div className="flex items-center justify-between mt-6">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Showing {startIndex + 1} to {Math.min(endIndex, filteredOrders.length)} of {filteredOrders.length} orders
+                </p>
+                
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={goToPreviousPage}
+                    disabled={currentPage === 1}
+                    className={`px-4 py-2 rounded-lg flex items-center gap-2 font-medium transition-colors ${
+                      currentPage === 1
+                        ? 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
+                        : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600'
+                    }`}
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                    Back
+                  </button>
+
+                  <div className="flex items-center gap-2">
+                    {getPageNumbers().map((page, index) => (
+                      page === '...' ? (
+                        <span key={`ellipsis-${index}`} className="px-2 text-gray-500 dark:text-gray-400">...</span>
+                      ) : (
+                        <button
+                          key={page}
+                          onClick={() => goToPage(page)}
+                          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                            currentPage === page
+                              ? 'bg-orange-500 text-white'
+                              : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600'
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      )
+                    ))}
+                  </div>
+
+                  <button
+                    onClick={goToNextPage}
+                    disabled={currentPage === totalPages}
+                    className={`px-4 py-2 rounded-lg flex items-center gap-2 font-medium transition-colors ${
+                      currentPage === totalPages
+                        ? 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
+                        : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600'
+                    }`}
+                  >
+                    Next
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            )}
           </motion.div>
         </main>
       </div>
