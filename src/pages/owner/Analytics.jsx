@@ -4,7 +4,8 @@ import Topbar from '../../components/common/Topbar';
 import { motion } from 'framer-motion';
 import usePageTitle from '../../hooks/usePageTitle';
 import { BarChart3 } from 'lucide-react';
-import { orders, workers, inventory, reviews } from '../../data/dummyData';
+import { inventory, reviews } from '../../data/dummyData';
+import { useOrders, useWorkers } from '../../hooks/useDataFetch';
 import {
   OrderStatusDonutChart,
   RevenueTrendChart,
@@ -18,6 +19,15 @@ import {
 const Analytics = () => {
   usePageTitle('Analytics');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  
+  // Use global state management
+  const { orders, ordersLoading } = useOrders();
+  const { workers, workersLoading } = useWorkers();
+  
+  // Use global orders and workers, fallback to empty arrays if loading
+  const ordersData = orders || [];
+  const workersData = workers || [];
+  
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
       <Sidebar role="owner" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
@@ -51,16 +61,16 @@ const Analytics = () => {
               <RevenueTrendChart />
 
               {/* Order Status Distribution */}
-              <OrderStatusDonutChart orders={orders} />
+              <OrderStatusDonutChart orders={ordersData} />
 
               {/* Worker Performance */}
-              <WorkerPerformanceRadarChart workers={workers} />
+              <WorkerPerformanceRadarChart workers={workersData} />
 
               {/* Customer Ratings */}
               <CustomerRatingsChart reviews={reviews} />
 
               {/* Worker Availability */}
-              <WorkerAvailabilityPieChart workers={workers} />
+              <WorkerAvailabilityPieChart workers={workersData} />
 
               {/* Inventory Low Stock */}
               <div className="lg:col-span-2">

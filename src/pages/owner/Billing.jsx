@@ -4,12 +4,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import usePageTitle from '../../hooks/usePageTitle';
 import { 
   FileText, Plus, Download, IndianRupee, TrendingUp, 
-  Calendar, X, Trash2, User, Building2, Search
+  Calendar, X, Trash2, Building2, Search
 } from 'lucide-react';
-import { useState } from 'react';
-import { customers, owners } from '../../data/dummyData';
+import { useState, useEffect } from 'react';
+import { owners } from '../../data/dummyData';
 import { calculateInvoiceTotals } from '../../utils/calculations';
 import AddCustomerModal from '../../components/AddCustomerModal';
+import { useCustomers } from '../../hooks/useDataFetch';
 
 const Billing = () => {
   usePageTitle('Billing');
@@ -28,7 +29,17 @@ const Billing = () => {
   const [customerSearchQuery, setCustomerSearchQuery] = useState('');
   const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
   const [showCustomerModal, setShowCustomerModal] = useState(false);
-  const [customerList, setCustomerList] = useState(customers);
+
+  // Use global state management for customers
+  const { customers: globalCustomers, customersLoading, fetchCustomers } = useCustomers();
+  const [customerList, setCustomerList] = useState([]);
+
+  // Update customer list when global customers change
+  useEffect(() => {
+    if (globalCustomers && globalCustomers.length > 0) {
+      setCustomerList(globalCustomers);
+    }
+  }, [globalCustomers]);
 
   const owner = owners[0];
   const totals = calculateInvoiceTotals(orderItems, taxRate);
@@ -59,6 +70,8 @@ const Billing = () => {
     setCustomerList(prev => [...prev, newCustomer]);
     setSelectedCustomer(newCustomer);
     setCustomerSearchQuery(newCustomer.name);
+    // Refresh global customers to include the new customer
+    fetchCustomers(true);
   };
 
   const handleAddItem = () => {

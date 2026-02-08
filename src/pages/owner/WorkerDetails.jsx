@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import usePageTitle from '../../hooks/usePageTitle';
@@ -18,31 +18,47 @@ import {
 } from 'lucide-react';
 import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
-import { workers, orders } from '../../data/dummyData';
+import { useWorkers, useOrders } from '../../hooks/useDataFetch';
 
 const WorkerDetails = () => {
   usePageTitle('Worker Details');
   const { id } = useParams();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
-  const [worker, setWorker] = useState(null);
-  const [assignedOrders, setAssignedOrders] = useState([]);
   const [showEditModal, setShowEditModal] = useState(false);
 
-  useEffect(() => {
-    // Find worker by ID
-    const foundWorker = workers.find((w) => w.id === id);
-    if (foundWorker) {
-      setWorker(foundWorker);
-      
-      // Find orders assigned to this worker
-      const workerOrders = orders.filter((order) => order.assignedWorker === id);
-      setAssignedOrders(workerOrders);
-    } else {
-      // Redirect if worker not found
-      navigate('/owner/add-worker');
+  // Use global state management
+  const { workers, workersLoading } = useWorkers();
+  const { orders, ordersLoading } = useOrders();
+
+  // Find worker and assigned orders using useMemo
+  const { worker, assignedOrders } = useMemo(() => {
+    if (!workers || workers.length === 0) {
+      return { worker: null, assignedOrders: [] };
     }
-  }, [id, navigate]);
+
+    const foundWorker = workers.find((w) => w.id === id || String(w.id) === id);
+    
+    if (!foundWorker) {
+      return { worker: null, assignedOrders: [] };
+    }
+
+    // Find orders assigned to this worker
+    const workerOrders = orders.filter((order) => 
+      order.assignedWorker === id || 
+      order.workerName === foundWorker.name ||
+      String(order.assignedWorker) === id
+    );
+
+    return { worker: foundWorker, assignedOrders: workerOrders };
+  }, [workers, orders, id]);
+
+  // Redirect if worker not found after loading
+  useEffect(() => {
+    if (!workersLoading && !worker) {
+      navigate('/owner/workers');
+    }
+  }, [worker, workersLoading, navigate]);
 
   const handleEditWorker = () => {
     setShowEditModal(true);
@@ -83,7 +99,7 @@ const WorkerDetails = () => {
             {/* Header with Back Button */}
             <div className="mb-6 flex items-center justify-between">
               <button
-                onClick={() => navigate('/owner/add-worker')}
+                onClick={() => navigate('/owner/workers')}
                 className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
               >
                 <ArrowLeft className="w-5 h-5" />
@@ -349,7 +365,9 @@ const WorkerDetails = () => {
                         </div>
 
                         <div className="flex flex-col items-end gap-2">
-                          <p className="text-lg font-bold text-gray-900 dark:text-gray-100">₹{order.totalAmount}</p>
+                          <p className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                            ₹{(order.totalAmount || order.totalPrice || 0).toLocaleString()}
+                          </p>
                           <span
                             className={`px-3 py-1 rounded-full text-xs font-medium ${
                               order.priority === 'high'
@@ -365,19 +383,21 @@ const WorkerDetails = () => {
                       </div>
 
                       {/* Order Items */}
-                      <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Items:</p>
-                        <div className="flex flex-wrap gap-2">
-                          {order.items.map((item) => (
-                            <span
-                              key={item.id}
-                              className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded text-xs"
-                            >
-                              {item.type} ({item.quantity})
-                            </span>
-                          ))}
+                      {order.items && order.items.length > 0 && (
+                        <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Items:</p>
+                          <div className="flex flex-wrap gap-2">
+                            {order.items.map((item, idx) => (
+                              <span
+                                key={idx}
+                                className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded text-xs"
+                              >
+                                {item.itemName || item.itemType || item.type || item} {item.quantity ? `(${item.quantity})` : ''}
+                              </span>
+                            ))}
+                          </div>
                         </div>
-                      </div>
+                      )}
                     </motion.div>
                   ))}
                 </div>
