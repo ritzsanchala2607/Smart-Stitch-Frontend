@@ -836,7 +836,11 @@ const DonutChart = ({ completed, inProgress, pending, total }) => {
 
 // Workload Chart Component
 const WorkloadChart = ({ data }) => {
+  // Calculate max value, ensure at least 1 to avoid division by zero
   const maxValue = Math.max(...data.map(d => Math.max(d.assigned, d.completed)), 1);
+  
+  // Check if there's any data
+  const hasData = data.some(d => d.assigned > 0 || d.completed > 0);
 
   return (
     <div className="space-y-4">
@@ -850,35 +854,72 @@ const WorkloadChart = ({ data }) => {
           <span className="text-gray-600 dark:text-gray-400">Completed</span>
         </div>
       </div>
-      <div className="flex items-end justify-between h-48 gap-3">
-        {data.map((day, index) => {
-          const assignedHeight = (day.assigned / maxValue) * 100;
-          const completedHeight = (day.completed / maxValue) * 100;
-          const dayLabel = new Date(day.date).toLocaleDateString('en-US', { weekday: 'short' });
+      
+      {!hasData ? (
+        <div className="flex items-center justify-center h-48 bg-gray-50 dark:bg-gray-700 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600">
+          <div className="text-center">
+            <BarChart3 className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
+            <p className="text-sm text-gray-500 dark:text-gray-400">No workload data for the last 7 days</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Data will appear as you complete tasks</p>
+          </div>
+        </div>
+      ) : (
+        <div className="flex items-end justify-between h-48 gap-3">
+          {data.map((day, index) => {
+            // Calculate heights with minimum 5% for visibility when value > 0
+            const assignedHeight = day.assigned > 0 
+              ? Math.max((day.assigned / maxValue) * 100, 5) 
+              : 0;
+            const completedHeight = day.completed > 0 
+              ? Math.max((day.completed / maxValue) * 100, 5) 
+              : 0;
+            const dayLabel = new Date(day.date).toLocaleDateString('en-US', { weekday: 'short' });
 
-          return (
-            <div key={index} className="flex-1 flex flex-col items-center gap-2">
-              <div className="w-full flex items-end justify-center gap-1 h-40">
-                <div className="relative flex-1 flex flex-col items-center">
-                  <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">{day.assigned}</span>
-                  <div
-                    className="w-full bg-blue-500 rounded-t transition-all hover:bg-blue-600"
-                    style={{ height: `${assignedHeight}%` }}
-                  ></div>
+            return (
+              <div key={index} className="flex-1 flex flex-col items-center gap-2">
+                <div className="w-full flex items-end justify-center gap-1 h-40">
+                  {/* Assigned Bar */}
+                  <div className="relative flex-1 flex flex-col items-center">
+                    {day.assigned > 0 && (
+                      <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                        {day.assigned}
+                      </span>
+                    )}
+                    <div
+                      className={`w-full rounded-t transition-all ${
+                        day.assigned > 0 
+                          ? 'bg-blue-500 hover:bg-blue-600 cursor-pointer' 
+                          : 'bg-gray-200 dark:bg-gray-700'
+                      }`}
+                      style={{ height: assignedHeight > 0 ? `${assignedHeight}%` : '2px' }}
+                      title={`Assigned: ${day.assigned}`}
+                    ></div>
+                  </div>
+                  
+                  {/* Completed Bar */}
+                  <div className="relative flex-1 flex flex-col items-center">
+                    {day.completed > 0 && (
+                      <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                        {day.completed}
+                      </span>
+                    )}
+                    <div
+                      className={`w-full rounded-t transition-all ${
+                        day.completed > 0 
+                          ? 'bg-green-500 hover:bg-green-600 cursor-pointer' 
+                          : 'bg-gray-200 dark:bg-gray-700'
+                      }`}
+                      style={{ height: completedHeight > 0 ? `${completedHeight}%` : '2px' }}
+                      title={`Completed: ${day.completed}`}
+                    ></div>
+                  </div>
                 </div>
-                <div className="relative flex-1 flex flex-col items-center">
-                  <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">{day.completed}</span>
-                  <div
-                    className="w-full bg-green-500 rounded-t transition-all hover:bg-green-600"
-                    style={{ height: `${completedHeight}%` }}
-                  ></div>
-                </div>
+                <span className="text-xs text-gray-600 dark:text-gray-400 font-medium">{dayLabel}</span>
               </div>
-              <span className="text-xs text-gray-600 dark:text-gray-400 font-medium">{dayLabel}</span>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 };

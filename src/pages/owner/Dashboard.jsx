@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import { dashboardStats, orders, workers, customers, inventory, notifications, reviews } from '../../data/dummyData';
 import { useNavigate } from 'react-router-dom';
-import { orderAPI } from '../../services/api';
+import { orderAPI, shopAPI } from '../../services/api';
 
 const OwnerDashboard = () => {
   usePageTitle('Dashboard');
@@ -30,6 +30,8 @@ const OwnerDashboard = () => {
   const [isLoadingWeeklyChart, setIsLoadingWeeklyChart] = useState(false);
   const [recentOrdersData, setRecentOrdersData] = useState([]);
   const [isLoadingRecentOrders, setIsLoadingRecentOrders] = useState(false);
+  const [monthlyRevenue, setMonthlyRevenue] = useState(0);
+  const [isLoadingMonthlyRevenue, setIsLoadingMonthlyRevenue] = useState(false);
 
   // Calculate today's and weekly orders
   const today = new Date().toISOString().split('T')[0];
@@ -65,6 +67,7 @@ const OwnerDashboard = () => {
       setIsLoadingPendingOrders(false);
       setIsLoadingWeeklyChart(false);
       setIsLoadingRecentOrders(false);
+      setIsLoadingMonthlyRevenue(false);
       return;
     }
 
@@ -74,15 +77,17 @@ const OwnerDashboard = () => {
     setIsLoadingPendingOrders(true);
     setIsLoadingWeeklyChart(true);
     setIsLoadingRecentOrders(true);
+    setIsLoadingMonthlyRevenue(true);
 
     // Load all data in parallel
     const today = new Date().toISOString().split('T')[0];
     
     try {
-      const [dailyResult, weeklyResult, allOrdersResult] = await Promise.all([
+      const [dailyResult, weeklyResult, allOrdersResult, analyticsResult] = await Promise.all([
         orderAPI.getDailyOrders(today, token).catch(err => ({ success: false, error: err })),
         orderAPI.getWeeklyOrders(token).catch(err => ({ success: false, error: err })),
-        orderAPI.getOrders(token).catch(err => ({ success: false, error: err }))
+        orderAPI.getOrders(token).catch(err => ({ success: false, error: err })),
+        shopAPI.getOwnerAnalytics(token).catch(err => ({ success: false, error: err }))
       ]);
 
       // Process daily orders
@@ -187,6 +192,27 @@ const OwnerDashboard = () => {
         setRecentOrdersData(orders.slice(0, 5));
         setIsLoadingRecentOrders(false);
       }
+
+      // Process analytics data for monthly revenue
+      if (analyticsResult.success) {
+        const analyticsData = analyticsResult.data;
+        
+        // Get current month's revenue from monthlyRevenueTrend
+        if (analyticsData.monthlyRevenueTrend && analyticsData.monthlyRevenueTrend.length > 0) {
+          // Get the most recent month's revenue (last item in the array)
+          const currentMonthData = analyticsData.monthlyRevenueTrend[analyticsData.monthlyRevenueTrend.length - 1];
+          setMonthlyRevenue(currentMonthData.revenue || 0);
+        } else if (analyticsData.overview && analyticsData.overview.totalRevenue) {
+          // Fallback to overview total revenue if monthlyRevenueTrend not available
+          setMonthlyRevenue(analyticsData.overview.totalRevenue || 0);
+        } else {
+          setMonthlyRevenue(0);
+        }
+      } else {
+        console.error('Failed to fetch analytics data:', analyticsResult.error);
+        setMonthlyRevenue(stats.totalRevenue); // Fallback to dummy data
+      }
+      setIsLoadingMonthlyRevenue(false);
     } catch (error) {
       console.error('Error loading dashboard data:', error);
       // Set all loading states to false
@@ -195,6 +221,7 @@ const OwnerDashboard = () => {
       setIsLoadingPendingOrders(false);
       setIsLoadingWeeklyChart(false);
       setIsLoadingRecentOrders(false);
+      setIsLoadingMonthlyRevenue(false);
     }
   };
 
@@ -450,7 +477,7 @@ const OwnerDashboard = () => {
               />
               <StatCard 
                 title="Monthly Revenue" 
-                value={`₹${stats.totalRevenue.toLocaleString()}`} 
+                value={isLoadingMonthlyRevenue ? '...' : `₹${monthlyRevenue.toLocaleString()}`} 
                 icon={IndianRupee}
                 color="bg-green-500"
                 subtitle="This month"

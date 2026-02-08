@@ -2090,6 +2090,45 @@ export const shopAPI = {
                 error: error.message || 'Server error. Please try again later.'
             };
         }
+    },
+
+    /**
+     * Get owner analytics data
+     * @param {string} token - JWT token for authentication
+     * @returns {Promise} Response with analytics data
+     */
+    getOwnerAnalytics: async (token) => {
+        try {
+            console.log('API Request - URL:', `${API_URL}/api/shops/me/analytics`);
+
+            const response = await fetch(`${API_URL}/api/shops/me/analytics`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            console.log('API Response - Status:', response.status, response.statusText);
+
+            const data = await response.json();
+            console.log('API Response - Data:', data);
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to fetch analytics data');
+            }
+
+            return {
+                success: true,
+                data: data.data || data,
+                message: data.message || 'Analytics data fetched successfully'
+            };
+        } catch (error) {
+            console.error('Owner Analytics API Error:', error);
+            return {
+                success: false,
+                error: error.message || 'Server error. Please try again later.'
+            };
+        }
     }
 };
 

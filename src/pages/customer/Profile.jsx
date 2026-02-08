@@ -14,10 +14,8 @@ import {
   X,
   Camera,
   Lock,
-  Award,
   Package,
   IndianRupee,
-  Star,
   CheckCircle,
   TrendingUp
 } from 'lucide-react';
@@ -46,9 +44,19 @@ const Profile = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
 
+  // Customer stats state
+  const [customerStats, setCustomerStats] = useState({
+    totalOrders: 0,
+    completedOrders: 0,
+    totalSpent: 0,
+    avgPerOrder: 0,
+    joinedDays: 0
+  });
+
   // Fetch profile data on mount
   useEffect(() => {
     fetchProfile();
+    fetchCustomerStats();
   }, []);
 
   const fetchProfile = async () => {
@@ -101,6 +109,12 @@ const Profile = () => {
         
         setProfileData(profile);
         setEditedData(profile);
+        
+        // Calculate joined days
+        if (data.createdAt) {
+          const joinedDays = Math.floor((new Date() - new Date(data.createdAt)) / (1000 * 60 * 60 * 24));
+          setCustomerStats(prev => ({ ...prev, joinedDays }));
+        }
       } else {
         console.error('Failed to fetch profile:', result.error);
         setErrorMessage(result.error || 'Failed to load profile');
@@ -113,15 +127,51 @@ const Profile = () => {
     }
   };
 
-  // Customer stats
-  const customerStats = {
-    totalOrders: 12,
-    completedOrders: 10,
-    totalSpent: 15000,
-    loyaltyPoints: 1250,
-    tier: 'Gold',
-    avgRating: 4.8,
-    joinedDays: Math.floor((new Date() - new Date('2023-05-10')) / (1000 * 60 * 60 * 24))
+  const fetchCustomerStats = async () => {
+    // Get token
+    let token = localStorage.getItem('token');
+    if (!token) {
+      const userDataString = localStorage.getItem('user');
+      if (userDataString) {
+        try {
+          const userData = JSON.parse(userDataString);
+          token = userData.jwt || userData.token;
+        } catch (e) {
+          console.error('Error parsing user data:', e);
+        }
+      }
+    }
+
+    if (!token) {
+      return;
+    }
+
+    try {
+      console.log('Calling customerAPI.getCustomerStats...');
+      const result = await customerAPI.getCustomerStats(token);
+      
+      console.log('Customer Stats API Result:', result);
+      
+      if (result.success) {
+        console.log('Customer stats received:', result.data);
+        
+        const data = result.data;
+        const stats = {
+          totalOrders: data.totalOrders || 0,
+          completedOrders: data.completedOrders || 0,
+          totalSpent: data.totalSpent || 0,
+          avgPerOrder: data.totalOrders > 0 ? Math.round(data.totalSpent / data.totalOrders) : 0,
+          joinedDays: customerStats.joinedDays
+        };
+        
+        console.log('Mapped customer stats:', stats);
+        setCustomerStats(stats);
+      } else {
+        console.error('Failed to fetch customer stats:', result.error);
+      }
+    } catch (error) {
+      console.error('Error fetching customer stats:', error);
+    }
   };
 
   // Handle profile update
@@ -259,15 +309,12 @@ const Profile = () => {
                     )}
                   </div>
 
-                  {/* Name and Tier */}
+                  {/* Name */}
                   <div className="text-center mb-6">
-                    <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-1">{profileData.name}</h2>
-                    <span className="inline-block px-3 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 text-sm font-semibold rounded-full">
-                      {customerStats.tier} Member
-                    </span>
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{profileData.name}</h2>
                   </div>
 
-                  {/* Stats Grid */}
+                  {/* Stats Grid - Only Orders */}
                   <div className="grid grid-cols-2 gap-4 mb-6">
                     <div className="text-center p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
                       <Package className="w-5 h-5 text-blue-600 dark:text-blue-400 mx-auto mb-1" />
@@ -278,16 +325,6 @@ const Profile = () => {
                       <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 mx-auto mb-1" />
                       <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{customerStats.completedOrders}</p>
                       <p className="text-xs text-gray-600 dark:text-gray-400">Completed</p>
-                    </div>
-                    <div className="text-center p-3 bg-purple-50 dark:bg-purple-900/30 rounded-lg">
-                      <Award className="w-5 h-5 text-purple-600 dark:text-purple-400 mx-auto mb-1" />
-                      <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{customerStats.loyaltyPoints}</p>
-                      <p className="text-xs text-gray-600 dark:text-gray-400">Points</p>
-                    </div>
-                    <div className="text-center p-3 bg-orange-50 dark:bg-orange-900/30 rounded-lg">
-                      <Star className="w-5 h-5 text-orange-600 dark:text-orange-400 mx-auto mb-1" />
-                      <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{customerStats.avgRating}</p>
-                      <p className="text-xs text-gray-600 dark:text-gray-400">Rating</p>
                     </div>
                   </div>
 
@@ -315,14 +352,16 @@ const Profile = () => {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm opacity-90">Avg per Order</span>
-                      <span className="font-bold">₹{Math.round(customerStats.totalSpent / customerStats.totalOrders).toLocaleString()}</span>
+                      <span className="font-bold">₹{customerStats.avgPerOrder.toLocaleString()}</span>
                     </div>
-                    <div className="pt-3 border-t border-white/30">
-                      <div className="flex items-center gap-2">
-                        <TrendingUp className="w-4 h-4" />
-                        <span className="text-sm">You're in top 10% customers!</span>
+                    {customerStats.totalOrders > 0 && (
+                      <div className="pt-3 border-t border-white/30">
+                        <div className="flex items-center gap-2">
+                          <TrendingUp className="w-4 h-4" />
+                          <span className="text-sm">Thank you for your business!</span>
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 </div>
               </div>
