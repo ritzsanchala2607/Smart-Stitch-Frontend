@@ -274,7 +274,7 @@ const WorkerProgress = () => {
                   <div className="flex items-center justify-between">
                     <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Recent Tasks</h2>
                     <div className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full text-sm font-semibold">
-                      {tasks.length} Total
+                      {(tasksData || []).length} Total
                     </div>
                   </div>
                 </div>

@@ -13,6 +13,7 @@ import {
   Activity,
   Calendar,
   AlertCircle,
+  XCircle,
   Loader2
 } from 'lucide-react';
 import {

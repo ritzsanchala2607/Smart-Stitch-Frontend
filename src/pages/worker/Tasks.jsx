@@ -30,7 +30,7 @@ const WorkerTasks = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Use global state for tasks
-  const { tasks: tasksData, isLoading, error: fetchError, refetch: refetchTasks } = useTasks();
+  const { tasks: tasksData, tasksLoading: isLoading, tasksError: fetchError, fetchTasks: refetchTasks } = useTasks();
 
   // State management
   const [searchQuery, setSearchQuery] = useState('');
@@ -419,13 +419,13 @@ const WorkerTasks = () => {
                           </div>
                         </td>
                       </tr>
-                    ) : error ? (
+                    ) : fetchError ? (
                       <tr>
                         <td colSpan="9" className="px-6 py-12 text-center">
                           <AlertCircle className="w-12 h-12 mx-auto mb-3 text-red-400" />
-                          <p className="text-red-600 dark:text-red-400 mb-3">{error}</p>
+                          <p className="text-red-600 dark:text-red-400 mb-3">{fetchError}</p>
                           <button
-                            onClick={fetchMyTasks}
+                            onClick={() => refetchTasks(true)}
                             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                           >
                             Retry
