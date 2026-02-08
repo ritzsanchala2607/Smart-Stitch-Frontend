@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Sidebar from '../../components/common/Sidebar';
 import Topbar from '../../components/common/Topbar';
 import { motion, AnimatePresence } from 'framer-motion';
 import usePageTitle from '../../hooks/usePageTitle';
 import { Package, Eye, ArrowLeft, Calendar, AlertCircle, X, User, Phone, Mail } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { orderAPI } from '../../services/api';
+import { useOrders } from '../../hooks/useDataFetch';
 
 const DailyOrders = () => {
   usePageTitle('Daily Orders');
@@ -14,67 +14,28 @@ const DailyOrders = () => {
   const today = new Date().toISOString().split('T')[0];
   
   const [selectedDate, setSelectedDate] = useState(today);
-  const [dailyOrders, setDailyOrders] = useState([]);
-  const [totalOrders, setTotalOrders] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
   const [showViewModal, setShowViewModal] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
 
-  // Fetch daily orders on mount and when date changes
-  useEffect(() => {
-    fetchDailyOrders(selectedDate);
-  }, [selectedDate]);
+  // Use global state management
+  const { orders: globalOrders, ordersLoading, ordersError } = useOrders();
 
-  const fetchDailyOrders = async (date) => {
-    setIsLoading(true);
-    setError(null);
-
-    // Get token
-    let token = localStorage.getItem('token');
-    if (!token) {
-      const userDataString = localStorage.getItem('user');
-      if (userDataString) {
-        try {
-          const userData = JSON.parse(userDataString);
-          token = userData.jwt || userData.token;
-        } catch (e) {
-          console.error('Error parsing user data:', e);
-        }
-      }
+  // Filter orders by selected date using useMemo for performance
+  const { dailyOrders, totalOrders } = useMemo(() => {
+    if (!globalOrders || globalOrders.length === 0) {
+      return { dailyOrders: [], totalOrders: 0 };
     }
 
-    if (!token) {
-      console.error('No token found for fetching daily orders');
-      setError('Authentication error. Please log in again.');
-      setIsLoading(false);
-      return;
-    }
+    const filtered = globalOrders.filter(order => {
+      const orderDate = order.orderDate || (order.createdAt ? new Date(order.createdAt).toISOString().split('T')[0] : null);
+      return orderDate === selectedDate;
+    });
 
-    try {
-      const result = await orderAPI.getDailyOrders(date, token);
-
-      if (result.success) {
-        console.log('Daily orders fetched:', result.data);
-        // Handle nested data structure
-        const responseData = result.data.data || result.data;
-        setTotalOrders(responseData.totalOrders || 0);
-        setDailyOrders(responseData.orders || []);
-      } else {
-        console.error('Failed to fetch daily orders:', result.error);
-        setError(result.error);
-        setDailyOrders([]);
-        setTotalOrders(0);
-      }
-    } catch (error) {
-      console.error('Error fetching daily orders:', error);
-      setError('Failed to load daily orders. Please try again.');
-      setDailyOrders([]);
-      setTotalOrders(0);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    return {
+      dailyOrders: filtered,
+      totalOrders: filtered.length
+    };
+  }, [globalOrders, selectedDate]);
 
   const getStatusColor = (status) => {
     const statusLower = status?.toLowerCase() || '';
@@ -156,23 +117,17 @@ const DailyOrders = () => {
                 </h2>
               </div>
               
-              {isLoading ? (
+              {ordersLoading ? (
                 <div className="p-12 text-center">
                   <div className="flex flex-col items-center justify-center gap-3">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
                     <p className="text-gray-600 dark:text-gray-400">Loading orders...</p>
                   </div>
                 </div>
-              ) : error ? (
+              ) : ordersError ? (
                 <div className="p-12 text-center">
                   <AlertCircle className="w-16 h-16 text-red-400 mx-auto mb-4" />
-                  <p className="text-red-600 dark:text-red-400 mb-3">{error}</p>
-                  <button
-                    onClick={() => fetchDailyOrders(selectedDate)}
-                    className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
-                  >
-                    Retry
-                  </button>
+                  <p className="text-red-600 dark:text-red-400 mb-3">{ordersError}</p>
                 </div>
               ) : dailyOrders.length === 0 ? (
                 <div className="p-12 text-center">
@@ -196,9 +151,9 @@ const DailyOrders = () => {
                     </thead>
                     <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                       {dailyOrders.map((order) => (
-                        <tr key={order.orderId} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                        <tr key={order.orderId || order.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                           <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-100">
-                            ORD{String(order.orderId).padStart(3, '0')}
+                            {order.id}
                           </td>
                           <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
                             {order.customerName}
@@ -207,7 +162,7 @@ const DailyOrders = () => {
                             <div className="flex flex-col gap-1">
                               {order.items && order.items.length > 0 ? (
                                 order.items.map((item, idx) => (
-                                  <span key={idx}>{item}</span>
+                                  <span key={idx}>{item.itemName || item.itemType || item.type || item}</span>
                                 ))
                               ) : (
                                 <span>No items</span>
@@ -215,23 +170,10 @@ const DailyOrders = () => {
                             </div>
                           </td>
                           <td className="px-6 py-4 text-sm font-semibold text-gray-900 dark:text-gray-100">
-                            ₹{order.totalAmount?.toLocaleString() || '0'}
+                            ₹{(order.totalAmount || order.totalPrice || 0).toLocaleString()}
                           </td>
                           <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
-                            {order.workers && order.workers.length > 0 ? (
-                              <div className="flex flex-col gap-1">
-                                {order.workers.map((worker, idx) => (
-                                  <div key={idx} className="text-xs">
-                                    <div className="font-medium">{worker.workerName}</div>
-                                    <div className="text-gray-500 dark:text-gray-500">
-                                      {worker.taskType} - {worker.taskStatus}
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            ) : (
-                              <span className="text-gray-400">Unassigned</span>
-                            )}
+                            {order.workerName || 'Unassigned'}
                           </td>
                           <td className="px-6 py-4">
                             <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.status)}`}>
@@ -281,7 +223,7 @@ const DailyOrders = () => {
               {/* Modal Header */}
               <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
                 <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-                  ORD{String(selectedOrder.orderId).padStart(3, '0')} - {selectedOrder.customerName}
+                  {selectedOrder.id} - {selectedOrder.customerName}
                 </h2>
                 <button
                   onClick={handleCloseModal}
@@ -299,7 +241,7 @@ const DailyOrders = () => {
                     {selectedOrder.status}
                   </span>
                   <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                    ₹{selectedOrder.totalAmount?.toLocaleString() || '0'}
+                    ₹{(selectedOrder.totalAmount || selectedOrder.totalPrice || 0).toLocaleString()}
                   </p>
                 </div>
 
@@ -319,14 +261,9 @@ const DailyOrders = () => {
                   {/* Worker Assignments */}
                   <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 h-full">
                     <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3 uppercase tracking-wide">Workers</h3>
-                    {selectedOrder.workers && selectedOrder.workers.length > 0 ? (
-                      <div className="space-y-2">
-                        {selectedOrder.workers.map((worker, idx) => (
-                          <div key={idx} className="text-sm">
-                            <p className="font-medium text-gray-900 dark:text-gray-100">{worker.workerName}</p>
-                            <p className="text-xs text-gray-600 dark:text-gray-400 uppercase">{worker.taskType}</p>
-                          </div>
-                        ))}
+                    {selectedOrder.workerName ? (
+                      <div className="text-sm">
+                        <p className="font-medium text-gray-900 dark:text-gray-100">{selectedOrder.workerName}</p>
                       </div>
                     ) : (
                       <p className="text-sm text-gray-500 dark:text-gray-400">Unassigned</p>
@@ -341,7 +278,7 @@ const DailyOrders = () => {
                         {selectedOrder.items.map((item, idx) => (
                           <li key={idx} className="text-gray-900 dark:text-gray-100 flex items-start">
                             <span className="text-orange-500 mr-2">•</span>
-                            <span>{item}</span>
+                            <span>{item.itemName || item.itemType || item.type || item}</span>
                           </li>
                         ))}
                       </ul>
