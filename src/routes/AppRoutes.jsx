@@ -13,7 +13,6 @@ import OwnerOrders from '../pages/owner/Orders';
 import OwnerBilling from '../pages/owner/Billing';
 import OwnerInventory from '../pages/owner/Inventory';
 import OwnerRatings from '../pages/owner/Ratings';
-import OwnerChat from '../pages/owner/Chat';
 import OwnerAnalytics from '../pages/owner/Analytics';
 import WorkerDetails from '../pages/owner/WorkerDetails';
 import OwnerProfile from '../pages/owner/OwnerProfile';
@@ -27,8 +26,6 @@ import WorkerDashboard from '../pages/worker/Dashboard';
 import WorkerTasks from '../pages/worker/Tasks';
 import WorkerProgress from '../pages/worker/Progress';
 import WorkerStatistics from '../pages/worker/Statistics';
-import WorkerChat from '../pages/worker/Chat';
-import WorkerNotifications from '../pages/worker/Notifications';
 import WorkerProfile from '../pages/worker/Profile';
 import WorkerCalendar from '../pages/worker/Calendar';
 
@@ -37,9 +34,7 @@ import CustomerDashboard from '../pages/customer/Dashboard';
 import CustomerMeasurements from '../pages/customer/Measurements';
 import CustomerOrders from '../pages/customer/Orders';
 import CustomerCatalogue from '../pages/customer/Catalogue';
-import CustomerCart from '../pages/customer/Cart';
 import CustomerPayment from '../pages/customer/Payment';
-import CustomerSupport from '../pages/customer/Support';
 import CustomerProfile from '../pages/customer/Profile';
 import CustomerRatings from '../pages/customer/Ratings';
 
@@ -93,7 +88,6 @@ const AppRoutes = () => {
       <Route path="/owner/billing" element={<ProtectedRoute allowedRole="owner"><OwnerBilling /></ProtectedRoute>} />
       <Route path="/owner/inventory" element={<ProtectedRoute allowedRole="owner"><OwnerInventory /></ProtectedRoute>} />
       <Route path="/owner/ratings" element={<ProtectedRoute allowedRole="owner"><OwnerRatings /></ProtectedRoute>} />
-      <Route path="/owner/chat" element={<ProtectedRoute allowedRole="owner"><OwnerChat /></ProtectedRoute>} />
       <Route path="/owner/analytics" element={<ProtectedRoute allowedRole="owner"><OwnerAnalytics /></ProtectedRoute>} />
       <Route path="/owner/reports" element={<ProtectedRoute allowedRole="owner"><OwnerAnalytics /></ProtectedRoute>} />
 
@@ -102,8 +96,6 @@ const AppRoutes = () => {
       <Route path="/worker/tasks" element={<ProtectedRoute allowedRole="worker"><WorkerTasks /></ProtectedRoute>} />
       <Route path="/worker/progress" element={<ProtectedRoute allowedRole="worker"><WorkerProgress /></ProtectedRoute>} />
       <Route path="/worker/statistics" element={<ProtectedRoute allowedRole="worker"><WorkerStatistics /></ProtectedRoute>} />
-      <Route path="/worker/chat" element={<ProtectedRoute allowedRole="worker"><WorkerChat /></ProtectedRoute>} />
-      <Route path="/worker/notifications" element={<ProtectedRoute allowedRole="worker"><WorkerNotifications /></ProtectedRoute>} />
       <Route path="/worker/profile" element={<ProtectedRoute allowedRole="worker"><WorkerProfile /></ProtectedRoute>} />
       <Route path="/worker/calendar" element={<ProtectedRoute allowedRole="worker"><WorkerCalendar /></ProtectedRoute>} />
 
@@ -112,10 +104,8 @@ const AppRoutes = () => {
       <Route path="/customer/measurements" element={<ProtectedRoute allowedRole="customer"><CustomerMeasurements /></ProtectedRoute>} />
       <Route path="/customer/orders" element={<ProtectedRoute allowedRole="customer"><CustomerOrders /></ProtectedRoute>} />
       <Route path="/customer/catalogue" element={<ProtectedRoute allowedRole="customer"><CustomerCatalogue /></ProtectedRoute>} />
-      <Route path="/customer/cart" element={<ProtectedRoute allowedRole="customer"><CustomerCart /></ProtectedRoute>} />
       <Route path="/customer/payment" element={<ProtectedRoute allowedRole="customer"><CustomerPayment /></ProtectedRoute>} />
       <Route path="/customer/ratings" element={<ProtectedRoute allowedRole="customer"><CustomerRatings /></ProtectedRoute>} />
-      <Route path="/customer/support" element={<ProtectedRoute allowedRole="customer"><CustomerSupport /></ProtectedRoute>} />
       <Route path="/customer/profile" element={<ProtectedRoute allowedRole="customer"><CustomerProfile /></ProtectedRoute>} />
 
       {/* Admin Routes */}

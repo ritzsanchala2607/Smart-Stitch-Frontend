@@ -9,17 +9,13 @@ import {
   IndianRupee,
   Warehouse,
   Star,
-  MessageSquare,
   ClipboardList,
   TrendingUp,
   Ruler,
-  ShoppingCart,
   CreditCard,
-  HelpCircle,
   LogOut,
   Scissors,
   Settings,
-  Bell,
   Calendar,
   X,
   Store,
@@ -41,7 +37,6 @@ const Sidebar = ({ role, isOpen, onClose }) => {
     { icon: Warehouse, label: 'Inventory', path: '/owner/inventory' },
     { icon: TrendingUp, label: 'Analytics', path: '/owner/analytics' },
     { icon: Star, label: 'Ratings & Feedback', path: '/owner/ratings' },
-    { icon: MessageSquare, label: 'Internal Chat', path: '/owner/chat' },
     { icon: Settings, label: 'Profile & Settings', path: '/owner/profile' },
   ];
 
@@ -50,8 +45,6 @@ const Sidebar = ({ role, isOpen, onClose }) => {
     { icon: ClipboardList, label: 'My Tasks', path: '/worker/tasks' },
     { icon: TrendingUp, label: 'Work Progress', path: '/worker/progress' },
     { icon: TrendingUp, label: 'Statistics', path: '/worker/statistics' },
-    { icon: MessageSquare, label: 'Chat', path: '/worker/chat' },
-    { icon: Bell, label: 'Notifications', path: '/worker/notifications' },
     { icon: Calendar, label: 'Calendar', path: '/worker/calendar' },
     { icon: Settings, label: 'Profile', path: '/worker/profile' },
   ];
@@ -61,10 +54,8 @@ const Sidebar = ({ role, isOpen, onClose }) => {
     { icon: Ruler, label: 'Measurements', path: '/customer/measurements' },
     { icon: Package, label: 'My Orders', path: '/customer/orders' },
     { icon: Scissors, label: 'Catalogue', path: '/customer/catalogue' },
-    { icon: ShoppingCart, label: 'Cart', path: '/customer/cart' },
     { icon: CreditCard, label: 'Payment', path: '/customer/payment' },
     { icon: Star, label: 'Ratings', path: '/customer/ratings' },
-    { icon: HelpCircle, label: 'Support', path: '/customer/support' },
     { icon: Settings, label: 'Profile', path: '/customer/profile' },
   ];
 
