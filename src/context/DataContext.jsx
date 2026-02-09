@@ -219,7 +219,9 @@ export const DataProvider = ({ children }) => {
               }
 
               customerStats[customerId].totalOrders++;
-              customerStats[customerId].totalSpent += order.totalPrice || 0;
+              // Use totalPrice (total order value) for totalSpent, not paidAmount
+              // totalSpent represents the total value of orders, not just what's been paid
+              customerStats[customerId].totalSpent += order.totalPrice || order.totalAmount || 0;
             });
 
             // Update customers with stats
