@@ -11,6 +11,7 @@ import { customers } from '../../data/dummyData';
 import { useState, useEffect } from 'react';
 import { isValidDate, isValidAmount } from '../../utils/validation';
 import AddCustomerModal from '../../components/AddCustomerModal';
+import PaymentUpdateModal from '../../components/PaymentUpdateModal';
 import { customerAPI, orderAPI, workerAPI } from '../../services/api';
 import { useOrders, useWorkers } from '../../hooks/useDataFetch';
 
@@ -49,6 +50,8 @@ const Orders = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [orderToDelete, setOrderToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [selectedOrderForPayment, setSelectedOrderForPayment] = useState(null);
   
   // New Order Form State
   const [selectedCustomer, setSelectedCustomer] = useState(null);
@@ -752,6 +755,52 @@ const Orders = () => {
     }
   };
 
+  // Handle Payment Update
+  const handlePaymentUpdate = async (orderId, paymentData) => {
+    let token = localStorage.getItem('token');
+    if (!token) {
+      const userDataString = localStorage.getItem('user');
+      if (userDataString) {
+        try {
+          const userData = JSON.parse(userDataString);
+          token = userData.jwt || userData.token;
+        } catch (e) {
+          console.error('Error parsing user data:', e);
+        }
+      }
+    }
+
+    if (!token) {
+      setSuccessMessage('Authentication error. Please log in again.');
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 5000);
+      return;
+    }
+
+    try {
+      const result = await orderAPI.updatePayment(orderId, paymentData, token);
+      
+      if (result.success) {
+        setSuccessMessage('Payment updated successfully! 💰');
+        setShowSuccess(true);
+        setTimeout(() => setShowSuccess(false), 3000);
+        
+        // Invalidate cache and refetch orders
+        invalidateOrders();
+        await fetchOrders(true);
+        
+        // Close modal
+        setShowPaymentModal(false);
+        setSelectedOrderForPayment(null);
+      } else {
+        throw new Error(result.error);
+      }
+    } catch (error) {
+      console.error('Error updating payment:', error);
+      throw error;
+    }
+  };
+
   // Handle Mark as Delivered
   const handleMarkAsDelivered = async (orderId) => {
     setOrderToDeliver(orderId);
@@ -1076,6 +1125,16 @@ const Orders = () => {
                                 title="Edit"
                               >
                                 <Edit className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setSelectedOrderForPayment(order);
+                                  setShowPaymentModal(true);
+                                }}
+                                className="p-2 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-lg transition-colors"
+                                title="Update Payment"
+                              >
+                                <IndianRupee className="w-4 h-4" />
                               </button>
                               {(order.status.toLowerCase() === 'ready' || order.status.toLowerCase() === 'completed') && (
                                 <button 
@@ -1436,57 +1495,27 @@ const Orders = () => {
                     Order Details
                   </h3>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Delivery Date <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="date"
-                        value={deliveryDate}
-                        onChange={(e) => {
-                          setDeliveryDate(e.target.value);
-                          if (errors.deliveryDate) {
-                            setErrors(prev => ({ ...prev, deliveryDate: null }));
-                          }
-                        }}
-                        min={new Date().toISOString().split('T')[0]}
-                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
-                          errors.deliveryDate ? 'border-red-500 dark:border-red-700' : 'border-gray-300 dark:border-gray-600'
-                        }`}
-                      />
-                      {errors.deliveryDate && (
-                        <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.deliveryDate}</p>
-                      )}
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Advance Payment
-                      </label>
-                      <div className="relative">
-                        <IndianRupee className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
-                        <input
-                          type="number"
-                          value={advancePayment}
-                          onChange={(e) => {
-                            setAdvancePayment(e.target.value);
-                            if (errors.advancePayment) {
-                              setErrors(prev => ({ ...prev, advancePayment: null }));
-                            }
-                          }}
-                          placeholder="0.00"
-                          min="0"
-                          step="0.01"
-                          className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 ${
-                            errors.advancePayment ? 'border-red-500 dark:border-red-700' : 'border-gray-300 dark:border-gray-600'
-                          }`}
-                        />
-                      </div>
-                      {errors.advancePayment && (
-                        <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.advancePayment}</p>
-                      )}
-                    </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Delivery Date <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="date"
+                      value={deliveryDate}
+                      onChange={(e) => {
+                        setDeliveryDate(e.target.value);
+                        if (errors.deliveryDate) {
+                          setErrors(prev => ({ ...prev, deliveryDate: null }));
+                        }
+                      }}
+                      min={new Date().toISOString().split('T')[0]}
+                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
+                        errors.deliveryDate ? 'border-red-500 dark:border-red-700' : 'border-gray-300 dark:border-gray-600'
+                      }`}
+                    />
+                    {errors.deliveryDate && (
+                      <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.deliveryDate}</p>
+                    )}
                   </div>
 
                   <div className="mt-4">
@@ -1872,36 +1901,6 @@ const Orders = () => {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Advance Payment
-                      </label>
-                      <div className="relative">
-                        <IndianRupee className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
-                        <input
-                          type="number"
-                          value={advancePayment}
-                          onChange={(e) => {
-                            setAdvancePayment(e.target.value);
-                            if (errors.advancePayment) {
-                              setErrors(prev => ({ ...prev, advancePayment: null }));
-                            }
-                          }}
-                          placeholder="0.00"
-                          min="0"
-                          step="0.01"
-                          className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 ${
-                            errors.advancePayment ? 'border-red-500 dark:border-red-700' : 'border-gray-300 dark:border-gray-600'
-                          }`}
-                        />
-                      </div>
-                      {errors.advancePayment && (
-                        <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.advancePayment}</p>
-                      )}
-                    </div>
-                  </div>
-
                   <div className="mt-4">
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Additional Notes
@@ -2081,6 +2080,17 @@ const Orders = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Payment Update Modal */}
+      <PaymentUpdateModal
+        isOpen={showPaymentModal}
+        onClose={() => {
+          setShowPaymentModal(false);
+          setSelectedOrderForPayment(null);
+        }}
+        order={selectedOrderForPayment}
+        onPaymentUpdate={handlePaymentUpdate}
+      />
     </div>
   );
 };

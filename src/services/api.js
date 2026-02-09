@@ -1745,6 +1745,148 @@ export const orderAPI = {
                 error: error.message || 'Server error. Please try again later.'
             };
         }
+    },
+
+    /**
+     * Update payment for an order
+     * @param {number} orderId - Order ID
+     * @param {Object} paymentData - Payment information
+     * @param {number} paymentData.additionalPayment - Additional payment amount
+     * @param {string} paymentData.paymentMethod - Payment method (CASH, CARD, UPI, BANK_TRANSFER)
+     * @param {string} paymentData.paymentDate - Payment date (ISO format)
+     * @param {string} paymentData.paymentNote - Payment note/description
+     * @param {string} token - JWT token for authentication
+     * @returns {Promise} Response with updated payment data
+     */
+    updatePayment: async (orderId, paymentData, token) => {
+        try {
+            console.log('API Request - URL:', `${API_URL}/api/orders/${orderId}/payment`);
+            console.log('API Request - Payload:', JSON.stringify(paymentData, null, 2));
+
+            const response = await fetch(`${API_URL}/api/orders/${orderId}/payment`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(paymentData)
+            });
+
+            console.log('API Response - Status:', response.status, response.statusText);
+
+            const data = await response.json();
+            console.log('API Response - Data:', data);
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to update payment');
+            }
+
+            return {
+                success: true,
+                data: data.data || data,
+                message: data.message || 'Payment updated successfully'
+            };
+        } catch (error) {
+            console.error('Update Payment API Error:', error);
+            return {
+                success: false,
+                error: error.message || 'Server error. Please try again later.'
+            };
+        }
+    },
+
+    /**
+     * Get payment history for an order
+     * @param {number} orderId - Order ID
+     * @param {string} token - JWT token for authentication
+     * @returns {Promise} Response with payment history
+     */
+    getPaymentHistory: async (orderId, token) => {
+        try {
+            console.log('API Request - URL:', `${API_URL}/api/orders/${orderId}/payments`);
+
+            const response = await fetch(`${API_URL}/api/orders/${orderId}/payments`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            console.log('API Response - Status:', response.status, response.statusText);
+
+            const data = await response.json();
+            console.log('API Response - Data:', data);
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to fetch payment history');
+            }
+
+            return {
+                success: true,
+                data: data.data || data,
+                message: data.message || 'Payment history fetched successfully'
+            };
+        } catch (error) {
+            console.error('Get Payment History API Error:', error);
+            return {
+                success: false,
+                error: error.message || 'Server error. Please try again later.'
+            };
+        }
+    },
+
+    /**
+     * Generate bill for an order
+     * @param {number} orderId - Order ID
+     * @param {string} token - JWT token for authentication
+     * @param {string} format - Response format ('json' or 'pdf')
+     * @returns {Promise} Response with bill data or PDF blob
+     */
+    generateBill: async (orderId, token, format = 'json') => {
+        try {
+            console.log('API Request - URL:', `${API_URL}/api/orders/${orderId}/bill?format=${format}`);
+
+            const response = await fetch(`${API_URL}/api/orders/${orderId}/bill?format=${format}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            console.log('API Response - Status:', response.status, response.statusText);
+
+            if (format === 'pdf') {
+                if (!response.ok) {
+                    const data = await response.json();
+                    throw new Error(data.message || 'Failed to generate bill');
+                }
+                const blob = await response.blob();
+                return {
+                    success: true,
+                    data: blob,
+                    message: 'Bill generated successfully'
+                };
+            }
+
+            const data = await response.json();
+            console.log('API Response - Data:', data);
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to generate bill');
+            }
+
+            return {
+                success: true,
+                data: data.data || data,
+                message: data.message || 'Bill generated successfully'
+            };
+        } catch (error) {
+            console.error('Generate Bill API Error:', error);
+            return {
+                success: false,
+                error: error.message || 'Server error. Please try again later.'
+            };
+        }
     }
 };
 

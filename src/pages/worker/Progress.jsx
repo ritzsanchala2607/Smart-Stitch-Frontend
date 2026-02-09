@@ -13,13 +13,17 @@ import {
   Calendar,
   BarChart3,
   Trophy,
-  Star
+  Star,
+  RefreshCw,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import { useTasks, useProfile } from '../../hooks/useDataFetch';
 
 const WorkerProgress = () => {
   usePageTitle('Work Progress');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [expandedTasks, setExpandedTasks] = useState({});
   
   // Fetch data from global state
   const { tasks: tasksData, tasksLoading, tasksError, fetchTasks } = useTasks();
@@ -29,15 +33,38 @@ const WorkerProgress = () => {
   const isLoading = tasksLoading || profileLoading;
   const error = tasksError;
 
+  // Toggle task details
+  const toggleTaskDetails = (taskId) => {
+    setExpandedTasks(prev => ({
+      ...prev,
+      [taskId]: !prev[taskId]
+    }));
+  };
+
   // Calculate statistics from tasks using useMemo
   const statistics = useMemo(() => {
     const taskData = tasksData || [];
     const totalTasks = taskData.length;
     const completedTasks = taskData.filter(t => t.status === 'COMPLETED').length;
+    const inProgressTasks = taskData.filter(t => t.status === 'IN_PROGRESS').length;
+    const pendingTasks = taskData.filter(t => t.status === 'PENDING').length;
     
-    // Calculate on-time completions (assuming 92% for now, can be enhanced with deadline data)
-    const onTimeCompletions = Math.floor(completedTasks * 0.92);
-    const onTimePercentage = completedTasks > 0 ? Math.round((onTimeCompletions / completedTasks) * 100) : 0;
+    // Calculate on-time completions
+    const tasksWithDeadlines = taskData.filter(t => 
+      t.status === 'COMPLETED' && 
+      t.completedAt && 
+      (t.order?.deadline || t.dueDate || t.deliveryDate)
+    );
+    
+    const onTimeCompletions = tasksWithDeadlines.filter(t => {
+      const completedDate = new Date(t.completedAt);
+      const deadline = new Date(t.order?.deadline || t.dueDate || t.deliveryDate);
+      return completedDate <= deadline;
+    }).length;
+    
+    const onTimePercentage = tasksWithDeadlines.length > 0 
+      ? Math.round((onTimeCompletions / tasksWithDeadlines.length) * 100) 
+      : 0;
     
     // Calculate this week's completed tasks
     const oneWeekAgo = new Date();
@@ -50,11 +77,29 @@ const WorkerProgress = () => {
       return false;
     }).length;
 
-    // Calculate average completion time (simplified)
-    const avgCompletionTime = '3.5 days'; // TODO: Calculate from actual task data
+    // Calculate average completion time
+    const completedTasksWithTime = taskData.filter(t => 
+      t.status === 'COMPLETED' && t.startedAt && t.completedAt
+    );
+    
+    let avgCompletionTime = 'N/A';
+    if (completedTasksWithTime.length > 0) {
+      const totalTime = completedTasksWithTime.reduce((sum, t) => {
+        const start = new Date(t.startedAt);
+        const end = new Date(t.completedAt);
+        const days = (end - start) / (1000 * 60 * 60 * 24);
+        return sum + days;
+      }, 0);
+      const avgDays = totalTime / completedTasksWithTime.length;
+      avgCompletionTime = avgDays < 1 
+        ? `${Math.round(avgDays * 24)} hours`
+        : `${avgDays.toFixed(1)} days`;
+    }
 
-    // Calculate accuracy rating (based on completed vs total)
-    const accuracyRating = totalTasks > 0 ? ((completedTasks / totalTasks) * 5).toFixed(1) : 0;
+    // Calculate accuracy rating (based on completion rate and on-time percentage)
+    const completionRate = totalTasks > 0 ? (completedTasks / totalTasks) : 0;
+    const onTimeRate = onTimePercentage / 100;
+    const accuracyRating = ((completionRate * 0.6 + onTimeRate * 0.4) * 5).toFixed(1);
 
     // Calculate performance percentage
     const performance = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
@@ -62,13 +107,15 @@ const WorkerProgress = () => {
     return {
       totalTasks,
       completedTasks,
+      inProgressTasks,
+      pendingTasks,
       onTimeCompletions,
       onTimePercentage,
       avgCompletionTime,
       thisWeekCompleted,
       accuracyRating: parseFloat(accuracyRating),
       performance,
-      rating: workerProfile?.ratings || 0
+      rating: workerProfile?.ratings || workerProfile?.rating || 0
     };
   }, [tasksData, workerProfile]);
 
@@ -91,17 +138,30 @@ const WorkerProgress = () => {
       const date = new Date();
       date.setMonth(date.getMonth() - i);
       const monthIndex = date.getMonth();
+      const year = date.getFullYear();
       
       const monthTasks = taskData.filter(t => {
-        const taskDate = new Date(t.completedAt || t.createdAt);
-        return taskDate.getMonth() === monthIndex && taskDate.getFullYear() === date.getFullYear();
+        // Use completedAt for completed tasks, otherwise use createdAt or assignedAt
+        const taskDate = t.completedAt 
+          ? new Date(t.completedAt)
+          : t.assignedAt 
+          ? new Date(t.assignedAt)
+          : t.createdAt 
+          ? new Date(t.createdAt)
+          : null;
+        
+        if (!taskDate) return false;
+        
+        return taskDate.getMonth() === monthIndex && taskDate.getFullYear() === year;
       });
 
       const completed = monthTasks.filter(t => t.status === 'COMPLETED').length;
+      const total = monthTasks.length;
 
       months.push({
         month: monthNames[monthIndex],
-        completed
+        completed,
+        total
       });
     }
     return months;
@@ -172,6 +232,13 @@ const WorkerProgress = () => {
                 </div>
               </div>
               <div className="flex items-center gap-3">
+                <button
+                  onClick={() => fetchTasks(true)}
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                  title="Refresh data"
+                >
+                  <RefreshCw className={`w-5 h-5 text-gray-600 dark:text-gray-400 ${tasksLoading ? 'animate-spin' : ''}`} />
+                </button>
                 <div className="px-4 py-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg shadow-md">
                   <div className="flex items-center gap-2">
                     <Trophy className="w-5 h-5" />
@@ -184,11 +251,18 @@ const WorkerProgress = () => {
             {/* Efficiency Score Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <MetricCard
+                title="Total Tasks"
+                value={statistics.totalTasks}
+                icon={Target}
+                color="bg-purple-500"
+                subtitle={`${statistics.completedTasks} completed`}
+              />
+              <MetricCard
                 title="On-Time Completion"
                 value={`${statistics.onTimePercentage}%`}
                 icon={CheckCircle}
                 color="bg-green-500"
-                subtitle={`${statistics.onTimeCompletions} of ${statistics.completedTasks} tasks`}
+                subtitle={`${statistics.onTimeCompletions} on-time deliveries`}
               />
               <MetricCard
                 title="Avg Completion Time"
@@ -198,19 +272,63 @@ const WorkerProgress = () => {
                 subtitle="Per task"
               />
               <MetricCard
-                title="This Week Completed"
-                value={statistics.thisWeekCompleted}
-                icon={Target}
-                color="bg-purple-500"
-                subtitle="Tasks finished"
-              />
-              <MetricCard
                 title="Accuracy Rating"
                 value={statistics.accuracyRating}
                 icon={Star}
                 color="bg-yellow-500"
                 subtitle="Out of 5.0"
               />
+            </div>
+
+            {/* Additional Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm mb-1">In Progress</p>
+                    <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">{statistics.inProgressTasks}</p>
+                  </div>
+                  <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
+                    <Clock className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                  </div>
+                </div>
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.1 }}
+                className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm mb-1">Pending</p>
+                    <p className="text-3xl font-bold text-orange-600 dark:text-orange-400">{statistics.pendingTasks}</p>
+                  </div>
+                  <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center">
+                    <AlertTriangle className="w-6 h-6 text-orange-600 dark:text-orange-400" />
+                  </div>
+                </div>
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.2 }}
+                className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm mb-1">This Week</p>
+                    <p className="text-3xl font-bold text-green-600 dark:text-green-400">{statistics.thisWeekCompleted}</p>
+                  </div>
+                  <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
+                    <CheckCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
+                  </div>
+                </div>
+              </motion.div>
             </div>
 
             {/* Charts Section */}
@@ -280,52 +398,155 @@ const WorkerProgress = () => {
                 </div>
                 <div className="p-6">
                   {(tasksData || []).length > 0 ? (
-                    <div className="space-y-4">
-                      {(tasksData || []).slice(0, 5).map((task, index) => (
-                        <div
-                          key={index}
-                          className={`p-4 border rounded-lg ${
-                            task.status === 'COMPLETED'
-                              ? 'bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-800'
-                              : task.status === 'IN_PROGRESS'
-                              ? 'bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-800'
-                              : 'bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600'
-                          }`}
-                        >
-                          <div className="flex items-start justify-between mb-2">
-                            <div className="flex items-center gap-2">
-                              {task.status === 'COMPLETED' ? (
-                                <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0" />
-                              ) : task.status === 'IN_PROGRESS' ? (
-                                <Clock className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0" />
-                              ) : (
-                                <AlertTriangle className="w-5 h-5 text-orange-600 dark:text-orange-400 flex-shrink-0" />
-                              )}
-                              <span className="font-semibold text-gray-900 dark:text-gray-100">
-                                {task.taskType || 'Task'}
-                              </span>
-                            </div>
-                            <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                    <div className="space-y-3">
+                      {(tasksData || []).slice(0, 5).map((task) => {
+                        const isExpanded = expandedTasks[task.taskId];
+                        return (
+                          <div
+                            key={task.taskId}
+                            className={`border rounded-lg overflow-hidden ${
                               task.status === 'COMPLETED'
-                                ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                                ? 'bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-800'
                                 : task.status === 'IN_PROGRESS'
-                                ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
-                                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-400'
-                            }`}>
-                              {task.status}
-                            </span>
+                                ? 'bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-800'
+                                : 'bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600'
+                            }`}
+                          >
+                            {/* Task Header */}
+                            <div className="p-4">
+                              <div className="flex items-start justify-between mb-2">
+                                <div className="flex items-center gap-2 flex-1">
+                                  {task.status === 'COMPLETED' ? (
+                                    <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0" />
+                                  ) : task.status === 'IN_PROGRESS' ? (
+                                    <Clock className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+                                  ) : (
+                                    <AlertTriangle className="w-5 h-5 text-orange-600 dark:text-orange-400 flex-shrink-0" />
+                                  )}
+                                  <span className="font-semibold text-gray-900 dark:text-gray-100">
+                                    {task.taskType || 'Task'}
+                                  </span>
+                                </div>
+                                <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                                  task.status === 'COMPLETED'
+                                    ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                                    : task.status === 'IN_PROGRESS'
+                                    ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
+                                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-400'
+                                }`}>
+                                  {task.status}
+                                </span>
+                              </div>
+                              
+                              {/* Task Summary */}
+                              <div className="mb-2 space-y-1">
+                                <p className="text-sm text-gray-700 dark:text-gray-300">
+                                  <span className="font-medium">Order ID:</span> {task.order?.orderId ? `ORD${String(task.order.orderId).padStart(3, '0')}` : task.orderId ? `ORD${String(task.orderId).padStart(3, '0')}` : 'N/A'}
+                                </p>
+                                <p className="text-sm text-gray-700 dark:text-gray-300">
+                                  <span className="font-medium">Customer:</span> {task.order?.customer?.user?.name || 'Not specified'}
+                                </p>
+                              </div>
+                              
+                              {/* See Details Button */}
+                              <button
+                                onClick={() => toggleTaskDetails(task.taskId)}
+                                className="flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
+                              >
+                                {isExpanded ? (
+                                  <>
+                                    <ChevronUp className="w-4 h-4" />
+                                    Hide details
+                                  </>
+                                ) : (
+                                  <>
+                                    <ChevronDown className="w-4 h-4" />
+                                    See details
+                                  </>
+                                )}
+                              </button>
+                            </div>
+
+                            {/* Expandable Details */}
+                            {isExpanded && (
+                              <motion.div
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: 'auto', opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                transition={{ duration: 0.2 }}
+                                className="px-4 pb-4 border-t border-gray-200 dark:border-gray-600 pt-3"
+                              >
+                                <div className="space-y-2">
+                                  {task.order?.customer?.user?.contactNumber && (
+                                    <div className="flex items-start gap-2">
+                                      <span className="font-medium text-gray-700 dark:text-gray-300 min-w-[100px]">Contact:</span>
+                                      <span className="text-gray-600 dark:text-gray-400">
+                                        {task.order.customer.user.contactNumber}
+                                      </span>
+                                    </div>
+                                  )}
+                                  {(task.order?.deadline || task.dueDate || task.deliveryDate) && (
+                                    <div className="flex items-start gap-2">
+                                      <span className="font-medium text-gray-700 dark:text-gray-300 min-w-[100px]">Deadline:</span>
+                                      <span className="text-gray-600 dark:text-gray-400">
+                                        {new Date(task.order?.deadline || task.dueDate || task.deliveryDate).toLocaleDateString('en-US', {
+                                          year: 'numeric',
+                                          month: 'long',
+                                          day: 'numeric'
+                                        })}
+                                      </span>
+                                    </div>
+                                  )}
+                                  {task.assignedAt && (
+                                    <div className="flex items-start gap-2">
+                                      <span className="font-medium text-gray-700 dark:text-gray-300 min-w-[100px]">Assigned:</span>
+                                      <span className="text-gray-600 dark:text-gray-400">
+                                        {new Date(task.assignedAt).toLocaleDateString('en-US', {
+                                          year: 'numeric',
+                                          month: 'long',
+                                          day: 'numeric'
+                                        })}
+                                      </span>
+                                    </div>
+                                  )}
+                                  {task.startedAt && (
+                                    <div className="flex items-start gap-2">
+                                      <span className="font-medium text-gray-700 dark:text-gray-300 min-w-[100px]">Started:</span>
+                                      <span className="text-gray-600 dark:text-gray-400">
+                                        {new Date(task.startedAt).toLocaleDateString('en-US', {
+                                          year: 'numeric',
+                                          month: 'long',
+                                          day: 'numeric'
+                                        })}
+                                      </span>
+                                    </div>
+                                  )}
+                                  {task.completedAt && (
+                                    <div className="flex items-start gap-2">
+                                      <span className="font-medium text-gray-700 dark:text-gray-300 min-w-[100px]">Completed:</span>
+                                      <span className="text-gray-600 dark:text-gray-400">
+                                        {new Date(task.completedAt).toLocaleDateString('en-US', {
+                                          year: 'numeric',
+                                          month: 'long',
+                                          day: 'numeric'
+                                        })}
+                                      </span>
+                                    </div>
+                                  )}
+                                  {task.order?.additionalNotes && (
+                                    <div className="flex items-start gap-2">
+                                      <span className="font-medium text-gray-700 dark:text-gray-300 min-w-[100px]">Notes:</span>
+                                      <span className="text-gray-600 dark:text-gray-400">
+                                        {task.order.additionalNotes}
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+                              </motion.div>
+                            )}
                           </div>
-                          <p className="text-sm text-gray-700 dark:text-gray-300 mb-1">
-                            <span className="font-medium">Order ID:</span> {task.orderId ? `ORD${String(task.orderId).padStart(3, '0')}` : 'N/A'}
-                          </p>
-                          {task.deadline && (
-                            <p className="text-xs text-gray-500 dark:text-gray-400">
-                              <Calendar className="w-3 h-3 inline mr-1" />
-                              Deadline: {new Date(task.deadline).toLocaleDateString()}
-                            </p>
-                          )}
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   ) : (
                     <div className="text-center py-8">
