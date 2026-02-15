@@ -4,26 +4,23 @@ import { motion, AnimatePresence } from 'framer-motion';
 import usePageTitle from '../../hooks/usePageTitle';
 import { 
   FileText, Plus, Download, IndianRupee, TrendingUp, 
-  Calendar, X, Trash2, Building2, Search
+  Calendar, X, Building2, Search
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { owners } from '../../data/dummyData';
-import { calculateInvoiceTotals } from '../../utils/calculations';
 import AddCustomerModal from '../../components/AddCustomerModal';
-import { useCustomers } from '../../hooks/useDataFetch';
+import { useCustomers, useProfile } from '../../hooks/useDataFetch';
 
 const Billing = () => {
   usePageTitle('Billing');
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [showInvoiceModal, setShowInvoiceModal] = useState(false);
+  const [showBillModal, setShowBillModal] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
-  const [taxRate, setTaxRate] = useState(10);
-  const [orderItems, setOrderItems] = useState([
-    { id: Date.now(), description: '', quantity: 1, unitPrice: 0 }
-  ]);
-  const [notes, setNotes] = useState('');
-  const [invoices, setInvoices] = useState([]);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [additionalCost, setAdditionalCost] = useState(0);
+  const [customerOrders, setCustomerOrders] = useState([]);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   
   // Customer search state
   const [customerSearchQuery, setCustomerSearchQuery] = useState('');
@@ -34,15 +31,23 @@ const Billing = () => {
   const { customers: globalCustomers, customersLoading, fetchCustomers } = useCustomers();
   const [customerList, setCustomerList] = useState([]);
 
+  // Fetch owner profile for shop details
+  const { profile: ownerProfile, isLoading: profileLoading } = useProfile();
+  
+  // Default shop info in case profile is not loaded yet
+  const shopInfo = {
+    name: ownerProfile?.shopName || 'Shop Name',
+    address: ownerProfile?.shopAddress || 'Shop Address',
+    phone: ownerProfile?.shopContactNumber || ownerProfile?.contactNumber || 'Contact Number',
+    email: ownerProfile?.shopEmail || ownerProfile?.email || 'shop@email.com'
+  };
+
   // Update customer list when global customers change
   useEffect(() => {
     if (globalCustomers && globalCustomers.length > 0) {
       setCustomerList(globalCustomers);
     }
   }, [globalCustomers]);
-
-  const owner = owners[0];
-  const totals = calculateInvoiceTotals(orderItems, taxRate);
 
   // Filter customers based on search query
   const filteredCustomers = customerList.filter(customer =>
@@ -52,10 +57,54 @@ const Billing = () => {
   );
 
   // Handle customer selection
-  const handleCustomerSelect = (customer) => {
+  const handleCustomerSelect = async (customer) => {
     setSelectedCustomer(customer);
     setCustomerSearchQuery(customer.name);
     setShowCustomerDropdown(false);
+    setSelectedOrder(null);
+    setCustomerOrders([]);
+
+    // Fetch customer's orders
+    let token = localStorage.getItem('token');
+    if (!token) {
+      const userDataString = localStorage.getItem('user');
+      if (userDataString) {
+        try {
+          const userData = JSON.parse(userDataString);
+          token = userData.jwt || userData.token;
+        } catch (e) {
+          console.error('Error parsing user data:', e);
+        }
+      }
+    }
+
+    if (token) {
+      try {
+        const { orderAPI } = await import('../../services/api');
+        const result = await orderAPI.getOrders(token);
+        
+        if (result.success && result.data) {
+          // Filter orders for this customer - try multiple field combinations
+          const orders = result.data.filter(order => {
+            // Try different possible customer ID fields
+            const orderCustomerId = order.customer?.customerId || order.customer?.id || order.customerId;
+            const orderCustomerName = order.customer?.name || order.customerName;
+            
+            // Match by ID or name
+            return orderCustomerId == customer.id || 
+                   orderCustomerId == customer.customerId ||
+                   orderCustomerName === customer.name;
+          });
+          
+          console.log('Customer:', customer);
+          console.log('All orders:', result.data);
+          console.log('Filtered orders for customer:', orders);
+          setCustomerOrders(orders);
+        }
+      } catch (error) {
+        console.error('Error fetching orders:', error);
+      }
+    }
   };
 
   const handleCustomerSearchChange = (e) => {
@@ -63,6 +112,8 @@ const Billing = () => {
     setShowCustomerDropdown(true);
     if (!e.target.value) {
       setSelectedCustomer(null);
+      setSelectedOrder(null);
+      setCustomerOrders([]);
     }
   };
 
@@ -74,74 +125,256 @@ const Billing = () => {
     fetchCustomers(true);
   };
 
-  const handleAddItem = () => {
-    setOrderItems([
-      ...orderItems,
-      { id: Date.now(), description: '', quantity: 1, unitPrice: 0 }
-    ]);
-  };
-
-  const handleRemoveItem = (itemId) => {
-    if (orderItems.length > 1) {
-      setOrderItems(orderItems.filter(item => item.id !== itemId));
-    }
-  };
-
-  const handleItemChange = (itemId, field, value) => {
-    setOrderItems(orderItems.map(item => 
-      item.id === itemId ? { ...item, [field]: value } : item
-    ));
-  };
-
-  const handleGenerateInvoice = () => {
-    if (!selectedCustomer) {
-      alert('Please select a customer');
+  const handleGenerateBill = async () => {
+    if (!selectedOrder) {
+      setErrorMessage('Please fetch an order first');
       return;
     }
 
-    const hasEmptyItems = orderItems.some(
-      item => !item.description || !item.quantity || !item.unitPrice
-    );
+    setIsGenerating(true);
+    setErrorMessage('');
 
-    if (hasEmptyItems) {
-      alert('Please fill in all item details');
+    // Get token
+    let token = localStorage.getItem('token');
+    if (!token) {
+      const userDataString = localStorage.getItem('user');
+      if (userDataString) {
+        try {
+          const userData = JSON.parse(userDataString);
+          token = userData.jwt || userData.token;
+        } catch (e) {
+          console.error('Error parsing user data:', e);
+        }
+      }
+    }
+
+    if (!token) {
+      setErrorMessage('Authentication required. Please login again.');
+      setIsGenerating(false);
       return;
     }
 
-    const newInvoice = {
-      id: `INV${String(invoices.length + 1).padStart(4, '0')}`,
-      date: new Date().toISOString().split('T')[0],
-      customer: selectedCustomer,
-      items: orderItems,
-      subtotal: totals.subtotal,
-      tax: totals.tax,
-      total: totals.grandTotal,
-      taxRate,
-      notes,
-      status: 'unpaid'
-    };
+    try {
+      const { orderAPI } = await import('../../services/api');
+      
+      console.log('🔄 Generating bill for order:', selectedOrder.orderId);
+      
+      // Try PDF format first
+      let result = await orderAPI.generateBill(selectedOrder.orderId, token, 'pdf');
+      
+      console.log('📄 Bill generation result:', result);
+      
+      // Check if we got a valid PDF
+      if (result.success && result.data && result.data instanceof Blob) {
+        console.log('📦 Blob size:', result.data.size, 'bytes');
+        console.log('📦 Blob type:', result.data.type);
+        
+        // Check if it's actually JSON (backend doesn't support PDF)
+        if (result.data.type.includes('json')) {
+          console.warn('⚠️ Backend returned JSON instead of PDF. Falling back to JSON format...');
+          // Try JSON format instead
+          result = await orderAPI.generateBill(selectedOrder.orderId, token, 'json');
+          
+          if (result.success && result.data) {
+            // Generate PDF on frontend using the JSON data
+            await generatePDFFromData(result.data, selectedOrder);
+            
+            setShowSuccess(true);
+            setTimeout(() => setShowSuccess(false), 3000);
+            
+            // Reset form
+            setSelectedCustomer(null);
+            setSelectedOrder(null);
+            setCustomerSearchQuery('');
+            setCustomerOrders([]);
+            setAdditionalCost(0);
+            setShowBillModal(false);
+            return;
+          }
+        }
+        
+        if (result.data.size === 0) {
+          throw new Error('Received empty PDF file from server');
+        }
+        
+        // Valid PDF - download it
+        const url = window.URL.createObjectURL(result.data);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Bill_Order_${selectedOrder.orderId}_${Date.now()}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        
+        setTimeout(() => {
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+        }, 100);
 
-    setInvoices(prev => [newInvoice, ...prev]);
-    setShowSuccess(true);
-    setTimeout(() => setShowSuccess(false), 3000);
-
-    // Reset form
-    setSelectedCustomer(null);
-    setCustomerSearchQuery('');
-    setShowCustomerDropdown(false);
-    setOrderItems([{ id: Date.now(), description: '', quantity: 1, unitPrice: 0 }]);
-    setNotes('');
-    setShowInvoiceModal(false);
+        setShowSuccess(true);
+        setTimeout(() => setShowSuccess(false), 3000);
+        
+        // Reset form
+        setSelectedCustomer(null);
+        setSelectedOrder(null);
+        setCustomerSearchQuery('');
+        setCustomerOrders([]);
+        setAdditionalCost(0);
+        setShowBillModal(false);
+      } else {
+        console.error('❌ Bill generation failed:', result.error);
+        setErrorMessage(result.error || 'Failed to generate bill. Please try again.');
+      }
+    } catch (error) {
+      console.error('❌ Error generating bill:', error);
+      setErrorMessage(`Failed to generate bill: ${error.message}`);
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
-  const handleDownloadPDF = (invoice) => {
-    alert(`PDF download for ${invoice.id} - This feature will be implemented with backend integration`);
+  // Generate PDF on frontend when backend doesn't support it
+  const generatePDFFromData = async (billData, order) => {
+    try {
+      // Create a simple HTML-based PDF
+      const printWindow = window.open('', '_blank');
+      
+      // Check if popup was blocked
+      if (!printWindow || printWindow.closed || typeof printWindow.closed === 'undefined') {
+        throw new Error('Popup blocked. Please allow popups for this site and try again.');
+      }
+      
+      const orderTotal = order.totalAmount || order.totalPrice || 0;
+      const finalTotal = orderTotal + (parseFloat(additionalCost) || 0);
+      
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Bill - Order #${order.orderId}</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 40px; }
+            .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 20px; }
+            .company-name { font-size: 24px; font-weight: bold; color: #f97316; }
+            .bill-title { font-size: 20px; margin-top: 10px; }
+            .section { margin: 20px 0; }
+            .section-title { font-size: 16px; font-weight: bold; margin-bottom: 10px; border-bottom: 1px solid #ddd; padding-bottom: 5px; }
+            .info-row { display: flex; justify-content: space-between; padding: 5px 0; }
+            .label { font-weight: bold; }
+            .total-section { margin-top: 30px; border-top: 2px solid #333; padding-top: 20px; }
+            .total-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 18px; }
+            .grand-total { font-weight: bold; font-size: 20px; color: #f97316; }
+            @media print {
+              body { padding: 20px; }
+              button { display: none; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <div class="company-name">${shopInfo.name}</div>
+            <div>${shopInfo.address}</div>
+            <div>${shopInfo.phone} | ${shopInfo.email}</div>
+            <div class="bill-title">BILL / INVOICE</div>
+          </div>
+
+          <div class="section">
+            <div class="section-title">Bill Details</div>
+            <div class="info-row">
+              <span class="label">Bill Date:</span>
+              <span>${new Date().toLocaleDateString()}</span>
+            </div>
+            <div class="info-row">
+              <span class="label">Order ID:</span>
+              <span>#${order.orderId}</span>
+            </div>
+          </div>
+
+          <div class="section">
+            <div class="section-title">Customer Information</div>
+            <div class="info-row">
+              <span class="label">Name:</span>
+              <span>${order.customer?.name || order.customerName || 'N/A'}</span>
+            </div>
+            <div class="info-row">
+              <span class="label">Phone:</span>
+              <span>${order.customer?.phone || order.customerPhone || 'N/A'}</span>
+            </div>
+          </div>
+
+          <div class="section">
+            <div class="section-title">Order Details</div>
+            <div class="info-row">
+              <span class="label">Garment Type:</span>
+              <span>${order.garmentType || 'N/A'}</span>
+            </div>
+            <div class="info-row">
+              <span class="label">Status:</span>
+              <span>${order.status || 'N/A'}</span>
+            </div>
+            <div class="info-row">
+              <span class="label">Delivery Date:</span>
+              <span>${order.deliveryDate ? new Date(order.deliveryDate).toLocaleDateString() : 'N/A'}</span>
+            </div>
+          </div>
+
+          <div class="total-section">
+            <div class="total-row">
+              <span>Order Amount:</span>
+              <span>₹${orderTotal.toFixed(2)}</span>
+            </div>
+            ${additionalCost > 0 ? `
+            <div class="total-row">
+              <span>Additional Cost:</span>
+              <span>₹${parseFloat(additionalCost).toFixed(2)}</span>
+            </div>
+            ` : ''}
+            <div class="total-row">
+              <span>Paid Amount:</span>
+              <span>₹${(order.paidAmount || 0).toFixed(2)}</span>
+            </div>
+            <div class="total-row grand-total">
+              <span>Total Bill Amount:</span>
+              <span>₹${finalTotal.toFixed(2)}</span>
+            </div>
+            <div class="total-row grand-total">
+              <span>Balance Due:</span>
+              <span>₹${(finalTotal - (order.paidAmount || 0)).toFixed(2)}</span>
+            </div>
+          </div>
+
+          <div style="margin-top: 40px; text-align: center;">
+            <button onclick="window.print()" style="padding: 10px 20px; background: #f97316; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px;">
+              Print / Save as PDF
+            </button>
+            <button onclick="window.close()" style="padding: 10px 20px; background: #6b7280; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; margin-left: 10px;">
+              Close
+            </button>
+          </div>
+
+          <div style="margin-top: 40px; text-align: center; color: #6b7280; font-size: 12px;">
+            <p>Thank you for your business!</p>
+            <p>This is a computer-generated bill.</p>
+          </div>
+        </body>
+        </html>
+      `;
+      
+      printWindow.document.write(htmlContent);
+      printWindow.document.close();
+      
+      console.log('✅ Bill opened in new window. User can print/save as PDF.');
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      throw new Error(error.message || 'Failed to generate bill document');
+    }
   };
 
-  // Calculate stats
-  const totalRevenue = invoices.reduce((sum, inv) => sum + inv.total, 0);
-  const paidInvoices = invoices.filter(inv => inv.status === 'paid').length;
-  const unpaidInvoices = invoices.filter(inv => inv.status === 'unpaid').length;
+  // Calculate order total
+  const calculateOrderTotal = () => {
+    if (!selectedOrder) return 0;
+    const baseTotal = selectedOrder.totalAmount || selectedOrder.totalPrice || 0;
+    return baseTotal + (parseFloat(additionalCost) || 0);
+  };
 
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
@@ -166,7 +399,7 @@ const Billing = () => {
               >
                 <FileText className="w-5 h-5 text-green-600 dark:text-green-400" />
                 <span className="text-green-800 dark:text-green-200 font-medium">
-                  Invoice generated successfully!
+                  Bill generated and downloaded successfully!
                 </span>
               </motion.div>
             )}
@@ -175,16 +408,16 @@ const Billing = () => {
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Billing & Reports</h1>
-                <p className="text-gray-600 dark:text-gray-400 mt-2">View financial reports and generate invoices</p>
+                <p className="text-gray-600 dark:text-gray-400 mt-2">Generate bills for customer orders</p>
               </div>
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={() => setShowInvoiceModal(true)}
+                onClick={() => setShowBillModal(true)}
                 className="bg-orange-500 text-white px-6 py-3 rounded-lg flex items-center gap-2 hover:bg-orange-600 transition-colors"
               >
                 <Plus className="w-5 h-5" />
-                Generate Invoice
+                Generate Bill
               </motion.button>
             </div>
 
@@ -198,10 +431,10 @@ const Billing = () => {
                   <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
                     <IndianRupee className="w-6 h-6 text-green-600 dark:text-green-400" />
                   </div>
-                  <span className="text-sm font-semibold text-green-600 dark:text-green-400">+12%</span>
+                  <span className="text-sm font-semibold text-green-600 dark:text-green-400">This Month</span>
                 </div>
                 <p className="text-gray-500 dark:text-gray-400 text-sm">Total Revenue</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-2">₹{totalRevenue.toFixed(2)}</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-2">₹0.00</p>
               </motion.div>
 
               <motion.div
@@ -213,8 +446,8 @@ const Billing = () => {
                     <FileText className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                   </div>
                 </div>
-                <p className="text-gray-500 dark:text-gray-400 text-sm">Total Invoices</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-2">{invoices.length}</p>
+                <p className="text-gray-500 dark:text-gray-400 text-sm">Bills Generated</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-2">0</p>
               </motion.div>
 
               <motion.div
@@ -227,7 +460,7 @@ const Billing = () => {
                   </div>
                 </div>
                 <p className="text-gray-500 dark:text-gray-400 text-sm">Pending Payments</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-2">{unpaidInvoices}</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-2">0</p>
               </motion.div>
             </div>
 
@@ -249,82 +482,8 @@ const Billing = () => {
                 </motion.button>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Income Section */}
-                <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
-                      <TrendingUp className="w-5 h-5 text-green-600 dark:text-green-400" />
-                    </div>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Income (Sales)</h3>
-                  </div>
-                  
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600 dark:text-gray-400">Total Sales</span>
-                      <span className="text-lg font-bold text-green-600 dark:text-green-400">₹{totalRevenue.toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600 dark:text-gray-400">Paid Invoices</span>
-                      <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{paidInvoices}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600 dark:text-gray-400">Pending Payments</span>
-                      <span className="text-sm font-medium text-orange-600 dark:text-orange-400">{unpaidInvoices}</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Expenses Section */}
-                <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg">
-                      <IndianRupee className="w-5 h-5 text-red-600 dark:text-red-400" />
-                    </div>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Expenses (Buying)</h3>
-                  </div>
-                  
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600 dark:text-gray-400">Material Costs</span>
-                      <span className="text-lg font-bold text-red-600 dark:text-red-400">₹2,450.00</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600 dark:text-gray-400">Worker Salaries</span>
-                      <span className="text-sm font-medium text-gray-900 dark:text-gray-100">₹3,200.00</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600 dark:text-gray-400">Other Expenses</span>
-                      <span className="text-sm font-medium text-gray-900 dark:text-gray-100">₹850.00</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Profit/Loss Summary */}
-              <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="bg-green-50 dark:bg-green-900/30 rounded-lg p-4">
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Income</p>
-                    <p className="text-2xl font-bold text-green-600 dark:text-green-400">₹{totalRevenue.toFixed(2)}</p>
-                  </div>
-                  
-                  <div className="bg-red-50 dark:bg-red-900/30 rounded-lg p-4">
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Expenses</p>
-                    <p className="text-2xl font-bold text-red-600 dark:text-red-400">₹6,500.00</p>
-                  </div>
-                  
-                  <div className={`rounded-lg p-4 ${totalRevenue - 6500 >= 0 ? 'bg-blue-50 dark:bg-blue-900/30' : 'bg-orange-50 dark:bg-orange-900/30'}`}>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Net Profit/Loss</p>
-                    <p className={`text-2xl font-bold ${totalRevenue - 6500 >= 0 ? 'text-blue-600 dark:text-blue-400' : 'text-orange-600 dark:text-orange-400'}`}>
-                      ₹{(totalRevenue - 6500).toFixed(2)}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
               {/* Month Selector */}
-              <div className="mt-6 flex items-center gap-4">
+              <div className="flex items-center gap-4">
                 <Calendar className="w-5 h-5 text-gray-400" />
                 <select className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-orange-500 focus:border-transparent">
                   <option value="current">Current Month ({new Date().toLocaleString('default', { month: 'long', year: 'numeric' })})</option>
@@ -334,94 +493,48 @@ const Billing = () => {
               </div>
             </div>
 
-            {/* Invoices List */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Recent Invoices</h2>
-              </div>
-              
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
-                    <tr>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">Invoice ID</th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">Customer</th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">Date</th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">Amount</th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">Status</th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                    {invoices.length === 0 ? (
-                      <tr>
-                        <td colSpan="6" className="px-6 py-12 text-center">
-                          <FileText className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-                          <p className="text-gray-600 dark:text-gray-400">No invoices yet. Generate your first invoice!</p>
-                        </td>
-                      </tr>
-                    ) : (
-                      invoices.map((invoice) => (
-                        <tr key={invoice.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                          <td className="px-6 py-4">
-                            <span className="font-semibold text-gray-900 dark:text-gray-100">{invoice.id}</span>
-                          </td>
-                          <td className="px-6 py-4 text-gray-900 dark:text-gray-100">{invoice.customer.name}</td>
-                          <td className="px-6 py-4 text-gray-600 dark:text-gray-400">{invoice.date}</td>
-                          <td className="px-6 py-4">
-                            <span className="font-semibold text-gray-900 dark:text-gray-100">₹{invoice.total.toFixed(2)}</span>
-                          </td>
-                          <td className="px-6 py-4">
-                            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                              invoice.status === 'paid' 
-                                ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' 
-                                : 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400'
-                            }`}>
-                              {invoice.status}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4">
-                            <button
-                              onClick={() => handleDownloadPDF(invoice)}
-                              className="flex items-center gap-2 px-3 py-2 text-sm text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
-                            >
-                              <Download className="w-4 h-4" />
-                              Download
-                            </button>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
+            {/* Info Card */}
+            <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-lg p-6">
+              <div className="flex items-start gap-4">
+                <FileText className="w-6 h-6 text-blue-600 dark:text-blue-400 mt-1" />
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">How to Generate Bills</h3>
+                  <ol className="list-decimal list-inside space-y-2 text-gray-700 dark:text-gray-300">
+                    <li>Click "Generate Bill" button above</li>
+                    <li>Search and select a customer</li>
+                    <li>Choose one of their orders</li>
+                    <li>(Optional) Add additional costs</li>
+                    <li>Click "Generate & Download Bill" to get PDF</li>
+                  </ol>
+                </div>
               </div>
             </div>
           </motion.div>
         </main>
       </div>
 
-      {/* Generate Invoice Modal */}
+      {/* Generate Bill Modal */}
       <AnimatePresence>
-        {showInvoiceModal && (
+        {showBillModal && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-            onClick={() => setShowInvoiceModal(false)}
+            onClick={() => setShowBillModal(false)}
           >
             <motion.div
               initial={{ scale: 0.9, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 20 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+              className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto"
             >
               {/* Modal Header */}
               <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between rounded-t-2xl z-10">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Generate Invoice</h2>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Generate Bill</h2>
                 <button
-                  onClick={() => setShowInvoiceModal(false)}
+                  onClick={() => setShowBillModal(false)}
                   className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                 >
                   <X className="w-6 h-6 text-gray-600 dark:text-gray-400" />
@@ -430,14 +543,24 @@ const Billing = () => {
 
               {/* Modal Body */}
               <div className="p-6">
+                {/* Error Message */}
+                {errorMessage && (
+                  <div className="mb-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-lg p-4 flex items-center gap-3">
+                    <X className="w-5 h-5 text-red-600 dark:text-red-400" />
+                    <span className="text-red-800 dark:text-red-300 font-medium">
+                      {errorMessage}
+                    </span>
+                  </div>
+                )}
+
                 {/* Business Info */}
                 <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
                   <div className="flex items-start gap-3">
                     <Building2 className="w-5 h-5 text-gray-600 dark:text-gray-400 mt-1" />
                     <div>
-                      <h3 className="font-semibold text-gray-900 dark:text-gray-100">{owner.businessName}</h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">{owner.address}</p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">{owner.phone} | {owner.email}</p>
+                      <h3 className="font-semibold text-gray-900 dark:text-gray-100">{shopInfo.name}</h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">{shopInfo.address}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">{shopInfo.phone} | {shopInfo.email}</p>
                     </div>
                   </div>
                 </div>
@@ -508,135 +631,135 @@ const Billing = () => {
                   )}
                 </div>
 
-                {/* Invoice Items */}
-                <div className="mb-6">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Invoice Items</h3>
-                  
-                  <div className="space-y-4">
-                    {orderItems.map((item, index) => (
-                      <div key={item.id} className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900">
-                        <div className="flex items-center justify-between mb-3">
-                          <h4 className="font-medium text-gray-700 dark:text-gray-300">Item {index + 1}</h4>
-                          {orderItems.length > 1 && (
-                            <button
-                              onClick={() => handleRemoveItem(item.id)}
-                              className="text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors"
-                            >
-                              <Trash2 className="w-5 h-5" />
-                            </button>
-                          )}
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                          <div className="md:col-span-1">
-                            <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Description</label>
-                            <input
-                              type="text"
-                              value={item.description}
-                              onChange={(e) => handleItemChange(item.id, 'description', e.target.value)}
-                              placeholder="Item description"
-                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 placeholder-gray-500 dark:placeholder-gray-400"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Quantity</label>
-                            <input
-                              type="number"
-                              value={item.quantity}
-                              onChange={(e) => handleItemChange(item.id, 'quantity', parseFloat(e.target.value) || 0)}
-                              placeholder="1"
-                              min="1"
-                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Unit Price</label>
-                            <input
-                              type="number"
-                              value={item.unitPrice}
-                              onChange={(e) => handleItemChange(item.id, 'unitPrice', parseFloat(e.target.value) || 0)}
-                              placeholder="0.00"
-                              min="0"
-                              step="0.01"
-                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-
-                    <button
-                      onClick={handleAddItem}
-                      className="flex items-center gap-2 px-4 py-2 text-orange-600 dark:text-orange-400 border-2 border-orange-600 dark:border-orange-400 rounded-lg hover:bg-orange-50 dark:hover:bg-orange-900/30 transition-colors font-medium"
-                    >
-                      <Plus className="w-5 h-5" />
-                      Add Item
-                    </button>
+                {/* Order Selection */}
+                {selectedCustomer && (
+                  <div className="mb-6">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Select Order <span className="text-red-500">*</span>
+                    </label>
+                    {customerOrders.length > 0 ? (
+                      <select
+                        value={selectedOrder?.orderId || ''}
+                        onChange={(e) => {
+                          const order = customerOrders.find(o => o.orderId == e.target.value);
+                          setSelectedOrder(order);
+                        }}
+                        className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      >
+                        <option value="">Select an order</option>
+                        {customerOrders.map(order => (
+                          <option key={order.orderId} value={order.orderId}>
+                            Order #{order.orderId} - {order.garmentType} - ₹{order.totalAmount || order.totalPrice || 0}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <p className="text-sm text-gray-500 dark:text-gray-400 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                        No orders found for this customer
+                      </p>
+                    )}
                   </div>
-                </div>
+                )}
 
-                {/* Tax Rate */}
+                {/* Order Details */}
+                {selectedOrder && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/30 rounded-lg border border-blue-200 dark:border-blue-700"
+                  >
+                    <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3">Order Details</h3>
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                      <div>
+                        <p className="text-gray-600 dark:text-gray-400">Garment Type:</p>
+                        <p className="font-medium text-gray-900 dark:text-gray-100">{selectedOrder.garmentType}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-600 dark:text-gray-400">Status:</p>
+                        <p className="font-medium text-gray-900 dark:text-gray-100">{selectedOrder.status}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-600 dark:text-gray-400">Order Amount:</p>
+                        <p className="font-medium text-gray-900 dark:text-gray-100">₹{selectedOrder.totalAmount || selectedOrder.totalPrice || 0}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-600 dark:text-gray-400">Paid Amount:</p>
+                        <p className="font-medium text-gray-900 dark:text-gray-100">₹{selectedOrder.paidAmount || 0}</p>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* Additional Cost */}
                 <div className="mb-6">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Tax Rate (%)
+                    Additional Cost (₹)
                   </label>
                   <input
                     type="number"
-                    value={taxRate}
-                    onChange={(e) => setTaxRate(parseFloat(e.target.value) || 0)}
-                    placeholder="10"
+                    value={additionalCost}
+                    onChange={(e) => setAdditionalCost(parseFloat(e.target.value) || 0)}
+                    placeholder="0.00"
                     min="0"
-                    max="100"
-                    step="0.1"
+                    step="0.01"
                     className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                   />
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Optional: Add any extra charges (delivery, rush order, etc.)
+                  </p>
                 </div>
 
-                {/* Totals */}
-                <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-gray-700 dark:text-gray-300">
-                      <span>Subtotal:</span>
-                      <span className="font-semibold">₹{totals.subtotal.toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between text-gray-700 dark:text-gray-300">
-                      <span>Tax ({taxRate}%):</span>
-                      <span className="font-semibold">₹{totals.tax.toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between text-lg font-bold text-gray-900 dark:text-gray-100 pt-2 border-t border-gray-300 dark:border-gray-600">
-                      <span>Total:</span>
-                      <span>₹{totals.grandTotal.toFixed(2)}</span>
+                {/* Total */}
+                {selectedOrder && (
+                  <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-gray-700 dark:text-gray-300">
+                        <span>Order Amount:</span>
+                        <span className="font-semibold">₹{selectedOrder.totalAmount || selectedOrder.totalPrice || 0}</span>
+                      </div>
+                      {additionalCost > 0 && (
+                        <div className="flex justify-between text-gray-700 dark:text-gray-300">
+                          <span>Additional Cost:</span>
+                          <span className="font-semibold">₹{additionalCost.toFixed(2)}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between text-lg font-bold text-gray-900 dark:text-gray-100 pt-2 border-t border-gray-300 dark:border-gray-600">
+                        <span>Total Bill Amount:</span>
+                        <span>₹{calculateOrderTotal().toFixed(2)}</span>
+                      </div>
                     </div>
                   </div>
-                </div>
-
-                {/* Notes */}
-                <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Notes (Optional)
-                  </label>
-                  <textarea
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    placeholder="Add any additional notes or payment terms..."
-                    rows="3"
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 placeholder-gray-500 dark:placeholder-gray-400"
-                  />
-                </div>
+                )}
 
                 {/* Modal Footer */}
                 <div className="flex gap-4 pt-6 border-t border-gray-200 dark:border-gray-700">
                   <button
-                    onClick={() => setShowInvoiceModal(false)}
-                    className="flex-1 py-3 rounded-lg font-semibold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                    onClick={() => setShowBillModal(false)}
+                    disabled={isGenerating}
+                    className="flex-1 py-3 rounded-lg font-semibold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Cancel
                   </button>
                   <button
-                    onClick={handleGenerateInvoice}
-                    className="flex-1 py-3 rounded-lg font-semibold text-white bg-orange-500 hover:bg-orange-600 transition-colors"
+                    onClick={handleGenerateBill}
+                    disabled={!selectedOrder || isGenerating}
+                    className="flex-1 py-3 rounded-lg font-semibold text-white bg-orange-500 hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
-                    Generate Invoice
+                    {isGenerating ? (
+                      <>
+                        <motion.div
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                          className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
+                        />
+                        Generating...
+                      </>
+                    ) : (
+                      <>
+                        <Download className="w-5 h-5" />
+                        Generate & Download Bill
+                      </>
+                    )}
                   </button>
                 </div>
               </div>

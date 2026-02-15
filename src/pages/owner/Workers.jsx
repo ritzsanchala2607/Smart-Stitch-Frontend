@@ -10,7 +10,7 @@ import { orders } from '../../data/dummyData';
 import { useState, useEffect } from 'react';
 import { validateWorkerForm } from '../../utils/validation';
 import WorkerCard from '../../components/common/WorkerCard';
-import { workerAPI } from '../../services/api';
+import { workerAPI, orderAPI } from '../../services/api';
 import { useWorkers } from '../../hooks/useDataFetch';
 
 const Workers = () => {
@@ -228,13 +228,100 @@ const Workers = () => {
     setPhotoPreview(null);
   };
 
-  const handleViewDetails = (workerId) => {
+  const handleViewDetails = async (workerId) => {
     const worker = workers.find(w => w.id === workerId);
+    console.log('🔍 View Details - Worker ID:', workerId);
+    console.log('🔍 View Details - Worker found:', worker);
+    
     if (worker) {
-      setSelectedWorker(worker);
-      const workerOrders = orders.filter(order => order.assignedWorker === workerId);
-      setAssignedOrders(workerOrders);
+      // Set initial worker data with default statistics
+      const initialWorkerData = {
+        ...worker,
+        assignedOrders: 0,
+        completedOrders: 0,
+        performance: 0
+      };
+      setSelectedWorker(initialWorkerData);
       setShowViewModal(true);
+
+      // Get token
+      let token = localStorage.getItem('token');
+      if (!token) {
+        const userDataString = localStorage.getItem('user');
+        if (userDataString) {
+          try {
+            const userData = JSON.parse(userDataString);
+            token = userData.jwt || userData.token;
+          } catch (e) {
+            console.error('Error parsing user data:', e);
+          }
+        }
+      }
+
+      if (token) {
+        try {
+          console.log('📡 Fetching orders to calculate worker statistics...');
+          // Fetch all orders to count tasks assigned to this worker
+          const result = await orderAPI.getOrders(token);
+          console.log('📡 Orders API Response:', result);
+          
+          if (result.success && result.data) {
+            const allOrders = result.data;
+            console.log('📦 All Orders:', allOrders);
+            
+            // Count tasks assigned to this worker across all orders
+            let assignedTasks = 0;
+            let completedTasks = 0;
+            
+            allOrders.forEach(order => {
+              if (order.tasks && Array.isArray(order.tasks)) {
+                order.tasks.forEach(task => {
+                  // Check if task is assigned to this worker
+                  // Try multiple possible field names for worker ID
+                  const taskWorkerId = task.worker?.workerId || task.worker?.id || task.workerId || task.worker;
+                  console.log('🔍 Task:', task.taskType, '| Worker ID in task:', taskWorkerId, '| Looking for:', workerId);
+                  
+                  // Compare as both string and number
+                  if (taskWorkerId == workerId) {
+                    assignedTasks++;
+                    console.log('✅ Task assigned to worker:', task.taskType, '| Status:', task.status);
+                    
+                    if (task.status === 'COMPLETED') {
+                      completedTasks++;
+                      console.log('✅ Task is completed');
+                    }
+                  }
+                });
+              }
+            });
+            
+            const performance = assignedTasks > 0 
+              ? Math.round((completedTasks / assignedTasks) * 100) 
+              : 0;
+
+            console.log('📊 Final Statistics:');
+            console.log('  - Assigned Orders (Tasks):', assignedTasks);
+            console.log('  - Completed Orders (Tasks):', completedTasks);
+            console.log('  - Performance:', performance + '%');
+
+            // Update worker with statistics - this will trigger re-render
+            setSelectedWorker(prev => ({
+              ...prev,
+              assignedOrders: assignedTasks,
+              completedOrders: completedTasks,
+              performance
+            }));
+          } else {
+            console.log('❌ API call failed or no data:', result);
+          }
+        } catch (error) {
+          console.error('❌ Error fetching orders:', error);
+        }
+      } else {
+        console.log('❌ No token found');
+      }
+    } else {
+      console.log('❌ Worker not found in workers array');
     }
   };
 

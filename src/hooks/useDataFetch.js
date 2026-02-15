@@ -1,5 +1,10 @@
-import { useEffect } from 'react';
-import { useData } from '../context/DataContext';
+import {
+    useEffect,
+    useRef
+} from 'react';
+import {
+    useData
+} from '../context/DataContext';
 
 /**
  * Custom hook to fetch and use customers data
@@ -9,140 +14,154 @@ import { useData } from '../context/DataContext';
  * @returns {Object} Customers data, loading state, error, and fetch functions
  */
 export const useCustomers = (options = {}) => {
-  const { skip = false, force = false } = options;
-  const {
-    customers,
-    customersLoading,
-    customersError,
-    fetchCustomers,
-    invalidateCustomers
-  } = useData();
+    const {
+        skip = false, force = false
+    } = options;
+    const {
+        customers,
+        customersLoading,
+        customersError,
+        fetchCustomers,
+        invalidateCustomers
+    } = useData();
 
-  useEffect(() => {
-    if (!skip) {
-      fetchCustomers(force);
-    }
-  }, [skip, force, fetchCustomers]);
+    useEffect(() => {
+        if (!skip) {
+            fetchCustomers(force);
+        }
+    }, [skip, force, fetchCustomers]);
 
-  return {
-    customers,
-    customersLoading,
-    customersError,
-    fetchCustomers,
-    invalidateCustomers
-  };
+    return {
+        customers,
+        customersLoading,
+        customersError,
+        fetchCustomers,
+        invalidateCustomers
+    };
 };
 
 /**
  * Custom hook to fetch and use orders data
  */
 export const useOrders = (options = {}) => {
-  const { skip = false, force = false } = options;
-  const {
-    orders,
-    ordersLoading,
-    ordersError,
-    fetchOrders,
-    invalidateOrders
-  } = useData();
+    const {
+        skip = false, force = false
+    } = options;
+    const {
+        orders,
+        ordersLoading,
+        ordersError,
+        fetchOrders,
+        invalidateOrders
+    } = useData();
 
-  useEffect(() => {
-    if (!skip) {
-      fetchOrders(force);
-    }
-  }, [skip, force, fetchOrders]);
+    useEffect(() => {
+        if (!skip) {
+            fetchOrders(force);
+        }
+    }, [skip, force, fetchOrders]);
 
-  return {
-    orders,
-    ordersLoading,
-    ordersError,
-    fetchOrders,
-    invalidateOrders
-  };
+    return {
+        orders,
+        ordersLoading,
+        ordersError,
+        fetchOrders,
+        invalidateOrders
+    };
 };
 
 /**
  * Custom hook to fetch and use workers data
  */
 export const useWorkers = (options = {}) => {
-  const { skip = false, force = false } = options;
-  const {
-    workers,
-    workersLoading,
-    workersError,
-    fetchWorkers,
-    invalidateWorkers
-  } = useData();
+    const {
+        skip = false, force = false
+    } = options;
+    const {
+        workers,
+        workersLoading,
+        workersError,
+        fetchWorkers,
+        invalidateWorkers
+    } = useData();
 
-  useEffect(() => {
-    if (!skip) {
-      fetchWorkers(force);
-    }
-  }, [skip, force, fetchWorkers]);
+    useEffect(() => {
+        if (!skip) {
+            fetchWorkers(force);
+        }
+    }, [skip, force, fetchWorkers]);
 
-  return {
-    workers,
-    workersLoading,
-    workersError,
-    fetchWorkers,
-    invalidateWorkers
-  };
+    return {
+        workers,
+        workersLoading,
+        workersError,
+        fetchWorkers,
+        invalidateWorkers
+    };
 };
 
 /**
  * Custom hook to fetch and use tasks data (for workers)
  */
 export const useTasks = (options = {}) => {
-  const { skip = false, force = false } = options;
-  const {
-    tasks,
-    tasksLoading,
-    tasksError,
-    fetchTasks,
-    invalidateTasks
-  } = useData();
+    const {
+        skip = false, force = false
+    } = options;
+    const {
+        tasks,
+        tasksLoading,
+        tasksError,
+        fetchTasks,
+        invalidateTasks
+    } = useData();
 
-  useEffect(() => {
-    if (!skip) {
-      fetchTasks(force);
-    }
-  }, [skip, force, fetchTasks]);
+    useEffect(() => {
+        if (!skip) {
+            fetchTasks(force);
+        }
+    }, [skip, force, fetchTasks]);
 
-  return {
-    tasks,
-    tasksLoading,
-    tasksError,
-    fetchTasks,
-    invalidateTasks
-  };
+    return {
+        tasks,
+        tasksLoading,
+        tasksError,
+        fetchTasks,
+        invalidateTasks
+    };
 };
 
 /**
  * Custom hook to fetch and use profile data
  */
 export const useProfile = (options = {}) => {
-  const { skip = false, force = false } = options;
-  const {
-    profile,
-    profileLoading,
-    profileError,
-    fetchProfile,
-    invalidateProfile
-  } = useData();
+    const {
+        skip = false, force = false
+    } = options;
+    const {
+        profile,
+        profileLoading,
+        profileError,
+        fetchProfile,
+        invalidateProfile
+    } = useData();
 
-  useEffect(() => {
-    if (!skip) {
-      fetchProfile(force);
-    }
-  }, [skip, force, fetchProfile]);
+    // Use a ref to track if we've already fetched
+    const hasFetched = useRef(false);
 
-  return {
-    profile,
-    profileLoading,
-    profileError,
-    fetchProfile,
-    invalidateProfile
-  };
+    useEffect(() => {
+        if (!skip && !hasFetched.current) {
+            fetchProfile(force);
+            hasFetched.current = true;
+        }
+    }, [skip]); // Only depend on skip, not fetchProfile or force
+
+    return {
+        profile,
+        isLoading: profileLoading,
+        error: profileError,
+        refetch: () => fetchProfile(true),
+        invalidate: invalidateProfile
+    };
 };
 
 /**
@@ -152,243 +171,261 @@ export const useProfile = (options = {}) => {
  * @returns {Object} All requested data with loading and error states
  */
 export const useDataFetch = (resources = [], options = {}) => {
-  const { skip = false, force = false } = options;
-  const context = useData();
+    const {
+        skip = false, force = false
+    } = options;
+    const context = useData();
 
-  useEffect(() => {
-    if (!skip && Array.isArray(resources)) {
-      resources.forEach(resource => {
-        const fetchFn = context[`fetch${resource.charAt(0).toUpperCase() + resource.slice(1)}`];
-        if (fetchFn) {
-          fetchFn(force);
+    useEffect(() => {
+        if (!skip && Array.isArray(resources)) {
+            resources.forEach(resource => {
+                const fetchFn = context[`fetch${resource.charAt(0).toUpperCase() + resource.slice(1)}`];
+                if (fetchFn) {
+                    fetchFn(force);
+                }
+            });
         }
-      });
-    }
-  }, [skip, force, resources, context]);
+    }, [skip, force, resources, context]);
 
-  return context;
+    return context;
 };
 
 /**
  * Custom hook to fetch and use customer's own orders
  */
 export const useMyOrders = (options = {}) => {
-  const { skip = false, force = false } = options;
-  const {
-    myOrders,
-    myOrdersLoading,
-    myOrdersError,
-    fetchMyOrders,
-    invalidateMyOrders
-  } = useData();
+    const {
+        skip = false, force = false
+    } = options;
+    const {
+        myOrders,
+        myOrdersLoading,
+        myOrdersError,
+        fetchMyOrders,
+        invalidateMyOrders
+    } = useData();
 
-  useEffect(() => {
-    if (!skip) {
-      fetchMyOrders(force);
-    }
-  }, [skip, force, fetchMyOrders]);
+    useEffect(() => {
+        if (!skip) {
+            fetchMyOrders(force);
+        }
+    }, [skip, force, fetchMyOrders]);
 
-  return {
-    myOrders,
-    myOrdersLoading,
-    myOrdersError,
-    fetchMyOrders,
-    invalidateMyOrders
-  };
+    return {
+        myOrders,
+        myOrdersLoading,
+        myOrdersError,
+        fetchMyOrders,
+        invalidateMyOrders
+    };
 };
 
 /**
  * Custom hook to fetch and use customer stats
  */
 export const useCustomerStats = (options = {}) => {
-  const { skip = false, force = false } = options;
-  const {
-    customerStats,
-    customerStatsLoading,
-    customerStatsError,
-    fetchCustomerStats,
-    invalidateCustomerStats
-  } = useData();
+    const {
+        skip = false, force = false
+    } = options;
+    const {
+        customerStats,
+        customerStatsLoading,
+        customerStatsError,
+        fetchCustomerStats,
+        invalidateCustomerStats
+    } = useData();
 
-  useEffect(() => {
-    if (!skip) {
-      fetchCustomerStats(force);
-    }
-  }, [skip, force, fetchCustomerStats]);
+    useEffect(() => {
+        if (!skip) {
+            fetchCustomerStats(force);
+        }
+    }, [skip, force, fetchCustomerStats]);
 
-  return {
-    customerStats,
-    customerStatsLoading,
-    customerStatsError,
-    fetchCustomerStats,
-    invalidateCustomerStats
-  };
+    return {
+        customerStats,
+        customerStatsLoading,
+        customerStatsError,
+        fetchCustomerStats,
+        invalidateCustomerStats
+    };
 };
 
 /**
  * Custom hook to fetch and use recent activities
  */
 export const useRecentActivities = (limit = 5, options = {}) => {
-  const { skip = false, force = false } = options;
-  const {
-    recentActivities,
-    recentActivitiesLoading,
-    recentActivitiesError,
-    fetchRecentActivities,
-    invalidateRecentActivities
-  } = useData();
+    const {
+        skip = false, force = false
+    } = options;
+    const {
+        recentActivities,
+        recentActivitiesLoading,
+        recentActivitiesError,
+        fetchRecentActivities,
+        invalidateRecentActivities
+    } = useData();
 
-  useEffect(() => {
-    if (!skip) {
-      fetchRecentActivities(limit, force);
-    }
-  }, [skip, force, limit, fetchRecentActivities]);
+    useEffect(() => {
+        if (!skip) {
+            fetchRecentActivities(limit, force);
+        }
+    }, [skip, force, limit, fetchRecentActivities]);
 
-  return {
-    recentActivities,
-    recentActivitiesLoading,
-    recentActivitiesError,
-    fetchRecentActivities,
-    invalidateRecentActivities
-  };
+    return {
+        recentActivities,
+        recentActivitiesLoading,
+        recentActivitiesError,
+        fetchRecentActivities,
+        invalidateRecentActivities
+    };
 };
 
 /**
  * Custom hook to fetch and use measurement profiles
  */
 export const useMeasurementProfiles = (customerId, options = {}) => {
-  const { skip = false, force = false } = options;
-  const {
-    measurementProfiles,
-    measurementProfilesLoading,
-    measurementProfilesError,
-    fetchMeasurementProfiles,
-    invalidateMeasurementProfiles
-  } = useData();
+    const {
+        skip = false, force = false
+    } = options;
+    const {
+        measurementProfiles,
+        measurementProfilesLoading,
+        measurementProfilesError,
+        fetchMeasurementProfiles,
+        invalidateMeasurementProfiles
+    } = useData();
 
-  useEffect(() => {
-    if (!skip && customerId) {
-      fetchMeasurementProfiles(customerId, force);
-    }
-  }, [skip, force, customerId, fetchMeasurementProfiles]);
+    useEffect(() => {
+        if (!skip && customerId) {
+            fetchMeasurementProfiles(customerId, force);
+        }
+    }, [skip, force, customerId, fetchMeasurementProfiles]);
 
-  return {
-    measurementProfiles,
-    measurementProfilesLoading,
-    measurementProfilesError,
-    fetchMeasurementProfiles,
-    invalidateMeasurementProfiles
-  };
+    return {
+        measurementProfiles,
+        measurementProfilesLoading,
+        measurementProfilesError,
+        fetchMeasurementProfiles,
+        invalidateMeasurementProfiles
+    };
 };
 
 /**
  * Custom hook to fetch and use admin dashboard data
  */
 export const useAdminDashboard = (options = {}) => {
-  const { skip = false, force = false } = options;
-  const {
-    adminDashboard,
-    adminDashboardLoading,
-    adminDashboardError,
-    fetchAdminDashboard,
-    invalidateAdminDashboard
-  } = useData();
+    const {
+        skip = false, force = false
+    } = options;
+    const {
+        adminDashboard,
+        adminDashboardLoading,
+        adminDashboardError,
+        fetchAdminDashboard,
+        invalidateAdminDashboard
+    } = useData();
 
-  useEffect(() => {
-    if (!skip) {
-      fetchAdminDashboard(force);
-    }
-  }, [skip, force, fetchAdminDashboard]);
+    useEffect(() => {
+        if (!skip) {
+            fetchAdminDashboard(force);
+        }
+    }, [skip, force, fetchAdminDashboard]);
 
-  return {
-    adminDashboard,
-    adminDashboardLoading,
-    adminDashboardError,
-    fetchAdminDashboard,
-    invalidateAdminDashboard
-  };
+    return {
+        adminDashboard,
+        adminDashboardLoading,
+        adminDashboardError,
+        fetchAdminDashboard,
+        invalidateAdminDashboard
+    };
 };
 
 /**
  * Custom hook to fetch and use shop analytics data
  */
 export const useShopAnalytics = (options = {}) => {
-  const { skip = false, force = false } = options;
-  const {
-    shopAnalytics,
-    shopAnalyticsLoading,
-    shopAnalyticsError,
-    fetchShopAnalytics,
-    invalidateShopAnalytics
-  } = useData();
+    const {
+        skip = false, force = false
+    } = options;
+    const {
+        shopAnalytics,
+        shopAnalyticsLoading,
+        shopAnalyticsError,
+        fetchShopAnalytics,
+        invalidateShopAnalytics
+    } = useData();
 
-  useEffect(() => {
-    if (!skip) {
-      fetchShopAnalytics(force);
-    }
-  }, [skip, force, fetchShopAnalytics]);
+    useEffect(() => {
+        if (!skip) {
+            fetchShopAnalytics(force);
+        }
+    }, [skip, force, fetchShopAnalytics]);
 
-  return {
-    shopAnalytics,
-    shopAnalyticsLoading,
-    shopAnalyticsError,
-    fetchShopAnalytics,
-    invalidateShopAnalytics
-  };
+    return {
+        shopAnalytics,
+        shopAnalyticsLoading,
+        shopAnalyticsError,
+        fetchShopAnalytics,
+        invalidateShopAnalytics
+    };
 };
 
 /**
  * Custom hook to fetch and use all shops data with search support
  */
 export const useAllShops = (searchQuery = '', options = {}) => {
-  const { skip = false, force = false } = options;
-  const {
-    allShops,
-    allShopsLoading,
-    allShopsError,
-    fetchAllShops,
-    invalidateAllShops
-  } = useData();
+    const {
+        skip = false, force = false
+    } = options;
+    const {
+        allShops,
+        allShopsLoading,
+        allShopsError,
+        fetchAllShops,
+        invalidateAllShops
+    } = useData();
 
-  useEffect(() => {
-    if (!skip) {
-      fetchAllShops(searchQuery, force);
-    }
-  }, [skip, force, searchQuery, fetchAllShops]);
+    useEffect(() => {
+        if (!skip) {
+            fetchAllShops(searchQuery, force);
+        }
+    }, [skip, force, searchQuery, fetchAllShops]);
 
-  return {
-    allShops,
-    allShopsLoading,
-    allShopsError,
-    fetchAllShops,
-    invalidateAllShops
-  };
+    return {
+        allShops,
+        allShopsLoading,
+        allShopsError,
+        fetchAllShops,
+        invalidateAllShops
+    };
 };
 
 /**
  * Custom hook to fetch and use platform analytics data
  */
 export const usePlatformAnalytics = (options = {}) => {
-  const { skip = false, force = false } = options;
-  const {
-    platformAnalytics,
-    platformAnalyticsLoading,
-    platformAnalyticsError,
-    fetchPlatformAnalytics,
-    invalidatePlatformAnalytics
-  } = useData();
+    const {
+        skip = false, force = false
+    } = options;
+    const {
+        platformAnalytics,
+        platformAnalyticsLoading,
+        platformAnalyticsError,
+        fetchPlatformAnalytics,
+        invalidatePlatformAnalytics
+    } = useData();
 
-  useEffect(() => {
-    if (!skip) {
-      fetchPlatformAnalytics(force);
-    }
-  }, [skip, force, fetchPlatformAnalytics]);
+    useEffect(() => {
+        if (!skip) {
+            fetchPlatformAnalytics(force);
+        }
+    }, [skip, force, fetchPlatformAnalytics]);
 
-  return {
-    platformAnalytics,
-    platformAnalyticsLoading,
-    platformAnalyticsError,
-    fetchPlatformAnalytics,
-    invalidatePlatformAnalytics
-  };
+    return {
+        platformAnalytics,
+        platformAnalyticsLoading,
+        platformAnalyticsError,
+        fetchPlatformAnalytics,
+        invalidatePlatformAnalytics
+    };
 };

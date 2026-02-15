@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { customerAPI, orderAPI, workerAPI, adminAPI } from '../services/api';
+import { customerAPI, orderAPI, workerAPI, adminAPI, ownerAPI } from '../services/api';
 import { useAuth } from './AuthContext';
 
 const DataContext = createContext();
@@ -417,11 +417,14 @@ export const DataProvider = ({ children }) => {
   // ==================== PROFILE ====================
   
   const fetchProfile = useCallback(async (force = false) => {
-    if (!force && cache.profile.data && !isCacheStale('profile')) {
-      return { success: true, data: cache.profile.data, fromCache: true };
+    // Access cache directly to avoid dependency issues
+    const currentCache = cache.profile;
+    
+    if (!force && currentCache.data && !isCacheStale('profile')) {
+      return { success: true, data: currentCache.data, fromCache: true };
     }
 
-    if (cache.profile.loading) {
+    if (currentCache.loading) {
       return { success: false, error: 'Request in progress', fromCache: false };
     }
 
@@ -442,8 +445,9 @@ export const DataProvider = ({ children }) => {
         result = await customerAPI.getCustomerProfile(token);
       } else if (user.role === 'worker' || user.role === 'tailor') {
         result = await workerAPI.getWorkerProfile(token);
+      } else if (user.role === 'owner') {
+        result = await ownerAPI.getOwnerProfile(token);
       } else {
-        // For owner, we might need a different endpoint
         result = { success: false, error: 'Profile fetch not implemented for this role' };
       }
 
@@ -536,7 +540,7 @@ export const DataProvider = ({ children }) => {
       updateCache('profile', { loading: false, error: errorMsg });
       return { success: false, error: errorMsg };
     }
-  }, [cache.profile, isCacheStale, getToken, user, updateCache]);
+  }, [isCacheStale, getToken, user, updateCache]);
 
   // ==================== CUSTOMER MY ORDERS ====================
   

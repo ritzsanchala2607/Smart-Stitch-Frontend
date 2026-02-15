@@ -1845,6 +1845,7 @@ export const orderAPI = {
     generateBill: async (orderId, token, format = 'json') => {
         try {
             console.log('API Request - URL:', `${API_URL}/api/orders/${orderId}/bill?format=${format}`);
+            console.log('API Request - Format:', format);
 
             const response = await fetch(`${API_URL}/api/orders/${orderId}/bill?format=${format}`, {
                 method: 'GET',
@@ -1854,13 +1855,30 @@ export const orderAPI = {
             });
 
             console.log('API Response - Status:', response.status, response.statusText);
+            console.log('API Response - Content-Type:', response.headers.get('content-type'));
 
             if (format === 'pdf') {
                 if (!response.ok) {
-                    const data = await response.json();
-                    throw new Error(data.message || 'Failed to generate bill');
+                    // Try to get error message
+                    const contentType = response.headers.get('content-type');
+                    if (contentType && contentType.includes('application/json')) {
+                        const data = await response.json();
+                        throw new Error(data.message || `Server error: ${response.status}`);
+                    } else {
+                        const text = await response.text();
+                        console.error('API Error Response:', text);
+                        throw new Error(`Failed to generate bill: ${response.status} ${response.statusText}`);
+                    }
                 }
+
                 const blob = await response.blob();
+                console.log('API Response - Blob size:', blob.size, 'bytes');
+                console.log('API Response - Blob type:', blob.type);
+
+                if (blob.size === 0) {
+                    throw new Error('Received empty PDF from server. The backend may not have implemented PDF generation yet.');
+                }
+
                 return {
                     success: true,
                     data: blob,
@@ -2266,6 +2284,51 @@ export const shopAPI = {
             };
         } catch (error) {
             console.error('Owner Analytics API Error:', error);
+            return {
+                success: false,
+                error: error.message || 'Server error. Please try again later.'
+            };
+        }
+    }
+};
+
+/**
+ * API Service for owner endpoints
+ * Handles all owner-related requests to the backend
+ */
+export const ownerAPI = {
+    /**
+     * Get owner's shop profile
+     * @param {string} token - JWT token for authentication
+     * @returns {Promise} Response with owner's shop profile data
+     */
+    getOwnerProfile: async (token) => {
+        try {
+            console.log('API Request - URL:', `${API_URL}/api/owners/my-shop`);
+
+            const response = await fetch(`${API_URL}/api/owners/my-shop`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            console.log('API Response - Status:', response.status, response.statusText);
+
+            const data = await response.json();
+            console.log('API Response - Data:', data);
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to fetch owner profile');
+            }
+
+            return {
+                success: true,
+                data: data.data || data,
+                message: data.message || 'Owner profile fetched successfully'
+            };
+        } catch (error) {
+            console.error('Owner Profile API Error:', error);
             return {
                 success: false,
                 error: error.message || 'Server error. Please try again later.'
