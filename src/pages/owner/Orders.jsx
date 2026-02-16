@@ -410,17 +410,18 @@ const Orders = () => {
       if (result.success) {
         console.log('Order created successfully:', result.data);
 
-        setSuccessMessage('Order created successfully! 🎉');
-        setShowSuccess(true);
-        setTimeout(() => setShowSuccess(false), 5000);
-
         // Invalidate cache and refetch orders
         invalidateOrders();
         await fetchOrders(true);
 
-        // Reset form
+        // Reset form and close modal
         resetForm();
         setShowNewOrderModal(false);
+        
+        // Show success message after modal is closed
+        setSuccessMessage('Order created successfully! 🎉');
+        setShowSuccess(true);
+        setTimeout(() => setShowSuccess(false), 5000);
       } else {
         console.error('Order creation failed:', result.error);
         alert(`Failed to create order: ${result.error}`);

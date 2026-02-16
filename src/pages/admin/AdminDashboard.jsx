@@ -170,7 +170,7 @@ const AdminDashboard = () => {
             </div>
 
             {/* KPI Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
               <motion.div
                 whileHover={{ scale: 1.02 }}
                 className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700"
@@ -239,20 +239,6 @@ const AdminDashboard = () => {
                 </div>
                 <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{kpiData.activeShops}</h3>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Active Shops</p>
-              </motion.div>
-
-              <motion.div
-                whileHover={{ scale: 1.02 }}
-                className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700"
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <div className="w-12 h-12 rounded-lg flex items-center justify-center bg-gray-100 dark:bg-gray-700">
-                    <TrendingUp className="w-8 h-8 text-green-600 dark:text-green-400" />
-                  </div>
-                  <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Growth</span>
-                </div>
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100">+{kpiData.systemGrowth}%</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">System Growth</p>
               </motion.div>
             </div>
 

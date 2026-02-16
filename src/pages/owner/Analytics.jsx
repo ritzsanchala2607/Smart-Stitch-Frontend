@@ -7,7 +7,6 @@ import { BarChart3, AlertCircle } from 'lucide-react';
 import { shopAPI } from '../../services/api';
 import {
   OrderStatusDonutChart,
-  RevenueTrendChart,
   WorkerPerformanceRadarChart,
   CustomerRatingsChart,
   OrdersLineChart
@@ -173,9 +172,6 @@ const Analytics = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Daily Orders Line Chart */}
               <OrdersLineChart data={{ dailyOrderTrend }} />
-
-              {/* Revenue Trend Chart */}
-              <RevenueTrendChart data={{ monthlyRevenueTrend }} />
 
               {/* Order Status Distribution */}
               <OrderStatusDonutChart orders={orders} />
