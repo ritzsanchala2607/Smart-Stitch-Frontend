@@ -210,7 +210,7 @@ const Customers = () => {
       let failedProfiles = 0;
 
       // Pant measurements
-      if (Object.values(customerForm.measurements.pant).some(v => v)) {
+      if (Object.values(customerForm.measurements.pant).some(v => v && v.trim() !== '')) {
         const pantMeasurements = {
           customerId: customerId,
           dressType: 'PANT',
@@ -218,19 +218,43 @@ const Customers = () => {
           measurements: {}
         };
         
-        if (customerForm.measurements.pant.waist) pantMeasurements.measurements.waist = parseFloat(customerForm.measurements.pant.waist);
-        if (customerForm.measurements.pant.length) pantMeasurements.measurements.length = parseFloat(customerForm.measurements.pant.length);
-        if (customerForm.measurements.pant.seatHips) pantMeasurements.measurements.hip = parseFloat(customerForm.measurements.pant.seatHips);
-        if (customerForm.measurements.pant.thigh) pantMeasurements.measurements.thigh = parseFloat(customerForm.measurements.pant.thigh);
-        if (customerForm.measurements.pant.knee) pantMeasurements.measurements.knee = parseFloat(customerForm.measurements.pant.knee);
-        if (customerForm.measurements.pant.bottomOpening) pantMeasurements.measurements.bottom = parseFloat(customerForm.measurements.pant.bottomOpening);
-        if (customerForm.measurements.pant.thighCircumference) pantMeasurements.measurements.thighCircumference = parseFloat(customerForm.measurements.pant.thighCircumference);
+        if (customerForm.measurements.pant.waist && customerForm.measurements.pant.waist.trim() !== '') {
+          const value = parseFloat(customerForm.measurements.pant.waist);
+          if (!isNaN(value)) pantMeasurements.measurements.waist = value;
+        }
+        if (customerForm.measurements.pant.length && customerForm.measurements.pant.length.trim() !== '') {
+          const value = parseFloat(customerForm.measurements.pant.length);
+          if (!isNaN(value)) pantMeasurements.measurements.length = value;
+        }
+        if (customerForm.measurements.pant.seatHips && customerForm.measurements.pant.seatHips.trim() !== '') {
+          const value = parseFloat(customerForm.measurements.pant.seatHips);
+          if (!isNaN(value)) pantMeasurements.measurements.hip = value;
+        }
+        if (customerForm.measurements.pant.thigh && customerForm.measurements.pant.thigh.trim() !== '') {
+          const value = parseFloat(customerForm.measurements.pant.thigh);
+          if (!isNaN(value)) pantMeasurements.measurements.thigh = value;
+        }
+        if (customerForm.measurements.pant.knee && customerForm.measurements.pant.knee.trim() !== '') {
+          const value = parseFloat(customerForm.measurements.pant.knee);
+          if (!isNaN(value)) pantMeasurements.measurements.knee = value;
+        }
+        if (customerForm.measurements.pant.bottomOpening && customerForm.measurements.pant.bottomOpening.trim() !== '') {
+          const value = parseFloat(customerForm.measurements.pant.bottomOpening);
+          if (!isNaN(value)) pantMeasurements.measurements.bottom = value;
+        }
+        if (customerForm.measurements.pant.thighCircumference && customerForm.measurements.pant.thighCircumference.trim() !== '') {
+          const value = parseFloat(customerForm.measurements.pant.thighCircumference);
+          if (!isNaN(value)) pantMeasurements.measurements.thighCircumference = value;
+        }
         
-        measurementProfiles.push(pantMeasurements);
+        // Only add profile if it has at least one measurement
+        if (Object.keys(pantMeasurements.measurements).length > 0) {
+          measurementProfiles.push(pantMeasurements);
+        }
       }
 
       // Shirt measurements
-      if (Object.values(customerForm.measurements.shirt).some(v => v)) {
+      if (Object.values(customerForm.measurements.shirt).some(v => v && v.trim() !== '')) {
         const shirtMeasurements = {
           customerId: customerId,
           dressType: 'SHIRT',
@@ -238,19 +262,43 @@ const Customers = () => {
           measurements: {}
         };
         
-        if (customerForm.measurements.shirt.chest) shirtMeasurements.measurements.chest = parseFloat(customerForm.measurements.shirt.chest);
-        if (customerForm.measurements.shirt.shoulder) shirtMeasurements.measurements.shoulder = parseFloat(customerForm.measurements.shirt.shoulder);
-        if (customerForm.measurements.shirt.length) shirtMeasurements.measurements.length = parseFloat(customerForm.measurements.shirt.length);
-        if (customerForm.measurements.shirt.sleeveLength) shirtMeasurements.measurements.sleeve = parseFloat(customerForm.measurements.shirt.sleeveLength);
-        if (customerForm.measurements.shirt.waist) shirtMeasurements.measurements.waist = parseFloat(customerForm.measurements.shirt.waist);
-        if (customerForm.measurements.shirt.armhole) shirtMeasurements.measurements.armhole = parseFloat(customerForm.measurements.shirt.armhole);
-        if (customerForm.measurements.shirt.collar) shirtMeasurements.measurements.collar = parseFloat(customerForm.measurements.shirt.collar);
+        if (customerForm.measurements.shirt.chest && customerForm.measurements.shirt.chest.trim() !== '') {
+          const value = parseFloat(customerForm.measurements.shirt.chest);
+          if (!isNaN(value)) shirtMeasurements.measurements.chest = value;
+        }
+        if (customerForm.measurements.shirt.shoulder && customerForm.measurements.shirt.shoulder.trim() !== '') {
+          const value = parseFloat(customerForm.measurements.shirt.shoulder);
+          if (!isNaN(value)) shirtMeasurements.measurements.shoulder = value;
+        }
+        if (customerForm.measurements.shirt.length && customerForm.measurements.shirt.length.trim() !== '') {
+          const value = parseFloat(customerForm.measurements.shirt.length);
+          if (!isNaN(value)) shirtMeasurements.measurements.length = value;
+        }
+        if (customerForm.measurements.shirt.sleeveLength && customerForm.measurements.shirt.sleeveLength.trim() !== '') {
+          const value = parseFloat(customerForm.measurements.shirt.sleeveLength);
+          if (!isNaN(value)) shirtMeasurements.measurements.sleeve = value;
+        }
+        if (customerForm.measurements.shirt.waist && customerForm.measurements.shirt.waist.trim() !== '') {
+          const value = parseFloat(customerForm.measurements.shirt.waist);
+          if (!isNaN(value)) shirtMeasurements.measurements.waist = value;
+        }
+        if (customerForm.measurements.shirt.armhole && customerForm.measurements.shirt.armhole.trim() !== '') {
+          const value = parseFloat(customerForm.measurements.shirt.armhole);
+          if (!isNaN(value)) shirtMeasurements.measurements.armhole = value;
+        }
+        if (customerForm.measurements.shirt.collar && customerForm.measurements.shirt.collar.trim() !== '') {
+          const value = parseFloat(customerForm.measurements.shirt.collar);
+          if (!isNaN(value)) shirtMeasurements.measurements.collar = value;
+        }
         
-        measurementProfiles.push(shirtMeasurements);
+        // Only add profile if it has at least one measurement
+        if (Object.keys(shirtMeasurements.measurements).length > 0) {
+          measurementProfiles.push(shirtMeasurements);
+        }
       }
 
       // Coat measurements
-      if (Object.values(customerForm.measurements.coat).some(v => v)) {
+      if (Object.values(customerForm.measurements.coat).some(v => v && v.trim() !== '')) {
         const coatMeasurements = {
           customerId: customerId,
           dressType: 'COAT',
@@ -258,18 +306,39 @@ const Customers = () => {
           measurements: {}
         };
         
-        if (customerForm.measurements.coat.chest) coatMeasurements.measurements.chest = parseFloat(customerForm.measurements.coat.chest);
-        if (customerForm.measurements.coat.shoulder) coatMeasurements.measurements.shoulder = parseFloat(customerForm.measurements.coat.shoulder);
-        if (customerForm.measurements.coat.length) coatMeasurements.measurements.length = parseFloat(customerForm.measurements.coat.length);
-        if (customerForm.measurements.coat.sleeveLength) coatMeasurements.measurements.sleeve = parseFloat(customerForm.measurements.coat.sleeveLength);
-        if (customerForm.measurements.coat.waist) coatMeasurements.measurements.waist = parseFloat(customerForm.measurements.coat.waist);
-        if (customerForm.measurements.coat.armhole) coatMeasurements.measurements.armhole = parseFloat(customerForm.measurements.coat.armhole);
+        if (customerForm.measurements.coat.chest && customerForm.measurements.coat.chest.trim() !== '') {
+          const value = parseFloat(customerForm.measurements.coat.chest);
+          if (!isNaN(value)) coatMeasurements.measurements.chest = value;
+        }
+        if (customerForm.measurements.coat.shoulder && customerForm.measurements.coat.shoulder.trim() !== '') {
+          const value = parseFloat(customerForm.measurements.coat.shoulder);
+          if (!isNaN(value)) coatMeasurements.measurements.shoulder = value;
+        }
+        if (customerForm.measurements.coat.length && customerForm.measurements.coat.length.trim() !== '') {
+          const value = parseFloat(customerForm.measurements.coat.length);
+          if (!isNaN(value)) coatMeasurements.measurements.length = value;
+        }
+        if (customerForm.measurements.coat.sleeveLength && customerForm.measurements.coat.sleeveLength.trim() !== '') {
+          const value = parseFloat(customerForm.measurements.coat.sleeveLength);
+          if (!isNaN(value)) coatMeasurements.measurements.sleeve = value;
+        }
+        if (customerForm.measurements.coat.waist && customerForm.measurements.coat.waist.trim() !== '') {
+          const value = parseFloat(customerForm.measurements.coat.waist);
+          if (!isNaN(value)) coatMeasurements.measurements.waist = value;
+        }
+        if (customerForm.measurements.coat.armhole && customerForm.measurements.coat.armhole.trim() !== '') {
+          const value = parseFloat(customerForm.measurements.coat.armhole);
+          if (!isNaN(value)) coatMeasurements.measurements.armhole = value;
+        }
         
-        measurementProfiles.push(coatMeasurements);
+        // Only add profile if it has at least one measurement
+        if (Object.keys(coatMeasurements.measurements).length > 0) {
+          measurementProfiles.push(coatMeasurements);
+        }
       }
 
       // Kurta measurements
-      if (Object.values(customerForm.measurements.kurta).some(v => v)) {
+      if (Object.values(customerForm.measurements.kurta).some(v => v && v.trim() !== '')) {
         const kurtaMeasurements = {
           customerId: customerId,
           dressType: 'KURTA',
@@ -277,23 +346,59 @@ const Customers = () => {
           measurements: {}
         };
         
-        if (customerForm.measurements.kurta.length) kurtaMeasurements.measurements.length = parseFloat(customerForm.measurements.kurta.length);
-        if (customerForm.measurements.kurta.chest) kurtaMeasurements.measurements.chest = parseFloat(customerForm.measurements.kurta.chest);
-        if (customerForm.measurements.kurta.waist) kurtaMeasurements.measurements.waist = parseFloat(customerForm.measurements.kurta.waist);
-        if (customerForm.measurements.kurta.seatHips) kurtaMeasurements.measurements.hip = parseFloat(customerForm.measurements.kurta.seatHips);
-        if (customerForm.measurements.kurta.flare) kurtaMeasurements.measurements.flare = parseFloat(customerForm.measurements.kurta.flare);
-        if (customerForm.measurements.kurta.shoulder) kurtaMeasurements.measurements.shoulder = parseFloat(customerForm.measurements.kurta.shoulder);
-        if (customerForm.measurements.kurta.armhole) kurtaMeasurements.measurements.armhole = parseFloat(customerForm.measurements.kurta.armhole);
-        if (customerForm.measurements.kurta.sleeve) kurtaMeasurements.measurements.sleeve = parseFloat(customerForm.measurements.kurta.sleeve);
-        if (customerForm.measurements.kurta.bottomOpening) kurtaMeasurements.measurements.bottomOpening = parseFloat(customerForm.measurements.kurta.bottomOpening);
-        if (customerForm.measurements.kurta.frontNeck) kurtaMeasurements.measurements.frontNeck = parseFloat(customerForm.measurements.kurta.frontNeck);
-        if (customerForm.measurements.kurta.backNeck) kurtaMeasurements.measurements.backNeck = parseFloat(customerForm.measurements.kurta.backNeck);
+        if (customerForm.measurements.kurta.length && customerForm.measurements.kurta.length.trim() !== '') {
+          const value = parseFloat(customerForm.measurements.kurta.length);
+          if (!isNaN(value)) kurtaMeasurements.measurements.length = value;
+        }
+        if (customerForm.measurements.kurta.chest && customerForm.measurements.kurta.chest.trim() !== '') {
+          const value = parseFloat(customerForm.measurements.kurta.chest);
+          if (!isNaN(value)) kurtaMeasurements.measurements.chest = value;
+        }
+        if (customerForm.measurements.kurta.waist && customerForm.measurements.kurta.waist.trim() !== '') {
+          const value = parseFloat(customerForm.measurements.kurta.waist);
+          if (!isNaN(value)) kurtaMeasurements.measurements.waist = value;
+        }
+        if (customerForm.measurements.kurta.seatHips && customerForm.measurements.kurta.seatHips.trim() !== '') {
+          const value = parseFloat(customerForm.measurements.kurta.seatHips);
+          if (!isNaN(value)) kurtaMeasurements.measurements.hip = value;
+        }
+        if (customerForm.measurements.kurta.flare && customerForm.measurements.kurta.flare.trim() !== '') {
+          const value = parseFloat(customerForm.measurements.kurta.flare);
+          if (!isNaN(value)) kurtaMeasurements.measurements.flare = value;
+        }
+        if (customerForm.measurements.kurta.shoulder && customerForm.measurements.kurta.shoulder.trim() !== '') {
+          const value = parseFloat(customerForm.measurements.kurta.shoulder);
+          if (!isNaN(value)) kurtaMeasurements.measurements.shoulder = value;
+        }
+        if (customerForm.measurements.kurta.armhole && customerForm.measurements.kurta.armhole.trim() !== '') {
+          const value = parseFloat(customerForm.measurements.kurta.armhole);
+          if (!isNaN(value)) kurtaMeasurements.measurements.armhole = value;
+        }
+        if (customerForm.measurements.kurta.sleeve && customerForm.measurements.kurta.sleeve.trim() !== '') {
+          const value = parseFloat(customerForm.measurements.kurta.sleeve);
+          if (!isNaN(value)) kurtaMeasurements.measurements.sleeve = value;
+        }
+        if (customerForm.measurements.kurta.bottomOpening && customerForm.measurements.kurta.bottomOpening.trim() !== '') {
+          const value = parseFloat(customerForm.measurements.kurta.bottomOpening);
+          if (!isNaN(value)) kurtaMeasurements.measurements.bottomOpening = value;
+        }
+        if (customerForm.measurements.kurta.frontNeck && customerForm.measurements.kurta.frontNeck.trim() !== '') {
+          const value = parseFloat(customerForm.measurements.kurta.frontNeck);
+          if (!isNaN(value)) kurtaMeasurements.measurements.frontNeck = value;
+        }
+        if (customerForm.measurements.kurta.backNeck && customerForm.measurements.kurta.backNeck.trim() !== '') {
+          const value = parseFloat(customerForm.measurements.kurta.backNeck);
+          if (!isNaN(value)) kurtaMeasurements.measurements.backNeck = value;
+        }
         
-        measurementProfiles.push(kurtaMeasurements);
+        // Only add profile if it has at least one measurement
+        if (Object.keys(kurtaMeasurements.measurements).length > 0) {
+          measurementProfiles.push(kurtaMeasurements);
+        }
       }
 
       // Dhoti measurements
-      if (Object.values(customerForm.measurements.dhoti).some(v => v)) {
+      if (Object.values(customerForm.measurements.dhoti).some(v => v && v.trim() !== '')) {
         const dhotiMeasurements = {
           customerId: customerId,
           dressType: 'DHOTI',
@@ -301,13 +406,31 @@ const Customers = () => {
           measurements: {}
         };
         
-        if (customerForm.measurements.dhoti.waist) dhotiMeasurements.measurements.waist = parseFloat(customerForm.measurements.dhoti.waist);
-        if (customerForm.measurements.dhoti.length) dhotiMeasurements.measurements.length = parseFloat(customerForm.measurements.dhoti.length);
-        if (customerForm.measurements.dhoti.hip) dhotiMeasurements.measurements.hip = parseFloat(customerForm.measurements.dhoti.hip);
-        if (customerForm.measurements.dhoti.sideLength) dhotiMeasurements.measurements.sideLength = parseFloat(customerForm.measurements.dhoti.sideLength);
-        if (customerForm.measurements.dhoti.foldLength) dhotiMeasurements.measurements.foldLength = parseFloat(customerForm.measurements.dhoti.foldLength);
+        if (customerForm.measurements.dhoti.waist && customerForm.measurements.dhoti.waist.trim() !== '') {
+          const value = parseFloat(customerForm.measurements.dhoti.waist);
+          if (!isNaN(value)) dhotiMeasurements.measurements.waist = value;
+        }
+        if (customerForm.measurements.dhoti.length && customerForm.measurements.dhoti.length.trim() !== '') {
+          const value = parseFloat(customerForm.measurements.dhoti.length);
+          if (!isNaN(value)) dhotiMeasurements.measurements.length = value;
+        }
+        if (customerForm.measurements.dhoti.hip && customerForm.measurements.dhoti.hip.trim() !== '') {
+          const value = parseFloat(customerForm.measurements.dhoti.hip);
+          if (!isNaN(value)) dhotiMeasurements.measurements.hip = value;
+        }
+        if (customerForm.measurements.dhoti.sideLength && customerForm.measurements.dhoti.sideLength.trim() !== '') {
+          const value = parseFloat(customerForm.measurements.dhoti.sideLength);
+          if (!isNaN(value)) dhotiMeasurements.measurements.sideLength = value;
+        }
+        if (customerForm.measurements.dhoti.foldLength && customerForm.measurements.dhoti.foldLength.trim() !== '') {
+          const value = parseFloat(customerForm.measurements.dhoti.foldLength);
+          if (!isNaN(value)) dhotiMeasurements.measurements.foldLength = value;
+        }
         
-        measurementProfiles.push(dhotiMeasurements);
+        // Only add profile if it has at least one measurement
+        if (Object.keys(dhotiMeasurements.measurements).length > 0) {
+          measurementProfiles.push(dhotiMeasurements);
+        }
       }
 
       // Custom measurements

@@ -14,6 +14,7 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { useProfile } from '../../hooks/useDataFetch';
+import { customerAPI } from '../../services/api';
 
 const Measurements = () => {
   usePageTitle('Measurements');
@@ -22,50 +23,111 @@ const Measurements = () => {
   const [expandedCategory, setExpandedCategory] = useState('shirt');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [measurementProfiles, setMeasurementProfiles] = useState([]);
+  const [measurementsLoading, setMeasurementsLoading] = useState(false);
+  const [measurementsError, setMeasurementsError] = useState(null);
 
-  // Fetch profile from global state - this already contains measurements
-  const { profile: profileData, profileLoading: loading, profileError: error, fetchProfile } = useProfile();
+  // Fetch profile from global state to get customer ID
+  const { profile: profileData, isLoading: profileLoading, error: profileError, refetch: refetchProfile } = useProfile();
 
-  // Debug logging
+  // Fetch measurement profiles when profile is loaded
   useEffect(() => {
-    console.log('=== MEASUREMENTS PAGE DEBUG ===');
-    console.log('Profile data:', profileData);
-    console.log('Loading:', loading);
-    console.log('Error:', error);
-    if (profileData) {
-      console.log('Has measurements?', !!profileData.measurements);
-      if (profileData.measurements) {
-        console.log('Measurements keys:', Object.keys(profileData.measurements));
-        console.log('Measurements:', JSON.stringify(profileData.measurements, null, 2));
+    const fetchMeasurements = async () => {
+      if (!profileData || !profileData.customerId) {
+        console.log('No profile data or customer ID yet');
+        return;
       }
-    }
-    console.log('=== END MEASUREMENTS PAGE DEBUG ===');
-  }, [profileData, loading, error]);
+
+      console.log('=== FETCHING MEASUREMENT PROFILES ===');
+      console.log('Customer ID:', profileData.customerId);
+
+      setMeasurementsLoading(true);
+      setMeasurementsError(null);
+
+      // Get token
+      let token = localStorage.getItem('token');
+      if (!token) {
+        const userDataString = localStorage.getItem('user');
+        if (userDataString) {
+          try {
+            const userData = JSON.parse(userDataString);
+            token = userData.jwt || userData.token;
+          } catch (e) {
+            console.error('Error parsing user data:', e);
+          }
+        }
+      }
+
+      if (!token) {
+        setMeasurementsError('User not authenticated. Please login again.');
+        setMeasurementsLoading(false);
+        return;
+      }
+
+      try {
+        // Use the same API as owner's customer details modal
+        let result = await customerAPI.getMeasurementProfilesByCustomerId(profileData.customerId, token);
+        
+        // If new endpoint doesn't exist, try the old endpoint
+        if (!result.success && result.error.includes('No static resource')) {
+          console.log('New endpoint not available, trying original endpoint...');
+          result = await customerAPI.getMeasurementProfiles(profileData.customerId, token);
+        }
+        
+        console.log('Measurement profiles result:', result);
+        
+        if (result.success) {
+          console.log('✓ Measurement profiles fetched successfully:', result.data);
+          setMeasurementProfiles(result.data || []);
+        } else {
+          console.error('✗ Failed to fetch measurement profiles:', result.error);
+          setMeasurementsError(result.error);
+          setMeasurementProfiles([]);
+        }
+      } catch (error) {
+        console.error('✗ Error fetching measurement profiles:', error);
+        setMeasurementsError(error.message || 'Failed to fetch measurements');
+        setMeasurementProfiles([]);
+      } finally {
+        setMeasurementsLoading(false);
+      }
+    };
+
+    fetchMeasurements();
+  }, [profileData]);
 
   // Handle manual refresh
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    await fetchProfile(true); // Force refetch
+    await refetchProfile(); // This will trigger the useEffect above
     setIsRefreshing(false);
   };
 
-  // Transform profile measurements into profiles array using useMemo
+  // Transform measurement profiles into display format
   const profiles = useMemo(() => {
     console.log('=== PROFILES TRANSFORMATION ===');
-    console.log('profileData:', profileData);
+    console.log('measurementProfiles:', measurementProfiles);
     
-    if (!profileData || !profileData.measurements) {
-      console.log('No profileData or measurements, returning empty array');
+    if (!measurementProfiles || measurementProfiles.length === 0) {
+      console.log('No measurement profiles, returning empty array');
       return [];
     }
 
-    // Create profiles from the measurements object
-    const measurementProfiles = [];
-    const measurements = profileData.measurements;
-    
-    console.log('Measurements object:', measurements);
+    // Group profiles by dress type
+    const profilesByType = {};
+    measurementProfiles.forEach(profile => {
+      const dressType = profile.dressType?.toLowerCase();
+      if (dressType) {
+        profilesByType[dressType] = profile;
+        console.log(`${dressType} measurements:`, profile.measurements);
+        console.log(`${dressType} measurement keys:`, Object.keys(profile.measurements || {}));
+      }
+    });
 
-    // Check each dress type and create a profile if measurements exist
+    console.log('Profiles by type:', profilesByType);
+
+    // Create display profiles for each dress type that has data
+    const displayProfiles = [];
     const dressTypes = [
       { key: 'shirt', label: 'Shirt', icon: '👔' },
       { key: 'pant', label: 'Pant', icon: '👖' },
@@ -75,31 +137,41 @@ const Measurements = () => {
     ];
 
     dressTypes.forEach((dressType, index) => {
-      const dressMeasurements = measurements[dressType.key];
-      console.log(`Checking ${dressType.key}:`, dressMeasurements);
-      
-      // Check if this dress type has any measurements
-      const hasMeasurements = dressMeasurements && Object.values(dressMeasurements).some(val => val && val !== '');
-      console.log(`  Has measurements: ${hasMeasurements}`);
-      
-      if (hasMeasurements) {
-        measurementProfiles.push({
-          id: `profile-${dressType.key}`,
+      const profile = profilesByType[dressType.key];
+      if (profile) {
+        // Normalize measurement keys to handle case sensitivity issues
+        const normalizedMeasurements = {};
+        if (profile.measurements) {
+          Object.entries(profile.measurements).forEach(([key, value]) => {
+            // Keep the original key but also create lowercase version for matching
+            normalizedMeasurements[key] = value;
+            // Also add camelCase version if backend returns lowercase
+            const lowerKey = key.toLowerCase();
+            if (lowerKey !== key) {
+              normalizedMeasurements[lowerKey] = value;
+            }
+          });
+        }
+        
+        console.log(`Normalized ${dressType.key} measurements:`, normalizedMeasurements);
+        
+        displayProfiles.push({
+          id: profile.measurementId || `profile-${dressType.key}`,
           name: `${dressType.label} Measurements`,
           dressType: dressType.key,
-          isDefault: index === 0, // First profile is default
-          createdAt: profileData.createdAt?.split('T')[0] || 'N/A',
-          updatedAt: profileData.updatedAt?.split('T')[0] || new Date().toISOString().split('T')[0],
-          notes: '',
-          measurements: measurements
+          isDefault: index === 0,
+          createdAt: profile.createdAt?.split('T')[0] || 'N/A',
+          updatedAt: profile.updatedAt?.split('T')[0] || new Date().toISOString().split('T')[0],
+          notes: profile.notes || '',
+          measurements: normalizedMeasurements
         });
       }
     });
 
-    console.log('Final profiles array:', measurementProfiles);
+    console.log('Final display profiles:', displayProfiles);
     console.log('=== END PROFILES TRANSFORMATION ===');
-    return measurementProfiles;
-  }, [profileData]);
+    return displayProfiles;
+  }, [measurementProfiles]);
 
   // Select first profile by default
   useEffect(() => {
@@ -109,6 +181,9 @@ const Measurements = () => {
     }
   }, [profiles, selectedProfile]);
 
+  const loading = profileLoading || measurementsLoading;
+  const error = profileError || measurementsError;
+
   // Measurement categories configuration
   const categories = {
     pant: {
@@ -117,9 +192,9 @@ const Measurements = () => {
       fields: [
         { key: 'length', label: 'Length', unit: 'inches', placeholder: 'e.g., 40' },
         { key: 'waist', label: 'Waist', unit: 'inches', placeholder: 'e.g., 32' },
-        { key: 'seatHips', label: 'Seat / Hips', unit: 'inches', placeholder: 'e.g., 38' },
+        { key: 'hip', label: 'Seat / Hips', unit: 'inches', placeholder: 'e.g., 38' },
         { key: 'knee', label: 'Knee', unit: 'inches', placeholder: 'e.g., 16' },
-        { key: 'bottomOpening', label: 'Bottom Opening / Ankle', unit: 'inches', placeholder: 'e.g., 14' },
+        { key: 'bottom', label: 'Bottom Opening / Ankle', unit: 'inches', placeholder: 'e.g., 14' },
         { key: 'thighCircumference', label: 'Thigh Circumference / Flare', unit: 'inches', placeholder: 'e.g., 24' },
         { key: 'thigh', label: 'Thigh', unit: 'inches', placeholder: 'e.g., 22' }
       ]
@@ -132,7 +207,7 @@ const Measurements = () => {
         { key: 'chest', label: 'Chest', unit: 'inches', placeholder: 'e.g., 38' },
         { key: 'waist', label: 'Waist', unit: 'inches', placeholder: 'e.g., 32' },
         { key: 'shoulder', label: 'Shoulder', unit: 'inches', placeholder: 'e.g., 16' },
-        { key: 'sleeveLength', label: 'Sleeve Length', unit: 'inches', placeholder: 'e.g., 24' },
+        { key: 'sleeve', label: 'Sleeve Length', unit: 'inches', placeholder: 'e.g., 24' },
         { key: 'armhole', label: 'Armhole', unit: 'inches', placeholder: 'e.g., 18' },
         { key: 'collar', label: 'Collar (Neck)', unit: 'inches', placeholder: 'e.g., 15' }
       ]
@@ -145,7 +220,7 @@ const Measurements = () => {
         { key: 'chest', label: 'Chest', unit: 'inches', placeholder: 'e.g., 40' },
         { key: 'waist', label: 'Waist', unit: 'inches', placeholder: 'e.g., 34' },
         { key: 'shoulder', label: 'Shoulder', unit: 'inches', placeholder: 'e.g., 17' },
-        { key: 'sleeveLength', label: 'Sleeve Length', unit: 'inches', placeholder: 'e.g., 25' },
+        { key: 'sleeve', label: 'Sleeve Length', unit: 'inches', placeholder: 'e.g., 25' },
         { key: 'armhole', label: 'Armhole', unit: 'inches', placeholder: 'e.g., 19' }
       ]
     },
@@ -156,7 +231,7 @@ const Measurements = () => {
         { key: 'length', label: 'Length', unit: 'inches', placeholder: 'e.g., 42' },
         { key: 'chest', label: 'Chest', unit: 'inches', placeholder: 'e.g., 38' },
         { key: 'waist', label: 'Waist', unit: 'inches', placeholder: 'e.g., 32' },
-        { key: 'seatHips', label: 'Seat / Hips', unit: 'inches', placeholder: 'e.g., 38' },
+        { key: 'hip', label: 'Seat / Hips', unit: 'inches', placeholder: 'e.g., 38' },
         { key: 'flare', label: 'Flare / Circumference', unit: 'inches', placeholder: 'e.g., 44' },
         { key: 'shoulder', label: 'Shoulder', unit: 'inches', placeholder: 'e.g., 16' },
         { key: 'armhole', label: 'Armhole', unit: 'inches', placeholder: 'e.g., 18' },
@@ -351,7 +426,18 @@ const Measurements = () => {
                             >
                               <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {category.fields.map((field) => {
-                                  const fieldValue = selectedProfile.measurements[categoryKey][field.key] || '';
+                                  // Try to get value with exact key first, then try lowercase version
+                                  let fieldValue = selectedProfile.measurements[field.key];
+                                  
+                                  // If not found, try lowercase version
+                                  if (!fieldValue && fieldValue !== 0) {
+                                    const lowerKey = field.key.toLowerCase();
+                                    fieldValue = selectedProfile.measurements[lowerKey];
+                                  }
+                                  
+                                  // Convert to string, default to empty string
+                                  fieldValue = fieldValue !== undefined && fieldValue !== null ? String(fieldValue) : '';
+                                  
                                   return (
                                     <div key={field.key}>
                                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
